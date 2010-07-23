@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT tap.plan(5);
+SELECT tap.plan(55);
 -- CALL no_plan();
 SELECT tap.ok(1, NULL);
 SELECT tap.ok(1, NULL);
