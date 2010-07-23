@@ -13,7 +13,7 @@ To install MyTAP into a MySQL database, just run `mytap.sql`:
     mysql -u root < mytap.sql
 
 This will install all of the assertion functions, as well as a cache table,
-into a database named "TAP".
+into a database named "tap".
 
 MyTAP Test Scripts
 ==================
