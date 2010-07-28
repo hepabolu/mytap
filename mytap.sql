@@ -4,6 +4,7 @@
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
+-- We use connection_id() in cid to keep things separate from other proceses.
 DROP TABLE IF EXISTS __tcache__;
 CREATE TABLE __tcache__ (
     id    INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -12,7 +13,18 @@ CREATE TABLE __tcache__ (
     value INTEGER NOT NULL,
     note  TEXT    NOT NULL
 );
- 
+
+DROP TABLE IF EXISTS __tresults__;
+CREATE TABLE __tresults__ (
+    numb   INTEGER NOT NULL,
+    cid    INTEGER NOT NULL,
+    ok     BOOLEAN NOT NULL DEFAULT 1,
+    aok    BOOLEAN NOT NULL DEFAULT 1,
+    descr  TEXT    NOT NULL,
+    type   TEXT    NOT NULL,
+    reason TEXT    NOT NULL
+);
+
 DELIMITER //
 
 DROP FUNCTION IF EXISTS mytap_version;
@@ -34,11 +46,11 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS _set;
-CREATE FUNCTION _set ( vlabel text, vvalue integer, vnote text ) RETURNS integer
+CREATE FUNCTION _set ( vlabel text, vvalue integer, vnote text ) RETURNS INTEGER
 BEGIN
     UPDATE __tcache__
        SET value = vvalue,
-           note = coalesce(vnote, '')
+           note  = COALESCE(vnote, '')
      WHERE cid   = connection_id()
        AND label = vlabel;
     IF ROW_COUNT() = 0 THEN
@@ -53,6 +65,13 @@ BEGIN
     UPDATE __tcache__
        SET value = vvalue
      WHERE id = vid;
+END //
+
+DROP FUNCTION IF EXISTS _nextnumb;
+CREATE FUNCTION _nextnumb() RETURNS INTEGER
+BEGIN
+    DECLARE nextnumb INTEGER DEFAULT COALESCE(_get('tnumb'), 0) + 1;
+    RETURN _set('tnumb', nextnumb, '');
 END //
 
 DROP FUNCTION IF EXISTS _add;
@@ -73,42 +92,49 @@ BEGIN
         SELECT `You tried to plan twice!` INTO trash;
     END IF;
 
-    CREATE TEMPORARY TABLE IF NOT EXISTS __tresults__ (
-        numb   INTEGER AUTO_INCREMENT PRIMARY KEY,
-        ok     BOOLEAN NOT NULL DEFAULT 1,
-        aok    BOOLEAN NOT NULL DEFAULT 1,
-        descr  TEXT    NOT NULL,
-        type   TEXT    NOT NULL,
-        reason TEXT    NOT NULL
-    );
-
     RETURN concat('1..', _set('plan', numb, NULL ));
 END //
 
 DROP PROCEDURE IF EXISTS no_plan;
 CREATE PROCEDURE no_plan()
 BEGIN
-    DECLARE hide text;
-    SET hide = plan(0);
+    DECLARE hide TEXT DEFAULT plan(0);
 END //
 
 DROP FUNCTION IF EXISTS add_result;
 CREATE FUNCTION add_result ( vok bool, vaok bool, vdescr text, vtype text, vreason text )
 RETURNS integer
 BEGIN
-    INSERT INTO __tresults__ ( ok, aok, descr, type, reason )
-    VALUES(vok, vaok, coalesce(vdescr, ''), coalesce(vtype, ''), coalesce(vreason, ''));
-    RETURN last_insert_id();
+    DECLARE tnumb INTEGER DEFAULT _nextnumb();
+    INSERT INTO __tresults__ ( numb, cid, ok, aok, descr, type, reason )
+    VALUES(tnumb, connection_id(), vok, vaok, coalesce(vdescr, ''), coalesce(vtype, ''), coalesce(vreason, ''));
+    RETURN tnumb;
+END //
+
+DROP FUNCTION IF EXISTS _tap;
+CREATE FUNCTION _tap(aok BOOLEAN, test_num INTEGER, descr TEXT, todo_why TEXT)
+RETURNS TEXT
+BEGIN
+    RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
+        'ok ', _set( 'curr_test', test_num, NULL ),
+        CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
+        COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
+        CASE WHEN aok THEN '' ELSE concat('\n',
+            diag(concat('Failed ',
+                CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
+                'test ', test_num,
+                CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
+                CASE WHEN aok IS NULL THEN concat('\n', diag('    (test result was NULL)')) ELSE '' END
+        ))) END
+    );
 END //
 
 DROP FUNCTION IF EXISTS ok;
 CREATE FUNCTION ok(aok BOOLEAN, descr TEXT) RETURNS TEXT
 BEGIN
-    DECLARE todo_why TEXT;
+    DECLARE todo_why TEXT DEFAULT _todo();
     DECLARE ok BOOLEAN;
     DECLARE test_num INTEGER;
-
-    SET todo_why = _todo();
 
     SET ok = CASE
         WHEN aok THEN aok
@@ -124,18 +150,20 @@ BEGIN
         COALESCE(todo_why, '')
     );
 
-    RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
-        'ok ', _set( 'curr_test', test_num, NULL ),
-        CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
-        COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
-        CASE WHEN aok THEN '' ELSE concat('\n',
-            diag(concat('Failed ',
-                CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
-                'test ', test_num,
-                CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
-                CASE WHEN aok IS NULL THEN concat('\n', diag('    (test result was NULL)')) ELSE '' END
-        ))) END
-    );
+    RETURN _tap(aok, test_num, descr, todo_why);
+
+    -- RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
+    --     'ok ', _set( 'curr_test', test_num, NULL ),
+    --     CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
+    --     COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
+    --     CASE WHEN aok THEN '' ELSE concat('\n',
+    --         diag(concat('Failed ',
+    --             CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
+    --             'test ', test_num,
+    --             CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
+    --             CASE WHEN aok IS NULL THEN concat('\n', diag('    (test result was NULL)')) ELSE '' END
+    --     ))) END
+    -- );
 END //
 
 DROP FUNCTION IF EXISTS num_failed;
@@ -144,7 +172,8 @@ BEGIN
     DECLARE ret integer;
     SELECT COUNT(*) INTO ret
       FROM __tresults__
-     WHERE ok  = 0;
+     WHERE cid = connection_id()
+       AND ok  = 0;
     RETURN ret;
 END //
 
@@ -152,7 +181,7 @@ DROP FUNCTION IF EXISTS _finish;
 CREATE FUNCTION _finish ( curr_test INTEGER,  exp_tests INTEGER, num_faild INTEGER)
 RETURNS TEXT
 BEGIN
-    DECLARE ret TEXT DEFAULT '';
+    DECLARE ret    TEXT DEFAULT '';
     DECLARE plural CHAR DEFAULT '';
     IF exp_tests = 1 THEN SET plural = 's'; END IF;
 
@@ -164,16 +193,16 @@ BEGIN
     IF exp_tests = 0 OR exp_tests IS NULL THEN
          -- No plan. Output one now.
         SET exp_tests = curr_test;
-        SET ret = concat(ret, '1..', COALESCE(exp_tests, 0));
+        SET ret = concat('1..', COALESCE(exp_tests, 0));
     END IF;
 
     IF curr_test <> exp_tests THEN
-        SET ret = concat(ret, diag(concat(
+        SET ret = concat(ret, CASE WHEN ret THEN '\n' ELSE '' END, diag(concat(
             'Looks like you planned ', exp_tests, ' test',
             plural, ' but ran ', curr_test
         )));
     ELSEIF num_faild > 0 THEN
-        SET ret = concat(ret, diag(concat(
+        SET ret = concat(ret, CASE WHEN ret THEN '\n' ELSE '' END, diag(concat(
             'Looks like you failed ', num_faild, ' test',
             CASE num_faild WHEN 1 THEN '' ELSE 's' END,
             ' of ', exp_tests
@@ -181,15 +210,15 @@ BEGIN
     END IF;
 
     -- Clean up our mess.
-    DELETE FROM __tcache__;
+    DELETE FROM __tcache__   WHERE cid = connection_id();
+    DELETE FROM __tresults__ WHERE cid = connection_id();
     RETURN ret;
 END //
 
 DROP PROCEDURE IF EXISTS finish;
 CREATE PROCEDURE finish ()
 BEGIN
-    DECLARE msg TEXT;
-    SET msg = _finish(
+    DECLARE msg TEXT DEFAULT _finish(
         _get('curr_test'),
         _get('plan'),
         num_failed()
@@ -245,9 +274,8 @@ BEGIN
     -- Get the latest id and value, because todo() might have been called
     -- again before the todos ran out for the first call to todo(). This
     -- allows them to nest.
-    DECLARE todos   INTEGER;
+    DECLARE todos   INTEGER DEFAULT _get_latest_value('todo');
     DECLARE todo_id INTEGER;
-    SET todos = _get_latest_value('todo');
 
     IF todos IS NULL THEN
         -- No todos.
@@ -445,6 +473,98 @@ BEGIN
        AND table_schema = dbname
        AND table_type <> 'SYSTEM VIEW';
     RETURN ok(ret, concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist'));
+END //
+
+-- check_test( test_output, pass, name, description, diag, match_diag )
+DROP FUNCTION IF EXISTS check_test;
+CREATE FUNCTION check_test(
+    have    TEXT,
+    eok     BOOLEAN,
+    name    TEXT,
+    edescr  TEXT,
+    ediag   TEXT,
+    matchit BOOLEAN
+) RETURNS TEXT
+BEGIN
+    DECLARE tnumb   INTEGER DEFAULT _get('tnumb');
+    DECLARE hok     BOOLEAN;
+    DECLARE hdescr  TEXT;
+    DECLARE ddescr  TEXT;
+    DECLARE hdiag   TEXT;
+    DECLARE tap     TEXT;
+    DECLARE myok    BOOLEAN;
+
+    -- Fetch the result.
+    SELECT aok, descr INTO hok ,hdescr
+      FROM __tresults__ WHERE numb = tnumb;
+
+    SET myok = CASE WHEN hok = eok THEN 1 ELSE 0 END;
+
+    -- Set up the description.
+    SET ddescr = concat(coalesce( concat(name, ' '), 'Test ' ), 'should ');
+
+    -- Replace the test result with this test result.
+    UPDATE __tresults__
+       SET ok     = myok,
+           aok    = myok,
+           descr  = concat(ddescr, CASE WHEN eok then 'pass' ELSE 'fail' END),
+           type   = '',
+           reason = ''
+     WHERE numb = tnumb;
+    SET tap = _tap(myok, tnumb, concat(ddescr, CASE WHEN eok then 'pass' ELSE 'fail' END), NULL);
+
+    -- Was the description as expected?
+    IF edescr IS NOT NULL THEN
+        SET tap = concat(tap, '\n', is_eq(
+            hdescr,
+            edescr,
+            concat(ddescr, 'have the proper description')
+        ));
+    END IF;
+
+    -- Were the diagnostics as expected?
+    IF ediag IS NOT NULL THEN
+        -- Remove ok and the test number.
+        SET hdiag = substring(
+            have
+            FROM (CASE WHEN hok THEN 4 ELSE 9 END) + char_length(tnumb)
+        );
+
+        -- Remove the description, if there is one.
+        IF hdescr <> '' THEN
+            SET hdiag = substring( hdiag FROM 3 + char_length( diag( hdescr ) ) );
+        END IF;
+
+        -- Remove failure message from ok().
+        IF NOT hok THEN
+           SET hdiag = substring(
+               hdiag
+               FROM 14 + char_length(tnumb)
+                       + CASE hdescr WHEN '' THEN 3 ELSE 3 + char_length( diag( hdescr ) ) END
+           );
+        END IF;
+
+        -- Remove the #s.
+        SET hdiag = replace( substring(hdiag from 3), '\n# ', '\n' );
+
+        -- Now compare the diagnostics.
+        IF matchit THEN
+            SET tap = concat(tap, '\n', matches(
+                hdiag,
+                ediag,
+                concat(ddescr, 'have the proper diagnostics')
+            ));
+        ELSE
+            SET tap = concat(tap, '\n', is_eq(
+                hdiag,
+                ediag,
+                concat(ddescr, 'have the proper diagnostics')
+            ));
+        END IF;
+    END IF;
+
+    -- And we're done
+    RETURN tap;
 END //
 
 DELIMITER ;

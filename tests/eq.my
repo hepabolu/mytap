@@ -1,0 +1,20 @@
+BEGIN;
+
+-- SELECT tap.plan(8);
+CALL tap.no_plan();
+
+
+/****************************************************************************/
+-- Test is().
+SELECT tap.check_test( tap.is_eq(1, 1, NULL), 1, 'tap.is_eq(1, 1)', '', '', 0 );
+SELECT tap.check_test( tap.is_eq('x', 'x', NULL), 1, 'tap.is_eq(''x'', ''x'')', '', '', 0 );
+SELECT tap.check_test( tap.is_eq(1.1, 1.10, NULL), 0, 'tap.is_eq(1.1, 1.10)', '', '       have: 1.1
+        want: 1.10', 0 );
+SELECT tap.check_test( tap.is_eq(1, 1, NULL), 1, 'tap.is_eq(1, 1)', '', '', 0 );
+SELECT tap.check_test( tap.is_eq(0, 0, NULL), 1, 'tap.is_eq(0, 0)', '', '', 0 );
+SELECT tap.check_test( tap.is_eq(1, 1, 'foo'), 1, 'tap.is_eq(1, 1, desc)', 'foo', '', 0 );
+SELECT tap.check_test( tap.is_eq(1, 2, NULL), 0, 'tap.is_eq(1, 2)', '', '       have: 1
+        want: 2', 0);
+
+CALL tap.finish();
+ROLLBACK;

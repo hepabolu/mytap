@@ -34,5 +34,4 @@ SELECT tap.is_eq(
 );
 
 CALL tap.finish();
-
 ROLLBACK;
