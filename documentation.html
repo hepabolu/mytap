@@ -44,6 +44,12 @@ well as the ability to integrate with other TAP-emitting test frameworks.</p>
 <li><a href="#No+Test+for+the+Wicked">No Test for the Wicked</a><ul>
 <li><a href="#Diagnostics">Diagnostics</a><ul>
 <li><a href="#diag"><code>diag()</code></a></li></ul></li>
+<li><a href="#Conditional+Tests">Conditional Tests</a><ul>
+<li><a href="#skip"><code>skip()</code></a></li>
+<li><a href="#todo"><code>todo()</code></a></li>
+<li><a href="#todo_start"><code>todo_start()</code></a></li>
+<li><a href="#todo_end()">todo_end()</a></li>
+<li><a href="#in_todo()">in_todo()</a></li></ul></li>
 <li><a href="#Utility+Functions">Utility Functions</a><ul>
 <li><a href="#mytap_version"><code>mytap_version()</code></a></li>
 <li><a href="#mysql_version"><code>mysql_version()</code></a></li></ul></li></ul></li>
@@ -402,6 +408,114 @@ SELECT tap.diag(concat(
 # but yours is set to latin1.
 # As a result, some tests may fail. YMMV. 
 </code></pre>
+
+<h2 id="Conditional+Tests">Conditional Tests</h2>
+
+<p>Sometimes running a test under certain conditions will cause the test script
+or function to die. A certain function or feature isn&rsquo;t implemented (such as
+<code>information_schema.global_variables()</code> prior to MySQL 5.1), some resource
+isn&rsquo;t available (like a replication), or a third party library isn&rsquo;t
+available. In these cases it&rsquo;s necessary to skip tests, or declare that they
+are supposed to fail but will work in the future (a todo test).</p>
+
+<h3 id="skip"><code>skip( how_many, why )</code></h3>
+
+<p>Outputs SKIP test results. Use it in a conditional expression within a
+<code>SELECT</code> statement to replace the output of a test that you otherwise would
+have run.</p>
+
+<pre><code>SELECT CASE WHEN mysql_version() &lt; 501000
+    THEN skip(1, 'ExtractValue() not supported before 5.1' )
+    ELSE ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work')
+END;
+
+SELECT CASE WHEN mysql_version() &lt; 501000
+    THEN skip(2, 'ExtractValue() not supported before 5.1' )
+    ELSE concat(
+        ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work'),
+        '\n',
+        ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work')
+    )
+END;
+</code></pre>
+
+<p>Note how use of the conditional <code>CASE</code> statement has been used to determine
+whether or not to run a couple of tests. If they are to be run, they are run
+through <code>concat()</code>, so that we can run a few tests in the same query. If we
+don&rsquo;t want to run them, we call <code>skip()</code> and tell it how many tests we're
+skipping.</p>
+
+<h3 id="todo"><code>todo( how_many, why )</code></h3>
+
+<p>Declares a series of tests that you expect to fail and why. Perhaps it&rsquo;s
+because you haven&rsquo;t fixed a bug or haven&rsquo;t finished a new feature:</p>
+
+<pre><code>SELECT todo(2, 'URIGeller not finished');
+
+SET card 'Eight of clubs';
+SELECT eq( yourCard(), @card, 'Is THIS your card?' );
+SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
+</code></pre>
+
+<p>With <code>todo()</code>, <code>@how_many</code> specifies how many tests are expected to fail.
+pgTAP will run the tests normally, but print out special flags indicating they
+are &ldquo;todo&rdquo; tests. The test harness will interpret these failures as ok. Should
+any todo test pass, the harness will report it as an unexpected success. You
+then know that the thing you had todo is done and can remove the call to
+<code>todo()</code>.</p>
+
+<p>The nice part about todo tests, as opposed to simply commenting out a block of
+tests, is that they're like a programmatic todo list. You know how much work
+is left to be done, you're aware of what bugs there are, and you'll know
+immediately when they're fixed.</p>
+
+<h3 id="todo_start"><code>todo_start( why )</code></h3>
+
+<p>This function allows you declare all subsequent tests as TODO tests, up until
+the <code>todo_end()</code> function is called.</p>
+
+<p>The <code>todo()</code> syntax is generally pretty good about figuring out whether or not
+we're in a TODO test. However, often we find it difficult to specify the
+<em>number</em> of tests that are TODO tests. Thus, you can instead use
+<code>todo_start()</code> and <code>todo_end()</code> to more easily define the scope of your TODO
+tests.</p>
+
+<p>Note that you can nest TODO tests, too:</p>
+
+<pre><code>SELECT todo_start('working on this');
+-- lots of code
+SELECT todo_start('working on that');
+-- more code
+SELECT todo_end();
+SELECT todo_end();
+</code></pre>
+
+<p>This is generally not recommended, but large testing systems often have weird
+internal needs.</p>
+
+<p>The <code>todo_start()</code> and <code>todo_end()</code> function should also work with the
+<code>todo()</code> function, although it&rsquo;s not guaranteed and its use is also
+discouraged:</p>
+
+<pre><code>SELECT todo_start('working on this');
+-- lots of code
+SELECT todo(2, 'working on that');
+-- Two tests for which the above line applies
+-- Followed by more tests scoped till the following line.
+SELECT todo_end();
+</code></pre>
+
+<p>We recommend that you pick one style or another of TODO to be on the safe
+side.</p>
+
+<h3 id="todo_end()">todo_end()</h3>
+
+<p>Stops running tests as TODO tests. This function is fatal if called without a
+preceding <code>todo_start()</code> method call.</p>
+
+<h3 id="in_todo()">in_todo()</h3>
+
+<p>Returns true if the test is currently inside a TODO block.</p>
 
 <h2 id="Utility+Functions">Utility Functions</h2>
 
