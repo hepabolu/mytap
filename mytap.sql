@@ -34,8 +34,8 @@ END //
 DROP FUNCTION IF EXISTS mysql_version;
 CREATE FUNCTION mysql_version() RETURNS integer
 BEGIN
-    RETURN (substring_index(version(), '.', 1) * 10000)
-         + (substring_index(substring_index(version(), '.', 2), '.', -1) * 100)
+    RETURN (substring_index(version(), '.', 1) * 100000)
+         + (substring_index(substring_index(version(), '.', 2), '.', -1) * 1000)
          + CAST(substring_index(substring_index(version(), '.', 3), '.', -1) AS UNSIGNED);
 END //
 

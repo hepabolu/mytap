@@ -346,14 +346,14 @@ Returns an integer representation of the server version number. This function
 is useful for determining whether or not certain tests should be run or
 skipped (using `skip()`) depending on the version of MySQL. For example:
 
-    SELECT CASE WHEN mysql_version() < 50100
-        THEN skip('throws_ok() not supported before 5.1' )
-        ELSE throws_ok( 'SELECT 1/0', 22012, 'division by zero' )
+    SELECT CASE WHEN mysql_version() < 501000
+        THEN skip('ExtractValue() not supported before 5.1' )
+        ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
     END;
 
-The revision level is in the tens position, the minor version in the thousands
-position, and the major version in the ten thousands position and above
-(assuming MySQL 10 is ever released, it will be in the hundred thousands
+The revision level is in the hundres position, the minor version in the ten
+thousands position, and the major version in the hundred thousands position
+and above (assuming MySQL 10 is ever released, it will be in the millions
 position).
 
 Compose Yourself
