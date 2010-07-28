@@ -159,19 +159,6 @@ BEGIN
     );
 
     RETURN _tap(aok, test_num, descr, todo_why);
-
-    -- RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
-    --     'ok ', _set( 'curr_test', test_num, NULL ),
-    --     CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
-    --     COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
-    --     CASE WHEN aok THEN '' ELSE concat('\n',
-    --         diag(concat('Failed ',
-    --             CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
-    --             'test ', test_num,
-    --             CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
-    --             CASE WHEN aok IS NULL THEN concat('\n', diag('    (test result was NULL)')) ELSE '' END
-    --     ))) END
-    -- );
 END //
 
 DROP FUNCTION IF EXISTS num_failed;
