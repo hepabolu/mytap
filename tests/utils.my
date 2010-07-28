@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT tap.plan(8);
+SELECT tap.plan(9);
 -- CALL tap.no_plan();
 
 -- Test is_reserved().
@@ -31,6 +31,13 @@ SELECT tap.eq(
     tap.quote_ident(@string),
     @qstring,
     concat('"', @string, '" should be quoted as ', @qstring)
+);
+
+-- Test mysql_version().
+SELECT tap.matches(
+    tap.mysql_version(),
+    '^[5][[:digit:]]{4}$',
+    'mysql_version() should be correct'
 );
 
 CALL tap.finish();

@@ -338,6 +338,24 @@ pTAP provides a few extra functions to make the work of testing more pleasant.
 Returns the version of MyTAP installed in the server. The value is `NUMERIC`,
 and thus suitable for comparing to a decimal value.
 
+### `mysql_version()` ###
+
+    SELECT mysql_version();
+
+Returns an integer representation of the server version number. This function
+is useful for determining whether or not certain tests should be run or
+skipped (using `skip()`) depending on the version of MySQL. For example:
+
+    SELECT CASE WHEN mysql_version() < 50100
+        THEN skip('throws_ok() not supported before 5.1' )
+        ELSE throws_ok( 'SELECT 1/0', 22012, 'division by zero' )
+    END;
+
+The revision level is in the tens position, the minor version in the thousands
+position, and the major version in the ten thousands position and above
+(assuming MySQL 10 is ever released, it will be in the hundred thousands
+position).
+
 Compose Yourself
 ================
 

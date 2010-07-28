@@ -3,7 +3,6 @@ BEGIN;
 SELECT tap.plan(37);
 -- CALL tap.no_plan(;
 
-
 /****************************************************************************/
 -- Test is().
 SELECT tap.check_test( tap.eq(1, 1, NULL), 1, 'tap.eq(1, 1)', '', '', 0 );
