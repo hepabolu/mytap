@@ -70,5 +70,5 @@ SELECT tap.check_test(
 
 /****************************************************************************/
 -- Finish the tests and clean up.
-CALL finish();
+CALL tap.finish();
 ROLLBACK;
