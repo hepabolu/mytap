@@ -42,6 +42,14 @@ Now you're ready to run your test script!
     1..1
     ok 1 - My test passed, w00t!
 
+Yeah, that's rather a lot of options to have to remember to get valid tap. I
+suggest that you install
+[TAP::Parser::SourceHandler::MyTAP](http://search.cpan.org/dist/TAP-Parser-SourceHandler-MyTAP)
+instead and just use its [`my_prove`](http://search.cpan.org/perldoc?my_prove)
+utility:
+
+    % my_prove -u root --database test test.sql
+
 Using MyTAP
 ===========
 
