@@ -11,15 +11,15 @@ SELECT tap.ok(NOT tap.is_reserved('foo'), '"foo" should not be an ident');
 -- Test quote_ident().
 SET @qc = CASE LOCATE('ANSI_QUOTES', @@SQL_MODE) WHEN 0 THEN '`' ELSE '"' END;
 
-SELECT tap.is_eq(tap.quote_ident('foo'), 'foo', '"foo" should be unquoted');
-SELECT tap.is_eq(tap.quote_ident('FOO'), 'FOO', '"FOO" should be unquoted');
-SELECT tap.is_eq(
+SELECT tap.eq(tap.quote_ident('foo'), 'foo', '"foo" should be unquoted');
+SELECT tap.eq(tap.quote_ident('FOO'), 'FOO', '"FOO" should be unquoted');
+SELECT tap.eq(
     tap.quote_ident('table'),
     concat(@qc, 'table', @qc),
     '"table" should be quoted'
 );
 
-SELECT tap.is_eq(
+SELECT tap.eq(
     tap.quote_ident('TABLE'),
     concat(@qc, 'TABLE', @qc),
     '"TABLE" should be quoted'
@@ -27,7 +27,7 @@ SELECT tap.is_eq(
 
 SET @string  = concat('foo', @qc, 'bar');
 SET @qstring = concat(@qc, replace(@string, @qc, concat(@qc, @qc)), @qc);
-SELECT tap.is_eq(
+SELECT tap.eq(
     tap.quote_ident(@string),
     @qstring,
     concat('"', @string, '" should be quoted as ', @qstring)

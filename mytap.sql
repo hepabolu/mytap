@@ -309,18 +309,18 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _is_eq;
-CREATE FUNCTION _is_eq( have TEXT, want TEXT) RETURNS BOOLEAN
+DROP FUNCTION IF EXISTS _eq;
+CREATE FUNCTION _eq( have TEXT, want TEXT) RETURNS BOOLEAN
 BEGIN
     RETURN (have IS NOT NULL AND want IS NOT NULL AND have = want)
         OR (have IS NULL AND want IS NULL)
         OR 0;
 END;
 
-DROP FUNCTION IF EXISTS is_eq;
-CREATE FUNCTION is_eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
+DROP FUNCTION IF EXISTS eq;
+CREATE FUNCTION eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
 BEGIN
-    IF _is_eq(have, want) THEN RETURN ok(1, descr); END IF;
+    IF _eq(have, want) THEN RETURN ok(1, descr); END IF;
 
     -- Fail.
     RETURN concat( ok(0, descr), '\n', diag(concat(
@@ -332,7 +332,7 @@ END //
 DROP FUNCTION IF EXISTS isnt_eq;
 CREATE FUNCTION isnt_eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
 BEGIN
-    IF NOT _is_eq(have, want) THEN RETURN ok(1, descr); END IF;
+    IF NOT _eq(have, want) THEN RETURN ok(1, descr); END IF;
 
     -- Fail.
     RETURN concat( ok(0, descr), '\n', diag(concat(
@@ -515,7 +515,7 @@ BEGIN
 
     -- Was the description as expected?
     IF edescr IS NOT NULL THEN
-        SET tap = concat(tap, '\n', is_eq(
+        SET tap = concat(tap, '\n', eq(
             hdescr,
             edescr,
             concat(ddescr, 'have the proper description')
@@ -555,7 +555,7 @@ BEGIN
                 concat(ddescr, 'have the proper diagnostics')
             ));
         ELSE
-            SET tap = concat(tap, '\n', is_eq(
+            SET tap = concat(tap, '\n', eq(
                 hdiag,
                 ediag,
                 concat(ddescr, 'have the proper diagnostics')

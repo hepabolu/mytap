@@ -150,20 +150,20 @@ Furthermore, should the boolean test result argument be passed as a `NULL`,
     #     Failed test 18: "sufficient mucus"
     #     (test result was NULL)
 
-### `is_eq( anyelement, anyelement, description )` ###
-### `is_eq( anyelement, anyelement )` ###
+### `eq( anyelement, anyelement, description )` ###
+### `eq( anyelement, anyelement )` ###
 ### `isnt_eq( anyelement, anyelement, description )` ###
 ### `isnt_eq( anyelement, anyelement )` ###
 
-    SELECT tap.is_eq(   @this, @that, @description );
+    SELECT tap.eq(   @this, @that, @description );
     SELECT tap.isnt_eq( @this, @that, @description );
 
-Similar to `ok()`, `is_eq()` and `isnt_eq()` compare their two arguments with
+Similar to `ok()`, `eq()` and `isnt_eq()` compare their two arguments with
 `=` AND `<>`, respectively, and use the result of that to determine if the
 test succeeded or failed. So these:
 
     -- Is the ultimate answer 42?
-    SELECT tap.is_eq( ultimate_answer(), 42, 'Meaning of Life' );
+    SELECT tap.eq( ultimate_answer(), 42, 'Meaning of Life' );
 
     -- foo() doesn't return empty
     SELECT tap.isnt_eq( foo(), '', 'Got some foo' );
@@ -175,16 +175,16 @@ are similar to these:
 
 (Mnemonic: "This is that." "This isn't that.")
 
-*Note:* `NULL`s are not treated as unknowns by `is_eq()` or `isnt_eq()`. That
+*Note:* `NULL`s are not treated as unknowns by `eq()` or `isnt_eq()`. That
 is, if `@this` and `@that` are both `NULL`, the test will pass, and if only
 one of them is `NULL`, the test will fail.
 
 So why use these test functions? They produce better diagnostics on failure.
 `ok()` cannot know what you are testing for (beyond the description), but
-`is_eq()` and `isnt_eq()` know what the test was and why it failed. For
+`eq()` and `isnt_eq()` know what the test was and why it failed. For
 example this test:
 
-    SELECT tap.is_eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
+    SELECT tap.eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
 
 Will produce something like this:
 
@@ -194,7 +194,7 @@ Will produce something like this:
 
 So you can figure out what went wrong without re-running the test.
 
-You are encouraged to use `is_eq()` and `isnt_eq()` over `ok()` where
+You are encouraged to use `eq()` and `isnt_eq()` over `ok()` where
 possible.
 
 ### `pass( description )` ###
@@ -299,7 +299,7 @@ appropriately by a test script.
 
 For example, say that you wanted to create a function to ensure that two text
 values always compare case-insensitively. Sure you could do this with
-`is_eq()` and the `LOWER()` function, but if you're doing this all the time,
+`eq()` and the `LOWER()` function, but if you're doing this all the time,
 you might want to simplify things. Here's how to go about it:
 
     DROP FUNCTION IF EXITS lc_is
@@ -332,7 +332,7 @@ is instructive, this version is easier on the eyes:
     CREATE FUNCTION lc_is ( have TEXT, want TEXT, descr TEXT )
     RETURNS TEXT
     BEGIN
-         RETURN is_eq( LOWER(have), LOWER(want), descr);
+         RETURN eq( LOWER(have), LOWER(want), descr);
     END //
 
 But either way, let MyTAP handle recording the test results and formatting the
@@ -374,7 +374,7 @@ function. For the impatient, the arguments are:
   a test. Must always follow whatever is output by the call to `ok()`.
   Optional. Use an empty string to test that no description is output.
 * `@match_diag` - Use `matches()` to compare the diagnostics rather than
-  `@is_eq()`. Useful for those situations where you're not sure what will be
+  `@eq()`. Useful for those situations where you're not sure what will be
   in the output, but you can match it with a regular expression.
 
 Now, on with the detailed documentation. At its simplest, you just pass in the
@@ -431,7 +431,7 @@ to adjust your plan accordingly. Also note how the test name was used in the
 descriptions for both tests.
 
 If the test had failed, it would output a nice diagnostics. Internally it just
-uses `is_eq()` to compare the strings:
+uses `eq()` to compare the strings:
 
     # Failed test 43:  "lc_eq() test should have the proper description"
     #         have: 'this is this'
@@ -472,7 +472,7 @@ like a description failure would, something like this:
 
 If you pass in the optional sixth argument, `@match_diag`, the `@want_diag`
 argument will be compared to the actual diagnostic output using `matches()`
-instead of `is_eq()`. This allows you to use a regular expression in the
+instead of `eq()`. This allows you to use a regular expression in the
 `@want_diag` argument to match the output, for those situations where some
 part of the output might vary, such as time-based diagnostics.
 
