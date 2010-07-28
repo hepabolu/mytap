@@ -260,6 +260,16 @@ BEGIN
     RETURN ret;
 END //
 
+DROP FUNCTION IF EXISTS _get_latest_with_value;
+CREATE FUNCTION _get_latest_with_value ( vlabel text, vvalue integer ) RETURNS INTEGER
+BEGIN
+    DECLARE ret integer;
+    SELECT MAX(id) INTO ret FROM __tcache__
+     WHERE label = vlabel
+       AND value = vvalue;
+    RETURN ret;
+END //
+
 DROP FUNCTION IF EXISTS _todo;
 CREATE FUNCTION _todo() RETURNS TEXT
 BEGIN
@@ -268,6 +278,7 @@ BEGIN
     -- allows them to nest.
     DECLARE todos   INTEGER DEFAULT _get_latest_value('todo');
     DECLARE todo_id INTEGER;
+    DECLARE note    TEXT;
 
     IF todos IS NULL THEN
         -- No todos.
@@ -285,12 +296,12 @@ BEGIN
         CALL _idset(todo_id, todos - 1);
     END IF;
 
+    SET note = _get_note_by_id(todo_id);
     IF todos = 1 THEN
         -- This was the last todo, so delete the record.
         DELETE FROM __tcache__ WHERE id = todo_id;
     END IF;
-
-    RETURN _get_note_by_id(todo_id);
+    RETURN note;
 END //
 
 DROP FUNCTION IF EXISTS _get_note_by_id;
@@ -618,6 +629,51 @@ BEGIN
     END IF;
 
     -- And we're done
+    RETURN tap;
+END //
+
+DROP PROCEDURE IF EXISTS todo;
+CREATE PROCEDURE todo (how_many int, why text)
+BEGIN
+    DECLARE hide INTEGER DEFAULT _add('todo', COALESCE(how_many, 1), COALESCE(why, ''));
+END //
+
+DROP PROCEDURE IF EXISTS todo_start;
+CREATE PROCEDURE todo_start (why text)
+BEGIN
+    DECLARE hide INTEGER DEFAULT _add('todo', -1, COALESCE(why, ''));
+END //
+
+DROP FUNCTION IF EXISTS in_todo;
+CREATE FUNCTION in_todo () RETURNS BOOLEAN
+BEGIN
+    RETURN CASE WHEN _get('todo') IS NULL THEN 0 ELSE 1 END;
+END //
+
+DROP PROCEDURE IF EXISTS todo_end;
+CREATE PROCEDURE todo_end ()
+BEGIN
+    DECLARE id INTEGER DEFAULT _get_latest_with_value( 'todo', -1 );
+    DECLARE trash TEXT;
+    IF id IS NULL THEN
+        SELECT  `todo_end() called without todo_start()` INTO trash;
+    END IF;
+    DELETE FROM __tcache__ WHERE id = id;
+END //
+
+DROP FUNCTION IF EXISTS skip;
+CREATE FUNCTION skip ( how_many int, why text )
+RETURNS TEXT
+BEGIN
+    DECLARE tap TEXT DEFAULT '';
+    REPEAT
+        SET tap = concat(
+            tap,
+            CASE WHEN tap = '' THEN '' ELSE '\n' END,
+            ok(1, concat('SKIP: ', COALESCE(why, '')))
+        );
+        SET how_many = how_many - 1;
+    UNTIL how_many = 0 END REPEAT;
     RETURN tap;
 END //
 
