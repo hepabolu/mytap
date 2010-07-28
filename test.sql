@@ -27,7 +27,7 @@ select tap.diag('hey\nthere');
 SELECT tap.ok(maxlen > 1, concat(character_set_name, ' should have length > 1'))
       FROM information_schema.character_sets;
 
-SELECT tap.has_table('__tcache__');
+SELECT tap.has_table('tap', '__tcache__');
 CALL tap.finish();
 
 ROLLBACK;

@@ -326,16 +326,16 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS has_table;
-CREATE FUNCTION has_table(tname TEXT) RETURNS TEXT
+CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
 BEGIN
     DECLARE ret BOOLEAN;
     SELECT 1
       INTO ret
       FROM information_schema.tables
      WHERE table_name = tname
-       AND table_schema = DATABASE()
+       AND table_schema = dbname
        AND table_type <> 'SYSTEM VIEW';
-    RETURN ok(ret, concat('Table ', quote(tname), ' should exist'));
+    RETURN ok(ret, concat('Table ', quote(dbname), '.', quote(tname), ' should exist'));
 END //
 
 DELIMITER ;

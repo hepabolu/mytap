@@ -219,19 +219,18 @@ The Schema Things
 Need to make sure that your database is designed just the way you think it
 should be? Use these test functions and rest easy.
 
-A note on comparisons: pgTAP uses a simple equivalence test (`=`) to compare
+A note on comparisons: MyTAP uses a simple equivalence test (`=`) to compare
+identifier names.
 
-### `has_table( table, description )` ###
-### `has_table( table )` ###
+### `has_table( database, table, description )` ###
 
-    SELECT has_table(
-        'sometable',
-        'I got sometable'
-    );
+    SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
 
-This function tests whether or not a table exists in the database. The first
-argument is a table name and the second is the (optional) test description. If
-you omit the test description, it will be set to "Table `:table` should
+This function tests whether or not a table exists in a database. The first
+argument is a database name, the second is a table name, and the third is the
+test description. If you want to test for a table in the current database, use
+the `DATABASE()` function to specify the current databasen name. If you omit
+the test description, it will be set to "Table ':database'.':table' should
 exist".
 
 No Test for the Wicked
