@@ -1,6 +1,3 @@
--- To run this and have it output TAP:
--- mysql -u root --disable-pager --batch --raw --skip-column-names --unbuffered --database test --execute 'source /Users/david/Desktop/ok.sql'
-
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
@@ -124,7 +121,7 @@ CREATE FUNCTION _tap(aok BOOLEAN, test_num INTEGER, descr TEXT, todo_why TEXT)
 RETURNS TEXT
 BEGIN
     RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
-        'ok ', _set( 'curr_test', test_num, NULL ),
+        'ok ', test_num,
         CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
         COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
         CASE WHEN aok THEN '' ELSE concat('\n',
@@ -214,7 +211,7 @@ DROP PROCEDURE IF EXISTS finish;
 CREATE PROCEDURE finish ()
 BEGIN
     DECLARE msg TEXT DEFAULT _finish(
-        _get('curr_test'),
+        _get('tnumb'),
         _get('plan'),
         num_failed()
     );
@@ -501,8 +498,8 @@ BEGIN
 END //
 
 
-DROP FUNCTION IF EXISTS has_table;
-CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
+DROP FUNCTION IF EXISTS _has_table;
+CREATE FUNCTION _has_table(dbname TEXT, tname TEXT) RETURNS BOOLEAN
 BEGIN
     DECLARE ret BOOLEAN;
     SELECT 1
@@ -511,7 +508,25 @@ BEGIN
      WHERE table_name = tname
        AND table_schema = dbname
        AND table_type <> 'SYSTEM VIEW';
-    RETURN ok(ret, concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist'));
+    RETURN COALESCE(ret, 0);
+END //
+
+DROP FUNCTION IF EXISTS has_table;
+CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
+BEGIN
+    RETURN ok(
+        _has_table(dbname, tname),
+        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist')
+    );
+END //
+
+DROP FUNCTION IF EXISTS hasnt_table;
+CREATE FUNCTION hasnt_table(dbname TEXT, tname TEXT) RETURNS TEXT
+BEGIN
+    RETURN ok(
+        NOT _has_table(dbname, tname),
+        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should not exist')
+    );
 END //
 
 -- check_test( test_output, pass, name, description, diag, match_diag )

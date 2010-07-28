@@ -1,0 +1,68 @@
+BEGIN;
+SELECT tap.plan(18);
+-- CALL no_plan();
+
+/****************************************************************************/
+-- Test has_table().
+
+SELECT tap.check_test(
+    tap.has_table( 'tap', '__SDFSDFD__' ),
+    0,
+    'tap.has_table(non-existent table)',
+    'Table tap.__SDFSDFD__ should exist',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.has_table( '__SDFSDFD__', 'lol' ),
+    0,
+    'tap.has_table(non-existent schema, tab)',
+    'Table __SDFSDFD__.lol should exist',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.has_table( 'tap', '__tcache__' ),
+    1,
+    'tap.has_table(sch, tab)',
+    'Table tap.__tcache__ should exist',
+    '',
+    0
+);
+
+/****************************************************************************/
+-- Test hasnt_table().
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'tap', '__SDFSDFD__' ),
+    1,
+    'tap.hasnt_table(non-existent table)',
+    'Table tap.__SDFSDFD__ should not exist',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table( '__SDFSDFD__', 'lol' ),
+    1,
+    'tap.hasnt_table(non-existent schema, tab)',
+    'Table __SDFSDFD__.lol should not exist',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'tap', '__tcache__' ),
+    0,
+    'tap.hasnt_table(sch, tab)',
+    'Table tap.__tcache__ should not exist',
+    '',
+    0
+);
+
+/****************************************************************************/
+-- Finish the tests and clean up.
+CALL tap.finish();
+ROLLBACK;
