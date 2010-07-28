@@ -115,7 +115,6 @@ All of the following functions return "ok" or "not ok" depending on whether
 the test succeeded or failed.
 
 ### `ok( boolean, description )` ###
-### `ok( boolean )` ###
 
     SELECT tap.ok( @this = @that, @description );
 
@@ -128,7 +127,7 @@ For example:
     SELECT tap.ok( 9 ^ 2 = 81,    'simple exponential' );
     SELECT tap.ok( 9 < 10,        'simple comparison' );
     SELECT tap.ok( 'foo' ~ '^f',  'simple regex' );
-    SELECT tap.ok( active = true, name ||  widget active' )
+    SELECT tap.ok( active,        concat(name, ' widget active' ))
       FROM widgets;
 
 (Mnemonic:  "This is ok.")
@@ -151,22 +150,20 @@ Furthermore, should the boolean test result argument be passed as a `NULL`,
     #     (test result was NULL)
 
 ### `eq( anyelement, anyelement, description )` ###
-### `eq( anyelement, anyelement )` ###
 ### `isnt_eq( anyelement, anyelement, description )` ###
-### `isnt_eq( anyelement, anyelement )` ###
 
     SELECT tap.eq(   @this, @that, @description );
-    SELECT tap.isnt_eq( @this, @that, @description );
+    SELECT tap.not_eq( @this, @that, @description );
 
-Similar to `ok()`, `eq()` and `isnt_eq()` compare their two arguments with
-`=` AND `<>`, respectively, and use the result of that to determine if the
-test succeeded or failed. So these:
+Similar to `ok()`, `eq()` and `not_eq()` compare their two arguments with `=`
+AND `<>`, respectively, and use the result of that to determine if the test
+succeeded or failed. So these:
 
     -- Is the ultimate answer 42?
     SELECT tap.eq( ultimate_answer(), 42, 'Meaning of Life' );
 
     -- foo() doesn't return empty
-    SELECT tap.isnt_eq( foo(), '', 'Got some foo' );
+    SELECT tap.not_eq( foo(), '', 'Got some foo' );
 
 are similar to these:
 
@@ -175,13 +172,13 @@ are similar to these:
 
 (Mnemonic: "This is that." "This isn't that.")
 
-*Note:* `NULL`s are not treated as unknowns by `eq()` or `isnt_eq()`. That
+*Note:* `NULL`s are not treated as unknowns by `eq()` or `not_eq()`. That
 is, if `@this` and `@that` are both `NULL`, the test will pass, and if only
 one of them is `NULL`, the test will fail.
 
 So why use these test functions? They produce better diagnostics on failure.
 `ok()` cannot know what you are testing for (beyond the description), but
-`eq()` and `isnt_eq()` know what the test was and why it failed. For
+`eq()` and `not_eq()` know what the test was and why it failed. For
 example this test:
 
     SELECT tap.eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
@@ -194,13 +191,62 @@ Will produce something like this:
 
 So you can figure out what went wrong without re-running the test.
 
-You are encouraged to use `eq()` and `isnt_eq()` over `ok()` where
+You are encouraged to use `eq()` and `not_eq()` over `ok()` where
 possible.
 
+### `matches( anyelement, regex, description )` ###
+
+    SELECT matches( @this, '^that', @description );
+
+Similar to `eq()`, `matches()` matches `@this` against the regex `/^that/`.
+
+So this:
+
+    SELECT matches( @this, '^that', 'this is like that' );
+
+is similar to:
+
+    SELECT ok( @this REGEXP '^that', 'this is like that' );
+
+(Mnemonic "This matches that".)
+
+Its advantages over `ok()` are similar to that of `eq()` and `not_eq()`: Better
+diagnostics on failure.
+
+### `doesnt_match( anyelement, regex, description )` ###
+
+    SELECT doesnt_match( @this, '^that', @description );
+
+This functions works exactly as `matches()` does, only it checks if `@this`
+*does not* match the given pattern.
+
+### `alike( anyelement, pattern, description )` ###
+
+    SELECT alike( @this, 'that%', @description );
+
+Similar to `matches()`, `alike()` matches `@this` against the SQL `LIKE`
+pattern 'that%'. So this:
+
+    SELECT alike( @this, 'that%', 'this is alike that' );
+
+is similar to:
+
+    SELECT ok( @this LIKE 'that%', 'this is like that' );
+
+(Mnemonic "This is like that".)
+
+Its advantages over `ok()` are similar to that of `eq()` and `not_eq()`:
+Better diagnostics on failure.
+
+### `unalike( anyelement, pattern, description )` ###
+
+    SELECT unalike( @this, 'that%', @description );
+
+Works exactly as `alike()`, only it checks if `@this` *does not* match the
+given pattern.
+
 ### `pass( description )` ###
-### `pass()` ###
 ### `fail( description )` ###
-### `fail()` ###
 
     SELECT tap.pass( @description );
     SELECT tap.fail( @description );

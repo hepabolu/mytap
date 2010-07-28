@@ -329,8 +329,8 @@ BEGIN
     )));
 END //
 
-DROP FUNCTION IF EXISTS isnt_eq;
-CREATE FUNCTION isnt_eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
+DROP FUNCTION IF EXISTS not_eq;
+CREATE FUNCTION not_eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
 BEGIN
     IF NOT _eq(have, want) THEN RETURN ok(1, descr); END IF;
 
@@ -339,6 +339,50 @@ BEGIN
            '        have: ', COALESCE(have, 'NULL'),
          '\n        want: anything else'
     )));
+END //
+
+DROP FUNCTION IF EXISTS _alike;
+CREATE FUNCTION _alike ( res BOOLEAN, got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    IF res THEN RETURN  ok( res, descr ); END IF;
+    RETURN concat(ok(res, descr), '\n',  diag(concat(
+           '                  ', COALESCE( quote(got), 'NULL' ),
+        '\n   doesn''t match: ', COALESCE( quote(pat), 'NULL' )
+    )));
+END //
+
+DROP FUNCTION IF EXISTS matches;
+CREATE FUNCTION matches ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    RETURN _alike( got REGEXP pat, got, pat, descr );
+END //
+
+DROP FUNCTION IF EXISTS alike;
+CREATE FUNCTION alike ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    RETURN _alike( got LIKE pat, got, pat, descr );
+END //
+
+DROP FUNCTION IF EXISTS _unalike;
+CREATE FUNCTION _unalike ( res BOOLEAN, got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    IF res THEN RETURN  ok( res, descr ); END IF;
+    RETURN concat(ok(res, descr), '\n',  diag(concat(
+           '                  ', COALESCE( quote(got), 'NULL' ),
+        '\n          matches: ', COALESCE( quote(pat), 'NULL' )
+    )));
+END //
+
+DROP FUNCTION IF EXISTS doesnt_match;
+CREATE FUNCTION doesnt_match ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    RETURN _unalike( got NOT REGEXP pat, got, pat, descr );
+END //
+
+DROP FUNCTION IF EXISTS unalike;
+CREATE FUNCTION unalike ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
+BEGIN
+    RETURN _unalike( got NOT LIKE pat, got, pat, descr );
 END //
 
 DROP FUNCTION IF EXISTS pass;

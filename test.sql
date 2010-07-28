@@ -19,10 +19,10 @@ SELECT tap.eq(null, null, 'Try two nulls');
 SELECT tap.eq(1, 3, 'fail two ints');
 SELECT tap.eq('cbc', 'bcb', 'fail two strings');
 SELECT tap.eq('cbc', NULL, 'fail one null');
-SELECT tap.isnt_eq('cbc', NULL, 'isnt_eq with null');
-SELECT tap.isnt_eq('cbc', 'bcb', 'isnt_eq with strings');
-SELECT tap.isnt_eq('cbc', 'cbc', 'isnt_eq with matching strings');
-SELECT tap.isnt_eq(NULL, NULL, 'isnt_eq with NULLs');
+SELECT tap.not_eq('cbc', NULL, 'not_eq with null');
+SELECT tap.not_eq('cbc', 'bcb', 'not_eq with strings');
+SELECT tap.not_eq('cbc', 'cbc', 'not_eq with matching strings');
+SELECT tap.not_eq(NULL, NULL, 'not_eq with NULLs');
 select tap.diag('hey\nthere');
 SELECT tap.ok(maxlen > 1, concat(character_set_name, ' should have length > 1'))
       FROM information_schema.character_sets;
