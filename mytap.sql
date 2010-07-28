@@ -325,6 +325,115 @@ BEGIN
     RETURN ok(0, descr);
 END //
 
+DROP FUNCTION IF EXISTS is_reserved;
+CREATE FUNCTION is_reserved(word TEXT) RETURNS BOOLEAN
+BEGIN
+    RETURN UPPER(word) IN (
+        'ADD',                    'ALL',                    'ALTER',
+        'ANALYZE',                'AND',                    'AS',
+        'ASC',                    'ASENSITIVE',             'BEFORE',
+        'BETWEEN',                'BIGINT',                 'BINARY',
+        'BLOB',                   'BOTH',                   'BY',
+        'CALL',                   'CASCADE',                'CASE',
+        'CHANGE',                 'CHAR',                   'CHARACTER',
+        'CHECK',                  'COLLATE',                'COLUMN',
+        'CONDITION',              'CONSTRAINT',             'CONTINUE',
+        'CONVERT',                'CREATE',                 'CROSS',
+        'CURRENT_DATE',           'CURRENT_TIME',           'CURRENT_TIMESTAMP',
+        'CURRENT_USER',           'CURSOR',                 'DATABASE',
+        'DATABASES',              'DAY_HOUR',               'DAY_MICROSECOND',
+        'DAY_MINUTE',             'DAY_SECOND',             'DEC',
+        'DECIMAL',                'DECLARE',                'DEFAULT',
+        'DELAYED',                'DELETE',                 'DESC',
+        'DESCRIBE',               'DETERMINISTIC',          'DISTINCT',
+        'DISTINCTROW',            'DIV',                    'DOUBLE',
+        'DROP',                   'DUAL',                   'EACH',
+        'ELSE',                   'ELSEIF',                 'ENCLOSED',
+        'ESCAPED',                'EXISTS',                 'EXIT',
+        'EXPLAIN',                'FALSE',                  'FETCH',
+        'FLOAT',                  'FLOAT4',                 'FLOAT8',
+        'FOR',                    'FORCE',                  'FOREIGN',
+        'FROM',                   'FULLTEXT',               'GRANT',
+        'GROUP',                  'HAVING',                 'HIGH_PRIORITY',
+        'HOUR_MICROSECOND',       'HOUR_MINUTE',            'HOUR_SECOND',
+        'IF',                     'IGNORE',                 'IN',
+        'INDEX',                  'INFILE',                 'INNER',
+        'INOUT',                  'INSENSITIVE',            'INSERT',
+        'INT',                    'INT1',                   'INT2',
+        'INT3',                   'INT4',                   'INT8',
+        'INTEGER',                'INTERVAL',               'INTO',
+        'IS',                     'ITERATE',                'JOIN',
+        'KEY',                    'KEYS',                   'KILL',
+        'LEADING',                'LEAVE',                  'LEFT',
+        'LIKE',                   'LIMIT',                  'LINES',
+        'LOAD',                   'LOCALTIME',              'LOCALTIMESTAMP',
+        'LOCK',                   'LONG',                   'LONGBLOB',
+        'LONGTEXT',               'LOOP',                   'LOW_PRIORITY',
+        'MATCH',                  'MEDIUMBLOB',             'MEDIUMINT',
+        'MEDIUMTEXT',             'MIDDLEINT',              'MINUTE_MICROSECOND',
+        'MINUTE_SECOND',          'MOD',                    'MODIFIES',
+        'NATURAL',                'NOT',                    'NO_WRITE_TO_BINLOG',
+        'NULL',                   'NUMERIC',                'ON',
+        'OPTIMIZE',               'OPTION',                 'OPTIONALLY',
+        'OR',                     'ORDER',                  'OUT',
+        'OUTER',                  'OUTFILE',                'PRECISION',
+        'PRIMARY',                'PROCEDURE',              'PURGE',
+        'RAID0',                  'READ',                   'READS',
+        'REAL',                   'REFERENCES',             'REGEXP',
+        'RELEASE',                'RENAME',                 'REPEAT',
+        'REPLACE',                'REQUIRE',                'RESTRICT',
+        'RETURN',                 'REVOKE',                 'RIGHT',
+        'RLIKE',                  'SCHEMA',                 'SCHEMAS',
+        'SECOND_MICROSECOND',     'SELECT',                 'SENSITIVE',
+        'SEPARATOR',              'SET',                    'SHOW',
+        'SMALLINT',               'SONAME',                 'SPATIAL',
+        'SPECIFIC',               'SQL',                    'SQLEXCEPTION',
+        'SQLSTATE',               'SQLWARNING',             'SQL_BIG_RESULT',
+        'SQL_CALC_FOUND_ROWS',    'SQL_SMALL_RESULT',       'SSL',
+        'STARTING',               'STRAIGHT_JOIN',          'TABLE',
+        'TERMINATED',             'THEN',                   'TINYBLOB',
+        'TINYINT',                'TINYTEXT',               'TO',
+        'TRAILING',               'TRIGGER',                'TRUE',
+        'UNDO',                   'UNION',                  'UNIQUE',
+        'UNLOCK',                 'UNSIGNED',               'UPDATE',
+        'USAGE',                  'USE',                    'USING',
+        'UTC_DATE',               'UTC_TIME',               'UTC_TIMESTAMP',
+        'VALUES',                 'VARBINARY',              'VARCHAR',
+        'VARCHARACTER',           'VARYING',                'WHEN',
+        'WHERE',                  'WHILE',                  'WITH',
+        'WRITE',                  'X509',                   'XOR',
+        'YEAR_MONTH',             'ZEROFILL',
+        'ASENSITIVE',             'CALL',                   'CONDITION',
+        'CONTINUE',               'CURSOR',                 'DECLARE',
+        'DETERMINISTIC',          'EACH',                   'ELSEIF',
+        'EXIT',                   'FETCH',                  'INOUT',
+        'INSENSITIVE',            'ITERATE',                'LEAVE',
+        'LOOP',                   'MODIFIES',               'OUT',
+        'READS',                  'RELEASE',                'REPEAT',
+        'RETURN',                 'SCHEMA',                 'SCHEMAS',
+        'SENSITIVE',              'SPECIFIC',               'SQL',
+        'SQLEXCEPTION',           'SQLSTATE',               'SQLWARNING',
+        'TRIGGER',                'UNDO',                   'WHILE',
+        'ACTION', 'BIT', 'DATE', 'ENUM', 'NO', 'TEXT', 'TIME', 'TIMESTAMP'
+    );
+END //
+
+DROP FUNCTION IF EXISTS quote_ident;
+CREATE FUNCTION quote_ident(ident TEXT) RETURNS TEXT
+BEGIN
+    IF LOCATE('ANSI_QUOTES', @@SQL_MODE) > 0 THEN
+        IF is_reserved(ident) OR locate('"', ident) > 0 THEN
+            RETURN concat('"', replace(ident, '"', '""'), '"');
+        END IF;
+    ELSE
+        IF is_reserved(ident) OR locate('`', ident) > 0 THEN
+            RETURN concat('`', replace(ident, '`', '``'), '`');
+        END IF;
+    END IF;
+    RETURN ident;
+END //
+
+
 DROP FUNCTION IF EXISTS has_table;
 CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
 BEGIN
@@ -335,7 +444,7 @@ BEGIN
      WHERE table_name = tname
        AND table_schema = dbname
        AND table_type <> 'SYSTEM VIEW';
-    RETURN ok(ret, concat('Table ', quote(dbname), '.', quote(tname), ' should exist'));
+    RETURN ok(ret, concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist'));
 END //
 
 DELIMITER ;
