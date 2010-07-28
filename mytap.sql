@@ -132,7 +132,7 @@ BEGIN
                 CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
                 'test ', test_num,
                 CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
-                CASE WHEN aok IS NULL THEN concat('\n', diag('    (test result was NULL)')) ELSE '' END
+                CASE WHEN aok IS NULL THEN concat('\n', '    (test result was NULL)') ELSE '' END
         ))) END
     );
 END //
