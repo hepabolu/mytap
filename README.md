@@ -325,6 +325,112 @@ Which would produce:
     # but yours is set to latin1.
     # As a result, some tests may fail. YMMV. 
 
+Conditional Tests
+-----------------
+
+Sometimes running a test under certain conditions will cause the test script
+or function to die. A certain function or feature isn't implemented (such as
+`information_schema.global_variables()` prior to MySQL 5.1), some resource
+isn't available (like a replication), or a third party library isn't
+available. In these cases it's necessary to skip tests, or declare that they
+are supposed to fail but will work in the future (a todo test).
+
+### `skip( how_many, why )` ###
+
+Outputs SKIP test results. Use it in a conditional expression within a
+`SELECT` statement to replace the output of a test that you otherwise would
+have run.
+
+    SELECT CASE WHEN mysql_version() < 501000
+        THEN skip(1, 'ExtractValue() not supported before 5.1' )
+        ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
+    END;
+
+    SELECT CASE WHEN mysql_version() < 501000
+        THEN skip(2, 'ExtractValue() not supported before 5.1' )
+        ELSE concat(
+            ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work'),
+            '\n',
+            ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
+        )
+    END;
+
+Note how use of the conditional `CASE` statement has been used to determine
+whether or not to run a couple of tests. If they are to be run, they are run
+through `concat()`, so that we can run a few tests in the same query. If we
+don't want to run them, we call `skip()` and tell it how many tests we're
+skipping.
+
+### `todo( how_many, why )` ###
+
+Declares a series of tests that you expect to fail and why. Perhaps it's
+because you haven't fixed a bug or haven't finished a new feature:
+
+    SELECT todo(2, 'URIGeller not finished');
+
+    SET card 'Eight of clubs';
+    SELECT eq( yourCard(), @card, 'Is THIS your card?' );
+    SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
+
+With `todo()`, `@how_many` specifies how many tests are expected to fail.
+pgTAP will run the tests normally, but print out special flags indicating they
+are "todo" tests. The test harness will interpret these failures as ok. Should
+any todo test pass, the harness will report it as an unexpected success. You
+then know that the thing you had todo is done and can remove the call to
+`todo()`.
+
+The nice part about todo tests, as opposed to simply commenting out a block of
+tests, is that they're like a programmatic todo list. You know how much work
+is left to be done, you're aware of what bugs there are, and you'll know
+immediately when they're fixed.
+
+### `todo_start( why )` ###
+
+This function allows you declare all subsequent tests as TODO tests, up until
+the `todo_end()` function is called.
+
+The `todo()` syntax is generally pretty good about figuring out whether or not
+we're in a TODO test. However, often we find it difficult to specify the
+*number* of tests that are TODO tests. Thus, you can instead use
+`todo_start()` and `todo_end()` to more easily define the scope of your TODO
+tests.
+
+Note that you can nest TODO tests, too:
+
+    SELECT todo_start('working on this');
+    -- lots of code
+    SELECT todo_start('working on that');
+    -- more code
+    SELECT todo_end();
+    SELECT todo_end();
+
+This is generally not recommended, but large testing systems often have weird
+internal needs.
+
+The `todo_start()` and `todo_end()` function should also work with the
+`todo()` function, although it's not guaranteed and its use is also
+discouraged:
+
+
+    SELECT todo_start('working on this');
+    -- lots of code
+    SELECT todo(2, 'working on that');
+    -- Two tests for which the above line applies
+    -- Followed by more tests scoped till the following line.
+    SELECT todo_end();
+
+We recommend that you pick one style or another of TODO to be on the safe
+side.
+
+### todo_end() ###
+
+Stops running tests as TODO tests. This function is fatal if called without a
+preceding `todo_start()` method call.
+
+### in_todo() ###
+
+Returns true if the test is currently inside a TODO block.
+
 Utility Functions
 -----------------
 
