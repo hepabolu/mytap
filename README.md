@@ -332,11 +332,154 @@ is instructive, this version is easier on the eyes:
     CREATE FUNCTION lc_is ( have TEXT, want TEXT, descr TEXT )
     RETURNS TEXT
     BEGIN
-         RETURN is( LOWER(have), LOWER(want), descr);
+         RETURN is_eq( LOWER(have), LOWER(want), descr);
     END //
 
 But either way, let MyTAP handle recording the test results and formatting the
 output.
+
+Testing Test Functions
+----------------------
+
+Now you've written your test function. So how do you test it? Why, with this
+handy-dandy test function!
+
+### `check_test( test_output, is_ok, name, want_description, want_diag, match_diag )` ###
+
+    SELECT check_test(
+        lc_eq('This', 'THAT', 'not eq'),
+        0,
+        'lc_eq fail',
+        'not eq',
+        '    Want: this\n    Have: that'
+    );
+
+    SELECT check_test(
+        lc_eq('This', 'THIS', 'eq'),
+        1
+    );
+
+This function runs anywhere between one and three tests against a test
+function. For the impatient, the arguments are:
+
+* `@test_output` - The output from your test. Usually it's just returned by a
+  call to the test function itself. Required.
+* `@is_ok` - Boolean indicating whether or not the test is expected to pass.
+  Required.
+* `@name` - A brief name for your test, to make it easier to find failures in
+  your test script. Optional.
+* `@want_description` - Expected test description to be output by the test.
+  Optional. Use an empty string to test that no description is output.
+* `@want_diag` - Expected diagnostic message output during the execution of
+  a test. Must always follow whatever is output by the call to `ok()`.
+  Optional. Use an empty string to test that no description is output.
+* `@match_diag` - Use `matches()` to compare the diagnostics rather than
+  `@is_eq()`. Useful for those situations where you're not sure what will be
+  in the output, but you can match it with a regular expression.
+
+Now, on with the detailed documentation. At its simplest, you just pass in the
+output of your test function (and it must be one and **only one** test
+function's output, or you'll screw up the count, so don't do that!) and a
+boolean value indicating whether or not you expect the test to have passed.
+That looks something like the second example above.
+
+All other arguments are optional, but I recommend that you *always* include a
+short test name to make it easier to track down failures in your test script.
+`check_test()` uses this name to construct descriptions of all of the tests it
+runs. For example, without a short name, the above example will yield output
+like so:
+
+    not ok 14 - Test should pass
+
+Yeah, but which test? So give it a very succinct name and you'll know what
+test. If you have a lot of these, it won't be much help. So give each call
+to `check_test()` a name:
+
+    SELECT check_test(
+        lc_eq('This', 'THIS', 'eq'),
+        true,
+        'Simple lc_eq test',
+    );
+
+Then you'll get output more like this:
+
+    not ok 14 - Simple lc_test should pass
+
+Which will make it much easier to find the failing test in your test script.
+
+The optional fourth argument is the description you expect to be output. This
+is especially important if your test function generates a description when
+none is passed to it. You want to make sure that your function generates the
+test description you think it should! This will cause a second test to be run
+on your test function. So for something like this:
+
+    SELECT check_test(
+        lc_eq( ''this'', ''THIS'' ),
+        true,
+        'lc_eq() test',
+        'this is THIS'
+    );
+
+The output then would look something like this, assuming that the `lc_eq()`
+function generated the proper description (the above example does not):
+
+    ok 42 - lc_eq() test should pass
+    ok 43 - lc_eq() test should have the proper description
+
+See how there are two tests run for a single call to `check_test()`? Be sure
+to adjust your plan accordingly. Also note how the test name was used in the
+descriptions for both tests.
+
+If the test had failed, it would output a nice diagnostics. Internally it just
+uses `is_eq()` to compare the strings:
+
+    # Failed test 43:  "lc_eq() test should have the proper description"
+    #         have: 'this is this'
+    #         want: 'this is THIS'
+
+The fifth argument, `@want_diag`, which is also optional, compares the
+diagnostics generated during the test to an expected string. Such diagnostics
+**must** follow whatever is output by the call to `ok()` in your test. Your
+test function should not call `diag()` until after it calls `ok()` or things
+will get truly funky.
+
+Assuming you've followed that rule in your `lc_eq()` test function, see what
+happens when a `lc_eq()` fails. Write your test to test the diagnostics like
+so:
+
+    SELECT * FROM check_test(
+        lc_eq( ''this'', ''THat'' ),
+        false,
+        'lc_eq() failing test',
+        'this is THat',
+        '    Want: this\n    Have: THat
+    );
+
+This of course triggers a third test to run. The output will look like so:
+
+    ok 44 - lc_eq() failing test should fail
+    ok 45 - lc_eq() failing test should have the proper description
+    ok 46 - lc_eq() failing test should have the proper diagnostics
+
+And of course, it the diagnostic test fails, it will output diagnostics just
+like a description failure would, something like this:
+
+    # Failed test 46:  "lc_eq() failing test should have the proper diagnostics"
+    #         have:     Have: this
+    #     Want: that
+    #         want:     Have: this
+    #     Want: THat
+
+If you pass in the optional sixth argument, `@match_diag`, the `@want_diag`
+argument will be compared to the actual diagnostic output using `matches()`
+instead of `is_eq()`. This allows you to use a regular expression in the
+`@want_diag` argument to match the output, for those situations where some
+part of the output might vary, such as time-based diagnostics.
+
+I realize that all of this can be a bit confusing, given the various haves and
+wants, but it gets the job done. Of course, if your diagnostics use something
+other than indented "have" and "want", such failures will be easier to read.
+But either way, *do* test your diagnostics!
 
 To Do
 -----
