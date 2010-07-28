@@ -1,6 +1,6 @@
 BEGIN;
--- SELECT tap.plan(18);
-CALL tap.no_plan();
+SELECT tap.plan(21);
+-- CALL tap.no_plan();
 
 /****************************************************************************/
 -- Test todo tests.

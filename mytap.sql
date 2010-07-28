@@ -264,9 +264,12 @@ DROP FUNCTION IF EXISTS _get_latest_with_value;
 CREATE FUNCTION _get_latest_with_value ( vlabel text, vvalue integer ) RETURNS INTEGER
 BEGIN
     DECLARE ret integer;
-    SELECT MAX(id) INTO ret FROM __tcache__
+    SELECT MAX(id)
+      INTO ret
+      FROM __tcache__
      WHERE label = vlabel
-       AND value = vvalue;
+       AND value = vvalue
+       AND cid = connection_id();
     RETURN ret;
 END //
 
@@ -653,12 +656,12 @@ END //
 DROP PROCEDURE IF EXISTS todo_end;
 CREATE PROCEDURE todo_end ()
 BEGIN
-    DECLARE id INTEGER DEFAULT _get_latest_with_value( 'todo', -1 );
+    DECLARE tid INTEGER DEFAULT _get_latest_with_value( 'todo', -1 );
     DECLARE trash TEXT;
-    IF id IS NULL THEN
+    IF tid IS NULL THEN
         SELECT  `todo_end() called without todo_start()` INTO trash;
     END IF;
-    DELETE FROM __tcache__ WHERE id = id;
+    DELETE FROM __tcache__ WHERE id = tid;
 END //
 
 DROP FUNCTION IF EXISTS skip;
