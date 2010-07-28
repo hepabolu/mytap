@@ -1,0 +1,8 @@
+Revision history for MyTAP
+==========================
+
+0.01  2010-07-28T18:37:03
+-------------------------
+* Initial public release with core functionality ported from
+  [pgTAP](http://pgtap.org/).
+  [Announcement](http://justatheory.com/computers/databases/mysql/introducing_mytap.html).
