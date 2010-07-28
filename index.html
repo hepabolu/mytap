@@ -135,7 +135,6 @@ SELECT tap.has_table( DATABASE(), 'domains' );
 SELECT tap.has_table( DATABASE(), 'stuff' );
 SELECT tap.has_table( DATABASE(), 'sources' );
 SELECT tap.has_table( DATABASE(), 'domain_stuff' );
-
 <!-- Uncomment when these functions have been added. Be sure to update the plan, too.
 
 SELECT tap.has_column( DATABASE(), 'domains', 'id' );
@@ -165,7 +164,6 @@ SELECT tap.can_ok(
 );
 
 -->
-
 CALL tap.finish();
 ROLLBACK;</code></pre>
 
@@ -185,10 +183,19 @@ ROLLBACK;</code></pre>
       its <a href="http://github.com/theory/mytap/tree/master/tests/">own test
       suite</a> for a good example of such test-driven developement tests.
       Runing them
-      with <a href="http://search.cpan.org/perldoc?my_prove"><code>my_prove</code>
+      with <a href="http://search.cpan.org/perldoc?my_prove"><code>my_prove</code></a>
       looks like so:</p>
 
-    <pre><code>% XXX fill me in.
+    <pre><code>% my_prove -u root -D try tests/
+tests/eq.my ........ ok
+tests/hastap.my .... ok
+tests/matching.my .. ok
+tests/moretap.my ... ok
+tests/todotap.my ... ok
+tests/utils.my ..... ok
+All tests successful.
+Files=6, Tests=137,  1 wallclock secs ( 0.06 usr  0.03 sys +  0.01 cusr  0.02 csys =  0.12 CPU)
+Result: PASS
     </code></pre>
 
     <h2>Get Started</h2>
@@ -196,7 +203,7 @@ ROLLBACK;</code></pre>
     <p>So, what are you waiting
       for? <a href="http://github.com/theory/mytap/downloads"
       title="Download MyTAP from GitHub">Download the latest version of
-      MyTAP</a>, or grab fork the 
+      MyTAP</a>, or grab fork the
       <a title="MyTAP GitHub Repository"
       href="http://github.com/theory/mytap/">git repository</a>,
       read the <a href="/documentation.html" title="The complete MyTAP
