@@ -88,12 +88,20 @@ BEGIN
     RETURN vvalue;
 END //
 
+DROP PROCEDURE IF EXISTS _cleanup;
+CREATE PROCEDURE _cleanup ()
+BEGIN
+    DELETE FROM __tcache__   WHERE cid = connection_id();
+    DELETE FROM __tresults__ WHERE cid = connection_id();
+end //
+
 DROP FUNCTION IF EXISTS plan;
 CREATE FUNCTION plan( numb integer) RETURNS TEXT
 BEGIN
     DECLARE trash TEXT;
-    -- Ugly hack to throw an exception.
     IF _get('plan') IS NOT NULL THEN
+        CALL _cleanup();
+        -- Ugly hack to throw an exception.
         SELECT `You tried to plan twice!` INTO trash;
     END IF;
 
@@ -178,6 +186,7 @@ BEGIN
     IF exp_tests = 1 THEN SET plural = 's'; END IF;
 
     IF curr_test IS NULL THEN
+        CALL _cleanup();
         -- Ugly hack to throw an exception.
         SELECT `# No tests run!` INTO ret;
     END IF;
@@ -202,8 +211,7 @@ BEGIN
     END IF;
 
     -- Clean up our mess.
-    DELETE FROM __tcache__   WHERE cid = connection_id();
-    DELETE FROM __tresults__ WHERE cid = connection_id();
+    CALL _cleanup();
     RETURN ret;
 END //
 
@@ -659,6 +667,7 @@ BEGIN
     DECLARE tid INTEGER DEFAULT _get_latest_with_value( 'todo', -1 );
     DECLARE trash TEXT;
     IF tid IS NULL THEN
+        CALL _cleanup();
         SELECT  `todo_end() called without todo_start()` INTO trash;
     END IF;
     DELETE FROM __tcache__ WHERE id = tid;

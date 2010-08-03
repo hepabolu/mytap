@@ -3,6 +3,9 @@ Revision history for MyTAP
 
 0.02  
 -------------------------
+* Modified exception-throwing code to always clear out the cached data before
+  dying. Doesn't cover cases where the code being tested dies, but at least it
+  covers our own intentional deaths.
 
 
 0.01  2010-07-28T18:37:03
