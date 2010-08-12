@@ -24,14 +24,14 @@ CREATE TABLE __tresults__ (
 
 DELIMITER //
 
-DROP FUNCTION IF EXISTS mytap_version;
+DROP FUNCTION IF EXISTS mytap_version //
 CREATE FUNCTION mytap_version()
 RETURNS NUMERIC
 BEGIN
     RETURN 0.02;
 END //
 
-DROP FUNCTION IF EXISTS mysql_version;
+DROP FUNCTION IF EXISTS mysql_version //
 CREATE FUNCTION mysql_version() RETURNS integer
 BEGIN
     RETURN (substring_index(version(), '.', 1) * 100000)
@@ -39,7 +39,7 @@ BEGIN
          + CAST(substring_index(substring_index(version(), '.', 3), '.', -1) AS UNSIGNED);
 END //
 
-DROP FUNCTION IF EXISTS _get;
+DROP FUNCTION IF EXISTS _get //
 CREATE FUNCTION _get ( vlabel text ) RETURNS integer
 BEGIN
     DECLARE ret integer;
@@ -50,7 +50,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _set;
+DROP FUNCTION IF EXISTS _set //
 CREATE FUNCTION _set ( vlabel text, vvalue integer, vnote text ) RETURNS INTEGER
 BEGIN
     UPDATE __tcache__
@@ -64,7 +64,7 @@ BEGIN
     RETURN vvalue;
 END//
 
-DROP PROCEDURE IF EXISTS _idset;
+DROP PROCEDURE IF EXISTS _idset //
 CREATE PROCEDURE _idset( vid integer, vvalue integer)
 BEGIN
     UPDATE __tcache__
@@ -72,14 +72,14 @@ BEGIN
      WHERE id = vid;
 END //
 
-DROP FUNCTION IF EXISTS _nextnumb;
+DROP FUNCTION IF EXISTS _nextnumb //
 CREATE FUNCTION _nextnumb() RETURNS INTEGER
 BEGIN
     DECLARE nextnumb INTEGER DEFAULT COALESCE(_get('tnumb'), 0) + 1;
     RETURN _set('tnumb', nextnumb, '');
 END //
 
-DROP FUNCTION IF EXISTS _add;
+DROP FUNCTION IF EXISTS _add //
 CREATE FUNCTION _add ( vlabel text, vvalue integer, vnote text )
 RETURNS integer
 BEGIN
@@ -88,14 +88,14 @@ BEGIN
     RETURN vvalue;
 END //
 
-DROP PROCEDURE IF EXISTS _cleanup;
+DROP PROCEDURE IF EXISTS _cleanup //
 CREATE PROCEDURE _cleanup ()
 BEGIN
     DELETE FROM __tcache__   WHERE cid = connection_id();
     DELETE FROM __tresults__ WHERE cid = connection_id();
 end //
 
-DROP FUNCTION IF EXISTS plan;
+DROP FUNCTION IF EXISTS plan //
 CREATE FUNCTION plan( numb integer) RETURNS TEXT
 BEGIN
     DECLARE trash TEXT;
@@ -108,13 +108,13 @@ BEGIN
     RETURN concat('1..', _set('plan', numb, NULL ));
 END //
 
-DROP PROCEDURE IF EXISTS no_plan;
+DROP PROCEDURE IF EXISTS no_plan //
 CREATE PROCEDURE no_plan()
 BEGIN
     DECLARE hide TEXT DEFAULT plan(0);
 END //
 
-DROP FUNCTION IF EXISTS add_result;
+DROP FUNCTION IF EXISTS add_result //
 CREATE FUNCTION add_result ( vok bool, vaok bool, vdescr text, vtype text, vreason text )
 RETURNS integer
 BEGIN
@@ -124,7 +124,7 @@ BEGIN
     RETURN tnumb;
 END //
 
-DROP FUNCTION IF EXISTS _tap;
+DROP FUNCTION IF EXISTS _tap //
 CREATE FUNCTION _tap(aok BOOLEAN, test_num INTEGER, descr TEXT, todo_why TEXT)
 RETURNS TEXT
 BEGIN
@@ -142,7 +142,7 @@ BEGIN
     );
 END //
 
-DROP FUNCTION IF EXISTS ok;
+DROP FUNCTION IF EXISTS ok //
 CREATE FUNCTION ok(aok BOOLEAN, descr TEXT) RETURNS TEXT
 BEGIN
     DECLARE todo_why TEXT DEFAULT _todo();
@@ -166,7 +166,7 @@ BEGIN
     RETURN _tap(aok, test_num, descr, todo_why);
 END //
 
-DROP FUNCTION IF EXISTS num_failed;
+DROP FUNCTION IF EXISTS num_failed //
 CREATE FUNCTION num_failed () RETURNS INTEGER
 BEGIN
     DECLARE ret integer;
@@ -177,7 +177,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _finish;
+DROP FUNCTION IF EXISTS _finish //
 CREATE FUNCTION _finish ( curr_test INTEGER,  exp_tests INTEGER, num_faild INTEGER)
 RETURNS TEXT
 BEGIN
@@ -215,7 +215,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP PROCEDURE IF EXISTS finish;
+DROP PROCEDURE IF EXISTS finish //
 CREATE PROCEDURE finish ()
 BEGIN
     DECLARE msg TEXT DEFAULT _finish(
@@ -226,7 +226,7 @@ BEGIN
     if msg IS NOT NULL AND msg <> '' THEN SELECT msg; END IF;
 END //
 
-DROP FUNCTION IF EXISTS diag;
+DROP FUNCTION IF EXISTS diag //
 CREATE FUNCTION diag ( msg text ) RETURNS TEXT
 BEGIN
     RETURN concat('# ', replace(
@@ -240,7 +240,7 @@ BEGIN
     ));
 END //
 
-DROP FUNCTION IF EXISTS _get_latest_value;
+DROP FUNCTION IF EXISTS _get_latest_value //
 CREATE FUNCTION _get_latest_value ( vlabel text )
 RETURNS integer
 BEGIN
@@ -254,7 +254,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _get_latest_id;
+DROP FUNCTION IF EXISTS _get_latest_id //
 CREATE FUNCTION _get_latest_id ( vlabel text )
 RETURNS integer
 BEGIN
@@ -268,7 +268,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _get_latest_with_value;
+DROP FUNCTION IF EXISTS _get_latest_with_value //
 CREATE FUNCTION _get_latest_with_value ( vlabel text, vvalue integer ) RETURNS INTEGER
 BEGIN
     DECLARE ret integer;
@@ -281,7 +281,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _todo;
+DROP FUNCTION IF EXISTS _todo //
 CREATE FUNCTION _todo() RETURNS TEXT
 BEGIN
     -- Get the latest id and value, because todo() might have been called
@@ -315,7 +315,7 @@ BEGIN
     RETURN note;
 END //
 
-DROP FUNCTION IF EXISTS _get_note_by_id;
+DROP FUNCTION IF EXISTS _get_note_by_id //
 CREATE FUNCTION _get_note_by_id ( vid integer ) RETURNS text
 BEGIN
     DECLARE ret TEXT;
@@ -323,7 +323,7 @@ BEGIN
     RETURN ret;
 END //
 
-DROP FUNCTION IF EXISTS _eq;
+DROP FUNCTION IF EXISTS _eq //
 CREATE FUNCTION _eq( have TEXT, want TEXT) RETURNS BOOLEAN
 BEGIN
     RETURN (have IS NOT NULL AND want IS NOT NULL AND have = want)
@@ -331,7 +331,7 @@ BEGIN
         OR 0;
 END;
 
-DROP FUNCTION IF EXISTS eq;
+DROP FUNCTION IF EXISTS eq //
 CREATE FUNCTION eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
 BEGIN
     IF _eq(have, want) THEN RETURN ok(1, descr); END IF;
@@ -343,7 +343,7 @@ BEGIN
     )));
 END //
 
-DROP FUNCTION IF EXISTS not_eq;
+DROP FUNCTION IF EXISTS not_eq //
 CREATE FUNCTION not_eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
 BEGIN
     IF NOT _eq(have, want) THEN RETURN ok(1, descr); END IF;
@@ -355,7 +355,7 @@ BEGIN
     )));
 END //
 
-DROP FUNCTION IF EXISTS _alike;
+DROP FUNCTION IF EXISTS _alike //
 CREATE FUNCTION _alike ( res BOOLEAN, got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     IF res THEN RETURN  ok( res, descr ); END IF;
@@ -365,19 +365,19 @@ BEGIN
     )));
 END //
 
-DROP FUNCTION IF EXISTS matches;
+DROP FUNCTION IF EXISTS matches //
 CREATE FUNCTION matches ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     RETURN _alike( got REGEXP pat, got, pat, descr );
 END //
 
-DROP FUNCTION IF EXISTS alike;
+DROP FUNCTION IF EXISTS alike //
 CREATE FUNCTION alike ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     RETURN _alike( got LIKE pat, got, pat, descr );
 END //
 
-DROP FUNCTION IF EXISTS _unalike;
+DROP FUNCTION IF EXISTS _unalike //
 CREATE FUNCTION _unalike ( res BOOLEAN, got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     IF res THEN RETURN  ok( res, descr ); END IF;
@@ -387,31 +387,31 @@ BEGIN
     )));
 END //
 
-DROP FUNCTION IF EXISTS doesnt_match;
+DROP FUNCTION IF EXISTS doesnt_match //
 CREATE FUNCTION doesnt_match ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     RETURN _unalike( got NOT REGEXP pat, got, pat, descr );
 END //
 
-DROP FUNCTION IF EXISTS unalike;
+DROP FUNCTION IF EXISTS unalike //
 CREATE FUNCTION unalike ( got TEXT, pat TEXT, descr TEXT ) RETURNS TEXT
 BEGIN
     RETURN _unalike( got NOT LIKE pat, got, pat, descr );
 END //
 
-DROP FUNCTION IF EXISTS pass;
+DROP FUNCTION IF EXISTS pass //
 CREATE FUNCTION pass(descr TEXT) RETURNS TEXT
 BEGIN
     RETURN ok(1, descr);
 END //
 
-DROP FUNCTION IF EXISTS fail;
+DROP FUNCTION IF EXISTS fail //
 CREATE FUNCTION fail(descr TEXT) RETURNS TEXT
 BEGIN
     RETURN ok(0, descr);
 END //
 
-DROP FUNCTION IF EXISTS is_reserved;
+DROP FUNCTION IF EXISTS is_reserved //
 CREATE FUNCTION is_reserved(word TEXT) RETURNS BOOLEAN
 BEGIN
     RETURN UPPER(word) IN (
@@ -504,7 +504,7 @@ BEGIN
     );
 END //
 
-DROP FUNCTION IF EXISTS quote_ident;
+DROP FUNCTION IF EXISTS quote_ident //
 CREATE FUNCTION quote_ident(ident TEXT) RETURNS TEXT
 BEGIN
     IF LOCATE('ANSI_QUOTES', @@SQL_MODE) > 0 THEN
@@ -520,7 +520,7 @@ BEGIN
 END //
 
 
-DROP FUNCTION IF EXISTS _has_table;
+DROP FUNCTION IF EXISTS _has_table //
 CREATE FUNCTION _has_table(dbname TEXT, tname TEXT) RETURNS BOOLEAN
 BEGIN
     DECLARE ret BOOLEAN;
@@ -533,7 +533,7 @@ BEGIN
     RETURN COALESCE(ret, 0);
 END //
 
-DROP FUNCTION IF EXISTS has_table;
+DROP FUNCTION IF EXISTS has_table //
 CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
 BEGIN
     RETURN ok(
@@ -542,7 +542,7 @@ BEGIN
     );
 END //
 
-DROP FUNCTION IF EXISTS hasnt_table;
+DROP FUNCTION IF EXISTS hasnt_table //
 CREATE FUNCTION hasnt_table(dbname TEXT, tname TEXT) RETURNS TEXT
 BEGIN
     RETURN ok(
@@ -552,7 +552,7 @@ BEGIN
 END //
 
 -- check_test( test_output, pass, name, description, diag, match_diag )
-DROP FUNCTION IF EXISTS check_test;
+DROP FUNCTION IF EXISTS check_test //
 CREATE FUNCTION check_test(
     have    TEXT,
     eok     BOOLEAN,
@@ -643,25 +643,25 @@ BEGIN
     RETURN tap;
 END //
 
-DROP PROCEDURE IF EXISTS todo;
+DROP PROCEDURE IF EXISTS todo //
 CREATE PROCEDURE todo (how_many int, why text)
 BEGIN
     DECLARE hide INTEGER DEFAULT _add('todo', COALESCE(how_many, 1), COALESCE(why, ''));
 END //
 
-DROP PROCEDURE IF EXISTS todo_start;
+DROP PROCEDURE IF EXISTS todo_start //
 CREATE PROCEDURE todo_start (why text)
 BEGIN
     DECLARE hide INTEGER DEFAULT _add('todo', -1, COALESCE(why, ''));
 END //
 
-DROP FUNCTION IF EXISTS in_todo;
+DROP FUNCTION IF EXISTS in_todo //
 CREATE FUNCTION in_todo () RETURNS BOOLEAN
 BEGIN
     RETURN CASE WHEN _get('todo') IS NULL THEN 0 ELSE 1 END;
 END //
 
-DROP PROCEDURE IF EXISTS todo_end;
+DROP PROCEDURE IF EXISTS todo_end //
 CREATE PROCEDURE todo_end ()
 BEGIN
     DECLARE tid INTEGER DEFAULT _get_latest_with_value( 'todo', -1 );
@@ -673,7 +673,7 @@ BEGIN
     DELETE FROM __tcache__ WHERE id = tid;
 END //
 
-DROP FUNCTION IF EXISTS skip;
+DROP FUNCTION IF EXISTS skip //
 CREATE FUNCTION skip ( how_many int, why text )
 RETURNS TEXT
 BEGIN

@@ -6,6 +6,8 @@ Revision history for MyTAP
 * Modified exception-throwing code to always clear out the cached data before
   dying. Doesn't cover cases where the code being tested dies, but at least it
   covers our own intentional deaths.
+* Fixed `DROP` lines to be terminated with "//" instead of ";". Seems like
+  some versions of MySQl didn't mind the semicolon, but others did.
 
 
 0.01  2010-07-28T18:37:03
