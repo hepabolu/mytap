@@ -1,6 +1,8 @@
 Revision history for MyTAP
 ==========================
 
+0.03
+
 0.02  2010-08-30T17:36:29
 -------------------------
 * Modified exception-throwing code to always clear out the cached data before

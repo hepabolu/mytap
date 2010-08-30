@@ -28,7 +28,7 @@ DROP FUNCTION IF EXISTS mytap_version //
 CREATE FUNCTION mytap_version()
 RETURNS NUMERIC
 BEGIN
-    RETURN 0.02;
+    RETURN 0.03;
 END //
 
 DROP FUNCTION IF EXISTS mysql_version //
