@@ -1,0 +1,214 @@
+-- source ../mytap-column.sql;
+
+BEGIN;
+
+SELECT tap.plan(54);
+-- SELECT * from no_plan();
+
+DROP DATABASE IF EXISTS taptest;
+CREATE DATABASE taptest;
+
+-- This will be rolled back. :-)
+CREATE TABLE taptest.sometab(
+    id      INT NOT NULL PRIMARY KEY,
+    name    TEXT DEFAULT '',
+    numb    FLOAT(10, 2) DEFAULT NULL,
+    myNum   INT(8) DEFAULT 24,
+    myat    TIMESTAMP DEFAULT NOW(),
+    plain   INT
+);
+
+/****************************************************************************/
+-- Test has_column
+SELECT tap.check_test(
+	tap.has_column('taptest', 'sometab', 'id', 'id exists'),
+	true,
+	'has_column( sch, tab, col, desc )',
+	'id exists',
+	'',
+	''
+);
+
+SELECT tap.check_test(
+	tap.has_column('taptest', 'sometab', 'id', ''),
+	true,
+	'has_column( sch, tab, col, no desc )',
+	'Column sometab.id should exist',
+	'',
+	''
+);
+
+use taptest;
+SELECT tap.check_test(
+	tap.has_column( database(), 'sometab', 'id', 'id exists'),
+	true,
+	'has_column( current database, tab, col, desc )',
+	'id exists',
+	'',
+	''
+);
+
+use tap;
+
+-- Make sure nonexisting column is correct
+SELECT tap.check_test(
+	tap.has_column('taptest', 'sometab', 'foo', 'foo does not exist'),
+	false,
+	'has_column( sch, tab, col, desc )',
+	'foo does not exist',
+	'',
+	''
+);
+
+/****************************************************************************/
+-- Test hasnt_column
+SELECT tap.check_test(
+	tap.hasnt_column('taptest', 'sometab', 'foo', 'foo does not exist'),
+	true,
+	'hasnt_column( sch, tab, col, desc )',
+	'foo does not exist',
+	'',
+	''
+);
+
+SELECT tap.check_test(
+	tap.hasnt_column('taptest', 'sometab', 'bar', ''),
+	true,
+	'hasnt_column( sch, tab, col, no desc )',
+	'Column sometab.bar should not exist',
+	'',
+	''
+);
+
+use taptest;
+SELECT tap.check_test(
+	tap.hasnt_column( database(), 'sometab', 'foo', 'desc'),
+	true,
+	'hasnt_column( current database, tab, col, desc )',
+	'desc',
+	'',
+	''
+);
+
+use tap;
+
+-- Make sure existing column is correctly handled
+SELECT tap.check_test(
+	tap.hasnt_column('taptest', 'sometab', 'name', 'name should not exist'),
+	false,
+	'hasnt_column( sch, tab, col, desc )',
+	'name should not exist',
+	'',
+	''
+);
+
+/****************************************************************************/
+-- Test col_not_null().
+SELECT tap.check_test(
+    tap.col_not_null( 'taptest', 'sometab', 'id', 'id not null' ),
+    true,
+    'col_not_null( sch, tab, col, desc )',
+    'id not null',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    tap.col_not_null( 'taptest', 'sometab', 'id', '' ),
+    true,
+    'col_not_null( sch, tab, col, no desc )',
+    'Column sometab.id should not allow NULL',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_not_null(database(), 'sometab', 'id', 'blah blah blah' ),
+    true,
+    'col_not_null( current database, tab, col, desc )',
+    'blah blah blah',
+    '',
+    ''
+);
+use tap;
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_not_null('taptest', 'sometab', 'name', 'column name should not be null' ),
+    false,
+    'col_not_null(sch, table, column ) fail',
+    'column name should not be null',
+    '',
+    ''
+);
+
+-- Make sure nonexisting column is correct
+SELECT tap.check_test(
+    tap.col_not_null( 'taptest', 'sometab', 'foo', 'desc' ),
+    false,
+    'col_not_null( sch, tab, noncol, desc )',
+    'desc',
+    '     Column taptest.sometab.foo does not exist',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_is_null().
+SELECT tap.check_test(
+    tap.col_is_null( 'taptest', 'sometab', 'name', 'name is null' ),
+    true,
+    'col_is_null( sch, tab, col, desc )',
+    'name is null',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    tap.col_is_null( 'taptest', 'sometab', 'name', '' ),
+    true,
+    'col_is_null( sch, tab, col, no desc )',
+    'Column sometab.name should allow NULL',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_is_null( database(), 'sometab', 'name', 'my desc' ),
+    true,
+    'col_is_null( current database, tab, col, desc )',
+    'my desc',
+    '',
+    ''
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_is_null('taptest', 'sometab', 'id', '' ),
+    false,
+    'col_is_null(sch, tab, col ) fail',
+    'Column sometab.id should allow NULL',
+    '',
+    ''
+);
+
+-- Make sure nonexisting column is correct
+SELECT tap.check_test(
+    tap.col_is_null( 'taptest', 'sometab', 'foo', 'desc' ),
+    false,
+    'col_is_null( sch, tab, noncol, desc )',
+    'desc',
+    '     Column taptest.sometab.foo does not exist',
+    ''
+);
+
+
+/****************************************************************************/
+-- Finish the tests and clean up.
+call tap.finish();
+DROP DATABASE IF EXISTS taptest;
+
+ROLLBACK;

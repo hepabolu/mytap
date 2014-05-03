@@ -1,0 +1,195 @@
+-- source ../mytap-table.sql;
+
+BEGIN;
+
+SELECT tap.plan(51);
+-- SELECT * from no_plan();
+
+DROP DATABASE IF EXISTS taptest;
+CREATE DATABASE taptest;
+
+-- This will be rolled back. :-)
+CREATE TABLE taptest.sometab(
+    id      INT NOT NULL PRIMARY KEY,
+    name    TEXT DEFAULT '',
+    numb    FLOAT(10, 2) DEFAULT NULL,
+    myNum   INT(8) DEFAULT 24,
+    myat    TIMESTAMP DEFAULT NOW(),
+    plain   INT
+);
+
+create view taptest.myview as 
+select * from taptest.sometab;
+
+/****************************************************************************/
+-- Test tap.has_table().
+
+SELECT tap.check_test(
+    tap.has_table( '__SDFSDFD__', 'lol', 'desc' ),
+    false,
+    'tap.has_table( non-existent schema, table, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table( 'foo', '__SDFSDFD__', '' ),
+    false,
+    'tap.has_table( non-existent schema, table, no desc)',
+    'Table foo.__SDFSDFD__ should exist',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table('taptest', '__SDFSDFD__', 'desc' ),
+    false,
+    'tap.has_table( sch, non-existent table, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table( 'taptest', '__SDFSDFD__', '' ),
+    false,
+    'tap.has_table( sch, non-existent table, no desc)',
+    'Table taptest.__SDFSDFD__ should exist',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table('taptest', 'sometab', 'lol' ),
+    true,
+    'tap.has_table( sch, tab, desc)',
+    'lol',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table('taptest', 'sometab', '' ),
+    true,
+    'tap.has_table( sch, tab, no desc)',
+    'Table taptest.sometab should exist',
+    '',
+	''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.has_table( database(), 'sometab', 'desc' ),
+    true,
+    'tap.has_table( current database, tab, desc)',
+    'desc',
+    '',
+	''
+);
+use tap;
+
+-- It should ignore views and types.
+SELECT tap.check_test(
+    tap.has_table( 'taptest', 'myview', 'desc' ),
+    false,
+    'tap.has_table( sch, view, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.has_table('taptest', 'myview', '' ),
+    false,
+    'tap.has_table( sch, view, no desc)',
+    'Table taptest.myview should exist',
+    '',
+	''
+);
+
+/****************************************************************************/
+-- Test tap.hasnt_table().
+
+SELECT tap.check_test(
+    tap.hasnt_table('taptest', '__SDFSDFD__', 'desc' ),
+    true,
+    'tap.hasnt_table( sch, non-existent table, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table( '__SDFSDFD__', 'lol', 'desc' ),
+    true,
+    'tap.hasnt_table( non-existent schema, tab, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table('taptest', '__SDFSDFD__', '' ),
+    true,
+    'tap.hasnt_table( sch, non-existent table, no desc)',
+    'Table taptest.__SDFSDFD__ should not exist',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'foo', '__SDFSDFD__', '' ),
+    true,
+    'tap.hasnt_table( non-existent schema, non-existent tab, no desc)',
+    'Table foo.__SDFSDFD__ should not exist',
+    '',
+	''
+);
+
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'taptest', 'sometab', 'desc' ),
+    false,
+    'tap.hasnt_table( sch, tab, desc)',
+    'desc',
+    '',
+	''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.hasnt_table( database(), 'sometab', 'desc' ),
+    false,
+    'tap.has_table( current database, tab, desc)',
+    'desc',
+    '',
+	''
+);
+use tap;
+
+-- It should ignore views and types.
+SELECT tap.check_test(
+    tap.hasnt_table( 'taptest', 'myview', 'desc' ),
+    true,
+    'tap.has_table( sch, view, desc)',
+    'desc',
+    '',
+	''
+);
+
+SELECT tap.check_test(
+    tap.hasnt_table('taptest', 'myview', '' ),
+    true,
+    'tap.has_table( sch, view, no desc)',
+    'Table taptest.myview should not exist',
+    '',
+	''
+);
+
+/****************************************************************************/
+-- Finish the tests and clean up.
+call tap.finish();
+DROP DATABASE IF EXISTS taptest;
+
+ROLLBACK;
