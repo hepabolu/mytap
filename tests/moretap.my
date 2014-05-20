@@ -58,5 +58,6 @@ bar',
 
 /****************************************************************************/
 -- Finish the tests and clean up.
+UPDATE tap.__tcache__ SET value = 32 WHERE label = 'plan' AND cid = connection_id();
 CALL tap.finish();
 ROLLBACK;
