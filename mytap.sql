@@ -691,5 +691,6 @@ END //
 
 DELIMITER ;
 
-source ./mytap-table.sql 
+source ./mytap-table.sql
 source ./mytap-column.sql 
+source ./mytap-view.sql

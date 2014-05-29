@@ -1,0 +1,115 @@
+BEGIN;
+
+SELECT tap.plan(24);
+-- SELECT * from no_plan();
+
+DROP DATABASE IF EXISTS taptest;
+CREATE DATABASE taptest;
+
+-- This will be rolled back. :-)
+DROP TABLE IF EXISTS taptest.sometab;
+CREATE TABLE taptest.sometab(
+    id      INT NOT NULL PRIMARY KEY,
+    name    TEXT DEFAULT '',
+    numb    FLOAT(10, 2) DEFAULT NULL,
+    myNum   INT(8) DEFAULT 24,
+    myat    TIMESTAMP DEFAULT NOW(),
+    plain   INT
+);
+
+DROP VIEW IF EXISTS taptest.myview;
+create view taptest.myview as 
+select * from taptest.sometab;
+
+/****************************************************************************/
+-- Test has_view
+SELECT tap.check_test(
+    tap.has_view('taptest', 'myview' ),
+    true,
+    'has_view( sch, view )',
+    'View taptest.myview should exist',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.has_view( database(), 'myview'),
+    true,
+    'has_view( current database, view )',
+    'View taptest.myview should exist',
+    '',
+    ''
+);
+
+use tap;
+
+-- Make sure nonexisting view is correctly detected
+SELECT tap.check_test(
+    tap.has_view('taptest', 'foo'),
+    false,
+    'has_view( sch, non existing col )',
+    'View taptest.foo should exist',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    tap.has_view('taptest', 'sometab' ),
+    false,
+    'has_view( sch, table instead of view )',
+    'View taptest.sometab should exist',
+    '',
+    ''
+);
+
+
+/****************************************************************************/
+-- Test hasnt_view
+SELECT tap.check_test(
+    tap.hasnt_view('taptest', 'foo'),
+    true,
+    'hasnt_view( sch, non existing view )',
+    'View taptest.foo should not exist',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.hasnt_view( database(), 'foo'),
+    true,
+    'hasnt_view( current database, non existing view )',
+    'View taptest.foo should not exist',
+    '',
+    ''
+);
+
+use tap;
+
+-- Make sure existing view is correctly detected
+SELECT tap.check_test(
+    tap.hasnt_view('taptest', 'myview'),
+    false,
+    'hasnt_view( sch, existing view )',
+    'View taptest.myview should not exist',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    tap.hasnt_view('taptest', 'sometab'),
+    true,
+    'hasnt_view( sch, table instead of view )',
+    'View taptest.sometab should not exist',
+    '',
+    ''
+);
+
+
+/****************************************************************************/
+-- Finish the tests and clean up.
+call tap.finish();
+DROP DATABASE IF EXISTS taptest;
+
+ROLLBACK;

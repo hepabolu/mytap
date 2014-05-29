@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(51);
+SELECT tap.plan(27);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -18,61 +18,36 @@ CREATE TABLE taptest.sometab(
     plain   INT
 );
 
+DROP VIEW IF EXISTS taptest.myview;
 create view taptest.myview as 
 select * from taptest.sometab;
 
 /****************************************************************************/
 -- Test tap.has_table().
 
-SELECT tap.check_test(
-    tap.has_table( '__SDFSDFD__', 'lol', 'desc' ),
-    false,
-    'tap.has_table( non-existent schema, table, desc)',
-    'desc',
-    '',
-	''
-);
 
 SELECT tap.check_test(
-    tap.has_table( 'foo', '__SDFSDFD__', '' ),
+    tap.has_table( 'foo', '__SDFSDFD__' ),
     false,
-    'tap.has_table( non-existent schema, table, no desc)',
+    'tap.has_table( non-existent schema, table)',
     'Table foo.__SDFSDFD__ should exist',
     '',
 	''
 );
 
 SELECT tap.check_test(
-    tap.has_table('taptest', '__SDFSDFD__', 'desc' ),
+    tap.has_table( 'taptest', '__SDFSDFD__' ),
     false,
-    'tap.has_table( sch, non-existent table, desc)',
-    'desc',
-    '',
-	''
-);
-
-SELECT tap.check_test(
-    tap.has_table( 'taptest', '__SDFSDFD__', '' ),
-    false,
-    'tap.has_table( sch, non-existent table, no desc)',
+    'tap.has_table( sch, non-existent table)',
     'Table taptest.__SDFSDFD__ should exist',
     '',
 	''
 );
 
 SELECT tap.check_test(
-    tap.has_table('taptest', 'sometab', 'lol' ),
+    tap.has_table('taptest', 'sometab' ),
     true,
-    'tap.has_table( sch, tab, desc)',
-    'lol',
-    '',
-	''
-);
-
-SELECT tap.check_test(
-    tap.has_table('taptest', 'sometab', '' ),
-    true,
-    'tap.has_table( sch, tab, no desc)',
+    'tap.has_table( sch, tab)',
     'Table taptest.sometab should exist',
     '',
 	''
@@ -80,29 +55,21 @@ SELECT tap.check_test(
 
 use taptest;
 SELECT tap.check_test(
-    tap.has_table( database(), 'sometab', 'desc' ),
+    tap.has_table( database(), 'sometab' ),
     true,
-    'tap.has_table( current database, tab, desc)',
-    'desc',
+    'tap.has_table( current database, tab)',
+    'Table taptest.sometab should exist',
     '',
 	''
 );
 use tap;
 
 -- It should ignore views and types.
-SELECT tap.check_test(
-    tap.has_table( 'taptest', 'myview', 'desc' ),
-    false,
-    'tap.has_table( sch, view, desc)',
-    'desc',
-    '',
-	''
-);
 
 SELECT tap.check_test(
-    tap.has_table('taptest', 'myview', '' ),
+    tap.has_table('taptest', 'myview' ),
     false,
-    'tap.has_table( sch, view, no desc)',
+    'tap.has_table( sch, view )',
     'Table taptest.myview should exist',
     '',
 	''
@@ -111,77 +78,43 @@ SELECT tap.check_test(
 /****************************************************************************/
 -- Test tap.hasnt_table().
 
-SELECT tap.check_test(
-    tap.hasnt_table('taptest', '__SDFSDFD__', 'desc' ),
-    true,
-    'tap.hasnt_table( sch, non-existent table, desc)',
-    'desc',
-    '',
-	''
-);
 
 SELECT tap.check_test(
-    tap.hasnt_table( '__SDFSDFD__', 'lol', 'desc' ),
+    tap.hasnt_table('taptest', '__SDFSDFD__' ),
     true,
-    'tap.hasnt_table( non-existent schema, tab, desc)',
-    'desc',
-    '',
-	''
-);
-
-SELECT tap.check_test(
-    tap.hasnt_table('taptest', '__SDFSDFD__', '' ),
-    true,
-    'tap.hasnt_table( sch, non-existent table, no desc)',
+    'tap.hasnt_table( sch, non-existent table)',
     'Table taptest.__SDFSDFD__ should not exist',
     '',
 	''
 );
 
 SELECT tap.check_test(
-    tap.hasnt_table( 'foo', '__SDFSDFD__', '' ),
+    tap.hasnt_table( 'foo', '__SDFSDFD__' ),
     true,
-    'tap.hasnt_table( non-existent schema, non-existent tab, no desc)',
+    'tap.hasnt_table( non-existent schema, non-existent tab)',
     'Table foo.__SDFSDFD__ should not exist',
     '',
 	''
 );
 
 
-SELECT tap.check_test(
-    tap.hasnt_table( 'taptest', 'sometab', 'desc' ),
-    false,
-    'tap.hasnt_table( sch, tab, desc)',
-    'desc',
-    '',
-	''
-);
-
 use taptest;
 SELECT tap.check_test(
-    tap.hasnt_table( database(), 'sometab', 'desc' ),
+    tap.hasnt_table( database(), 'sometab' ),
     false,
-    'tap.has_table( current database, tab, desc)',
-    'desc',
+    'tap.has_table( current database, tab)',
+    'Table taptest.sometab should not exist',
     '',
 	''
 );
 use tap;
 
 -- It should ignore views and types.
-SELECT tap.check_test(
-    tap.hasnt_table( 'taptest', 'myview', 'desc' ),
-    true,
-    'tap.has_table( sch, view, desc)',
-    'desc',
-    '',
-	''
-);
 
 SELECT tap.check_test(
-    tap.hasnt_table('taptest', 'myview', '' ),
+    tap.hasnt_table('taptest', 'myview' ),
     true,
-    'tap.has_table( sch, view, no desc)',
+    'tap.has_table( sch, view)',
     'Table taptest.myview should not exist',
     '',
 	''
