@@ -2,37 +2,30 @@
 
 BEGIN;
 
-SELECT tap.plan(54);
+SELECT tap.plan(102);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
 CREATE DATABASE taptest;
 
 -- This will be rolled back. :-)
+DROP TABLE IF EXISTS taptest.sometab;
 CREATE TABLE taptest.sometab(
     id      INT NOT NULL PRIMARY KEY,
     name    TEXT DEFAULT '',
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
     myat    TIMESTAMP DEFAULT NOW(),
-    plain   INT
+    plain   INT,
+    KEY `WeirdIndexName` (`myNum`)
 );
 
 /****************************************************************************/
 -- Test has_column
 SELECT tap.check_test(
-	tap.has_column('taptest', 'sometab', 'id', 'id exists'),
+	tap.has_column('taptest', 'sometab', 'id' ),
 	true,
-	'has_column( sch, tab, col, desc )',
-	'id exists',
-	'',
-	''
-);
-
-SELECT tap.check_test(
-	tap.has_column('taptest', 'sometab', 'id', ''),
-	true,
-	'has_column( sch, tab, col, no desc )',
+	'has_column( sch, tab, col )',
 	'Column sometab.id should exist',
 	'',
 	''
@@ -40,52 +33,44 @@ SELECT tap.check_test(
 
 use taptest;
 SELECT tap.check_test(
-	tap.has_column( database(), 'sometab', 'id', 'id exists'),
+	tap.has_column( database(), 'sometab', 'id'),
 	true,
-	'has_column( current database, tab, col, desc )',
-	'id exists',
+	'has_column( current database, tab, col )',
+	'Column sometab.id should exist',
 	'',
 	''
 );
 
 use tap;
 
--- Make sure nonexisting column is correct
+-- Make sure nonexisting column is correctly detected
 SELECT tap.check_test(
-	tap.has_column('taptest', 'sometab', 'foo', 'foo does not exist'),
+	tap.has_column('taptest', 'sometab', 'foo'),
 	false,
-	'has_column( sch, tab, col, desc )',
-	'foo does not exist',
+	'has_column( sch, tab, non existing col )',
+	'Column sometab.foo should exist',
 	'',
 	''
 );
+
 
 /****************************************************************************/
 -- Test hasnt_column
 SELECT tap.check_test(
-	tap.hasnt_column('taptest', 'sometab', 'foo', 'foo does not exist'),
+	tap.hasnt_column('taptest', 'sometab', 'foo'),
 	true,
-	'hasnt_column( sch, tab, col, desc )',
-	'foo does not exist',
-	'',
-	''
-);
-
-SELECT tap.check_test(
-	tap.hasnt_column('taptest', 'sometab', 'bar', ''),
-	true,
-	'hasnt_column( sch, tab, col, no desc )',
-	'Column sometab.bar should not exist',
+	'hasnt_column( sch, tab, non existing col )',
+	'Column sometab.foo should not exist',
 	'',
 	''
 );
 
 use taptest;
 SELECT tap.check_test(
-	tap.hasnt_column( database(), 'sometab', 'foo', 'desc'),
+	tap.hasnt_column( database(), 'sometab', 'foo'),
 	true,
-	'hasnt_column( current database, tab, col, desc )',
-	'desc',
+	'hasnt_column( current database, tab, non existing col )',
+	'Column sometab.foo should not exist',
 	'',
 	''
 );
@@ -94,29 +79,22 @@ use tap;
 
 -- Make sure existing column is correctly handled
 SELECT tap.check_test(
-	tap.hasnt_column('taptest', 'sometab', 'name', 'name should not exist'),
+	tap.hasnt_column('taptest', 'sometab', 'name'),
 	false,
-	'hasnt_column( sch, tab, col, desc )',
-	'name should not exist',
+	'hasnt_column( sch, tab, existing col )',
+	'Column sometab.name should not exist',
 	'',
 	''
 );
 
+
 /****************************************************************************/
 -- Test col_not_null().
-SELECT tap.check_test(
-    tap.col_not_null( 'taptest', 'sometab', 'id', 'id not null' ),
-    true,
-    'col_not_null( sch, tab, col, desc )',
-    'id not null',
-    '',
-    ''
-);
 
 SELECT tap.check_test(
-    tap.col_not_null( 'taptest', 'sometab', 'id', '' ),
+    tap.col_not_null( 'taptest', 'sometab', 'id' ),
     true,
-    'col_not_null( sch, tab, col, no desc )',
+    'col_not_null( sch, tab, col not null )',
     'Column sometab.id should not allow NULL',
     '',
     ''
@@ -124,10 +102,10 @@ SELECT tap.check_test(
 
 use taptest;
 SELECT tap.check_test(
-    tap.col_not_null(database(), 'sometab', 'id', 'blah blah blah' ),
+    tap.col_not_null(database(), 'sometab', 'id' ),
     true,
-    'col_not_null( current database, tab, col, desc )',
-    'blah blah blah',
+    'col_not_null( current database, tab, col not null )',
+    'Column sometab.id should not allow NULL',
     '',
     ''
 );
@@ -135,39 +113,31 @@ use tap;
 
 -- Make sure failure is correct.
 SELECT tap.check_test(
-    tap.col_not_null('taptest', 'sometab', 'name', 'column name should not be null' ),
+    tap.col_not_null('taptest', 'sometab', 'name' ),
     false,
-    'col_not_null(sch, table, column ) fail',
-    'column name should not be null',
+    'col_not_null(sch, table, col allow null ) fail',
+    'Column sometab.name should not allow NULL',
     '',
     ''
 );
 
 -- Make sure nonexisting column is correct
 SELECT tap.check_test(
-    tap.col_not_null( 'taptest', 'sometab', 'foo', 'desc' ),
+    tap.col_not_null( 'taptest', 'sometab', 'foo' ),
     false,
-    'col_not_null( sch, tab, noncol, desc )',
-    'desc',
-    '     Column taptest.sometab.foo does not exist',
-    ''
-);
-
-/****************************************************************************/
--- Test col_is_null().
-SELECT tap.check_test(
-    tap.col_is_null( 'taptest', 'sometab', 'name', 'name is null' ),
-    true,
-    'col_is_null( sch, tab, col, desc )',
-    'name is null',
+    'col_not_null( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
     '',
     ''
 );
 
+/****************************************************************************/
+-- Test col_is_null
+
 SELECT tap.check_test(
-    tap.col_is_null( 'taptest', 'sometab', 'name', '' ),
+    tap.col_is_null( 'taptest', 'sometab', 'name' ),
     true,
-    'col_is_null( sch, tab, col, no desc )',
+    'col_is_null( sch, tab, col allow null)',
     'Column sometab.name should allow NULL',
     '',
     ''
@@ -175,10 +145,10 @@ SELECT tap.check_test(
 
 use taptest;
 SELECT tap.check_test(
-    tap.col_is_null( database(), 'sometab', 'name', 'my desc' ),
+    tap.col_is_null( database(), 'sometab', 'name' ),
     true,
-    'col_is_null( current database, tab, col, desc )',
-    'my desc',
+    'col_is_null( current database, tab, col allow null )',
+    'Column sometab.name should allow NULL',
     '',
     ''
 );
@@ -187,9 +157,9 @@ use tap;
 
 -- Make sure failure is correct.
 SELECT tap.check_test(
-    tap.col_is_null('taptest', 'sometab', 'id', '' ),
+    tap.col_is_null('taptest', 'sometab', 'id' ),
     false,
-    'col_is_null(sch, tab, col ) fail',
+    'col_is_null(sch, tab, col not null ) fail',
     'Column sometab.id should allow NULL',
     '',
     ''
@@ -197,14 +167,233 @@ SELECT tap.check_test(
 
 -- Make sure nonexisting column is correct
 SELECT tap.check_test(
-    tap.col_is_null( 'taptest', 'sometab', 'foo', 'desc' ),
+    tap.col_is_null( 'taptest', 'sometab', 'foo' ),
     false,
-    'col_is_null( sch, tab, noncol, desc )',
-    'desc',
-    '     Column taptest.sometab.foo does not exist',
+    'col_is_null( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
     ''
 );
 
+/****************************************************************************/
+-- Test col_has_primary_key
+
+SELECT tap.check_test(
+    tap.col_has_primary_key( 'taptest', 'sometab', 'id' ),
+    true,
+    'col_has_primary_key( sch, tab, col has primary key)',
+    'Column sometab.id should have primary key',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_primary_key( database(), 'sometab', 'id' ),
+    true,
+    'col_has_primary_key( current database, tab, col has primary key)',
+    'Column sometab.id should have primary key',
+    '',
+    ''
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_primary_key( 'taptest', 'sometab', 'name' ),
+    false,
+    'col_has_primary_key( sch, tab, col without any key)',
+    'Column sometab.name should have primary key',
+    '',
+    ''
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_primary_key( 'taptest', 'sometab', 'foo' ),
+    false,
+    'col_has_primary_key( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    ''
+);
+
+-- Make sure index key is correctly detected as non-primary
+SELECT tap.check_test(
+    tap.col_has_primary_key( 'taptest', 'sometab', 'myNum' ),
+    false,
+    'col_has_primary_key( sch, tab, col has index key)',
+    'Column sometab.myNum should have primary key',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_hasnt_primary_key
+
+SELECT tap.check_test(
+    tap.col_hasnt_primary_key( 'taptest', 'sometab', 'name' ),
+    true,
+    'col_hasnt_primary_key( sch, tab, col has not primary key)',
+    'Column sometab.name should not have PRIMARY key',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_primary_key( database(), 'sometab', 'name' ),
+    true,
+    'col_hasnt_primary_key( current database, tab, col has not primary key)',
+    'Column sometab.name should not have PRIMARY key',
+    '',
+    ''
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_primary_key( 'taptest', 'sometab', 'id' ),
+    false,
+    'col_hasnt_primary_key( sch, tab, col with primary key)',
+    'Column sometab.id should not have PRIMARY key',
+    '',
+    ''
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_primary_key( 'taptest', 'sometab', 'foo' ),
+    false,
+    'col_hasnt_primary_key( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    ''
+);
+
+-- Make sure index key is correctly detected as non-primary
+SELECT tap.check_test(
+    tap.col_hasnt_primary_key( 'taptest', 'sometab', 'myNum' ),
+    true,
+    'col_hasnt_primary_key( sch, tab, col has index key)',
+    'Column sometab.myNum should not have PRIMARY key',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_has_index_key
+
+SELECT tap.check_test(
+    tap.col_has_index_key( 'taptest', 'sometab', 'myNum' ),
+    true,
+    'col_has_index_key( sch, tab, col has index key)',
+    'Column sometab.myNum should have index key',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_index_key( database(), 'sometab', 'myNum' ),
+    true,
+    'col_has_index_key( current database, tab, col has index key)',
+    'Column sometab.myNum should have index key',
+    '',
+    ''
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_index_key( 'taptest', 'sometab', 'name' ),
+    false,
+    'col_has_index_key( sch, tab, col without any key)',
+    'Column sometab.name should have index key',
+    '',
+    ''
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_index_key( 'taptest', 'sometab', 'foo' ),
+    false,
+    'col_has_index_key( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    ''
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_index_key( 'taptest', 'sometab', 'id' ),
+    false,
+    'col_has_index_key( sch, tab, col has primary key)',
+    'Column sometab.id should have index key',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_hasnt_index_key
+
+SELECT tap.check_test(
+    tap.col_hasnt_index_key( 'taptest', 'sometab', 'name' ),
+    true,
+    'col_hasnt_index_key( sch, tab, col has not index key)',
+    'Column sometab.name should not have index key',
+    '',
+    ''
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_index_key( database(), 'sometab', 'name' ),
+    true,
+    'col_hasnt_index_key( current database, tab, col has no key)',
+    'Column sometab.name should not have index key',
+    '',
+    ''
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_index_key( 'taptest', 'sometab', 'myNum' ),
+    false,
+    'col_hasnt_index_key( sch, tab, col with index key)',
+    'Column sometab.myNum should not have index key',
+    '',
+    ''
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_index_key( 'taptest', 'sometab', 'foo' ),
+    false,
+    'col_hasnt_index_key( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    ''
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_hasnt_index_key( 'taptest', 'sometab', 'id' ),
+    true,
+    'col_hasnt_index_key( sch, tab, col has index key)',
+    'Column sometab.id should not have INDEX key',
+    '',
+    ''
+);
 
 /****************************************************************************/
 -- Finish the tests and clean up.

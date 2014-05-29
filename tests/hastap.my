@@ -6,7 +6,7 @@ SELECT tap.plan(18);
 -- Test has_table().
 
 SELECT tap.check_test(
-    tap.has_table( 'tap', '__SDFSDFD__', '' ),
+    tap.has_table( 'tap', '__SDFSDFD__' ),
     0,
     'tap.has_table(non-existent table)',
     'Table tap.__SDFSDFD__ should exist',
@@ -15,7 +15,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_table( '__SDFSDFD__', 'lol', '' ),
+    tap.has_table( '__SDFSDFD__', 'lol' ),
     0,
     'tap.has_table(non-existent schema, tab)',
     'Table __SDFSDFD__.lol should exist',
@@ -24,7 +24,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_table( 'tap', '__tcache__', '' ),
+    tap.has_table( 'tap', '__tcache__' ),
     1,
     'tap.has_table(sch, tab)',
     'Table tap.__tcache__ should exist',
@@ -36,7 +36,7 @@ SELECT tap.check_test(
 -- Test hasnt_table().
 
 SELECT tap.check_test(
-    tap.hasnt_table( 'tap', '__SDFSDFD__', '' ),
+    tap.hasnt_table( 'tap', '__SDFSDFD__' ),
     1,
     'tap.hasnt_table(non-existent table)',
     'Table tap.__SDFSDFD__ should not exist',
@@ -45,7 +45,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_table( '__SDFSDFD__', 'lol', '' ),
+    tap.hasnt_table( '__SDFSDFD__', 'lol' ),
     1,
     'tap.hasnt_table(non-existent schema, tab)',
     'Table __SDFSDFD__.lol should not exist',
@@ -54,7 +54,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_table( 'tap', '__tcache__', '' ),
+    tap.hasnt_table( 'tap', '__tcache__' ),
     0,
     'tap.hasnt_table(sch, tab)',
     'Table tap.__tcache__ should not exist',
