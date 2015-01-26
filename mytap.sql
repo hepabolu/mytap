@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
--- We use connection_id() in cid to keep things separate from other proceses.
+-- We use connection_id() in "cid" to keep things separate from other proceses.
 DROP TABLE IF EXISTS __tcache__;
 CREATE TABLE __tcache__ (
     id    INTEGER AUTO_INCREMENT PRIMARY KEY,
