@@ -22,3 +22,5 @@ echo "============= todotap ============="
 mysql $MYSLOPTS --database tap --execute 'source tests/todotap.my'
 echo "============= utils ============="
 mysql $MYSLOPTS --database tap --execute 'source tests/utils.my'
+echo "============= viewtap ============="
+mysql $MYSLOPTS --database tap --execute 'source tests/viewtap.my'
