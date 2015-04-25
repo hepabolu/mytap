@@ -538,12 +538,12 @@ DROP FUNCTION IF EXISTS has_table //
 CREATE FUNCTION has_table (dbname TEXT, tname TEXT, description TEXT)
 RETURNS TEXT 
 BEGIN
-    if description = '' then
-        set description = concat('Table ', 
+    IF description = '' THEN
+        SET description = concat('Table ', 
             quote_ident(dbname), '.', quote_ident(tname), ' should exist' );
-    end if;
+    END IF;
 
-    return ok( _has_table( dbname, tname ), description );
+    RETURN ok( _has_table( dbname, tname ), description );
 END //
 
 -- hasnt_table( schema, table, description )
@@ -551,10 +551,10 @@ DROP FUNCTION IF EXISTS hasnt_table //
 CREATE FUNCTION hasnt_table (dbname TEXT, tname TEXT, description TEXT)
 RETURNS TEXT 
 BEGIN
-    if description = '' then
-        set description = concat('Table ', 
+    IF description = '' THEN
+        SET description = concat('Table ', 
             quote_ident(dbname), '.', quote_ident(tname), ' should not exist' );
-    end if;
+    END IF;
 
     return ok( NOT _has_table( dbname, tname ), description );
 END //
@@ -700,3 +700,4 @@ END //
 DELIMITER ;
 
 source ./mytap-view.sql
+source ./mytap-column.sql
