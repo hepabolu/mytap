@@ -45,4 +45,4 @@ DELIMITER //
 --     return ok( NOT _texists( dbname, tname ), description );
 -- END //
 
--- DELIMITER ;
+DELIMITER ;
