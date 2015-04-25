@@ -252,4 +252,108 @@ END //
 
 /****************************************************************************/
 
+-- _col_has_default (schema, table, column )
+
+-- note: MySQL 5.5x does not distinguish between 'no default' and 
+-- 'null as default' and 'empty string as default'
+
+DROP FUNCTION IF EXISTS _col_has_default //
+CREATE FUNCTION _col_has_default ( dbname TEXT, tname TEXT, cname TEXT  )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    SELECT true into ret
+      FROM information_schema.columns as db
+     WHERE db.table_schema = dbname
+       AND db.table_name = tname
+       AND db.column_name = cname
+       AND db.column_default IS NOT NULL;
+    RETURN coalesce(ret, false);
+END //
+
+DROP FUNCTION IF EXISTS col_has_default //
+CREATE FUNCTION col_has_default ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat( 'Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have a default' );
+    END IF;
+
+    RETURN ok( _col_has_default( dbname, tname, cname ), description );
+END //
+
+DROP FUNCTION IF EXISTS col_hasnt_default //
+CREATE FUNCTION col_hasnt_default ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat( 'Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should not have a default' );
+    END IF;
+
+    RETURN ok( NOT _col_has_default( dbname, tname, cname ), description );
+END //
+
+/****************************************************************************/
+
+-- _col_default_is (schema, table, column, default )
+
+-- note: MySQL 5.5x does not distinguish between 'no default' and 
+-- 'null as default' and 'empty string as default'
+
+DROP FUNCTION IF EXISTS _col_default_is //
+CREATE FUNCTION _col_default_is ( dbname TEXT, tname TEXT, cname TEXT, cdefault TEXT  )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    IF cdefault = '' OR cdefault IS NULL THEN
+        SELECT true into ret
+          FROM information_schema.columns as db
+         WHERE db.table_schema = dbname
+           AND db.table_name = tname
+           AND db.column_name = cname
+           AND db.column_default IS NULL;
+    ELSE
+        SELECT true into ret
+          FROM information_schema.columns as db
+         WHERE db.table_schema = dbname
+           AND db.table_name = tname
+           AND db.column_name = cname
+           AND db.column_default = cdefault;
+    END IF;
+    RETURN coalesce(ret, false);
+END //
+
+DROP FUNCTION IF EXISTS col_default_is //
+CREATE FUNCTION col_default_is ( dbname TEXT, tname TEXT, cname TEXT, cdefault TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat( 'Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have as default ', quote_ident(cdefault) );
+    END IF;
+
+    RETURN ok( _col_default_is( dbname, tname, cname, cdefault ), description );
+END //
+
+/****************************************************************************/
+
 DELIMITER ;
