@@ -6,7 +6,7 @@ SELECT tap.plan(18);
 -- Test has_table().
 
 SELECT tap.check_test(
-    tap.has_table( 'tap', '__SDFSDFD__' ),
+    tap.has_table( 'tap', '__SDFSDFD__', '' ),
     0,
     'tap.has_table(non-existent table)',
     'Table tap.__SDFSDFD__ should exist',
@@ -15,7 +15,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_table( '__SDFSDFD__', 'lol' ),
+    tap.has_table( '__SDFSDFD__', 'lol', '' ),
     0,
     'tap.has_table(non-existent schema, tab)',
     'Table __SDFSDFD__.lol should exist',
@@ -24,7 +24,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_table( 'tap', '__tcache__' ),
+    tap.has_table( 'tap', '__tcache__', '' ),
     1,
     'tap.has_table(sch, tab)',
     'Table tap.__tcache__ should exist',
@@ -32,11 +32,33 @@ SELECT tap.check_test(
     0
 );
 
+SELECT tap.check_test(
+    tap.has_table( 'tap', '__tcache__', 'my own description'),
+    1,
+    'tap.has_table(sch, tab, descr)',
+    'my own description',
+    '',
+    0
+);
+
+create or replace view tap.myview as select 1;
+
+SELECT tap.check_test(
+    tap.has_table( 'tap', 'myview', 'a view is no table'),
+    0,
+    'tap.has_table(sch, view, descr)',
+    'a view is no table',
+    '',
+    0
+);
+
+drop view tap.myview;
+
 /****************************************************************************/
 -- Test hasnt_table().
 
 SELECT tap.check_test(
-    tap.hasnt_table( 'tap', '__SDFSDFD__' ),
+    tap.hasnt_table( 'tap', '__SDFSDFD__', '' ),
     1,
     'tap.hasnt_table(non-existent table)',
     'Table tap.__SDFSDFD__ should not exist',
@@ -45,7 +67,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_table( '__SDFSDFD__', 'lol' ),
+    tap.hasnt_table( '__SDFSDFD__', 'lol', '' ),
     1,
     'tap.hasnt_table(non-existent schema, tab)',
     'Table __SDFSDFD__.lol should not exist',
@@ -54,13 +76,35 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_table( 'tap', '__tcache__' ),
+    tap.hasnt_table( 'tap', '__tcache__', '' ),
     0,
     'tap.hasnt_table(sch, tab)',
     'Table tap.__tcache__ should not exist',
     '',
     0
 );
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'tap', 'lol', 'my own description'),
+    1,
+    'tap.hasnt_table(sch, tab, descr)',
+    'my own description',
+    '',
+    0
+);
+
+create or replace view tap.myview as select 1;
+
+SELECT tap.check_test(
+    tap.hasnt_table( 'tap', 'myview', 'a view is no table'),
+    1,
+    'tap.hasnt_table(sch, view, descr)',
+    'a view is no table',
+    '',
+    0
+);
+
+drop view tap.myview;
 
 /****************************************************************************/
 -- Finish the tests and clean up.

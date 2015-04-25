@@ -533,22 +533,28 @@ BEGIN
     RETURN COALESCE(ret, 0);
 END //
 
+-- has_table( schema, table, description )
 DROP FUNCTION IF EXISTS has_table //
-CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
+CREATE FUNCTION has_table (dbname TEXT, tname TEXT, description TEXT)
+RETURNS TEXT 
 BEGIN
-    RETURN ok(
-        _has_table(dbname, tname),
-        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist')
-    );
+    if description = '' then
+        set description = concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist' );
+    end if;
+
+    return ok( _has_table( dbname, tname ), description );
 END //
 
+-- hasnt_table( schema, table, description )
 DROP FUNCTION IF EXISTS hasnt_table //
-CREATE FUNCTION hasnt_table(dbname TEXT, tname TEXT) RETURNS TEXT
+CREATE FUNCTION hasnt_table (dbname TEXT, tname TEXT, description TEXT)
+RETURNS TEXT 
 BEGIN
-    RETURN ok(
-        NOT _has_table(dbname, tname),
-        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should not exist')
-    );
+    if description = '' then
+        set description = concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should not exist' );
+    end if;
+
+    return ok( NOT _has_table( dbname, tname ), description );
 END //
 
 -- check_test( test_output, pass, name, description, diag, match_diag )
