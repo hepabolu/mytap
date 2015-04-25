@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(150);
+SELECT tap.plan(195);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -17,6 +17,7 @@ CREATE TABLE taptest.sometab(
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
     myat    TIMESTAMP DEFAULT NOW(),
+    mydate  DATE DEFAULT '0000-00-00',
     plain   INT,
     KEY `WeirdIndexName` (`myNum`)
 );
@@ -543,6 +544,167 @@ SELECT tap.check_test(
     false,
     'col_has_type( sch, tab, non existing col, type )',
     'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    ''
+);
+
+/****************************************************************************/
+
+-- Test col_has_default().
+
+-- empty strings are handled as NULL values, so considered 'no default'!
+
+SELECT tap.check_test(
+    col_has_default( 'taptest', 'sometab', 'name', 'desc' ),
+    false,
+    'col_has_default( sch, tab, col with empty string, desc )',
+    'desc',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_has_default( 'taptest', 'sometab', 'name', '' ),
+    false,
+    'col_has_default( sch, tab, col with empty string, no desc )',
+    'Column sometab.name should have a default',
+    '',
+    ''
+);
+
+-- Check with a column with no default.
+SELECT tap.check_test(
+    col_has_default( 'taptest', 'sometab', 'myNum', 'desc' ),
+    true,
+    'col_has_default( sch, tab, col, desc )',
+    'desc',
+    '',
+    ''
+);
+
+-- Check with a nonexistent column.
+SELECT tap.check_test(
+    col_has_default( 'taptest', 'sometab', '__asdfasdfs__', '' ),
+    false,
+    'col_has_default( sch, tab, non existent col, no desc )',
+    'Error #     Column taptest.sometab.__asdfasdfs__ does not exist',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_hasnt_default().
+
+-- empty strings are handled as NULL values, so considered 'no default'
+
+SELECT tap.check_test(
+    col_hasnt_default( 'taptest', 'sometab', 'name', 'desc' ),
+    true,
+    'col_hasnt_default( sch, tab, col empty string, desc )',
+    'desc',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_hasnt_default( 'taptest', 'sometab', 'myNum', '' ),
+    false,
+    'col_hasnt_default( sch, tab, col default, no desc )',
+    'Column sometab.myNum should not have a default',
+    '',
+    ''
+);
+
+-- Check with a column with no default.
+SELECT tap.check_test(
+    col_hasnt_default( 'taptest', 'sometab', 'plain', 'desc' ),
+    true,
+    'col_hasnt_default( sch, tab, col no default, desc )',
+    'desc',
+    '',
+    ''
+);
+
+-- Check with a column with NULL as default.
+SELECT tap.check_test(
+    col_hasnt_default( 'taptest', 'sometab', 'numb', '' ),
+    true,
+    'col_hasnt_default( sch, tab, col NULL default, desc )',
+    'Column sometab.numb should not have a default',
+    '',
+    ''
+);
+
+-- Check with a nonexistent column.
+SELECT tap.check_test(
+    col_hasnt_default( 'taptest', 'sometab', '__asdfasdfs__', 'desc' ),
+    false,
+    'col_hasnt_default( sch, tab, non existent col, desc )',
+    'Error #     Column taptest.sometab.__asdfasdfs__ does not exist',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_default_is().
+
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', 'name', '', 'name should default to empty string' ),
+    true,
+    'col_default_is( sch, tab, col, empty string def, desc )',
+    'name should default to empty string',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', 'name', 'foo', 'name should default to ''foo''' ),
+    false,
+    'col_default_is() fail',
+    'name should default to ''foo''',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', 'mydate', '0000-00-00', 'mydate should default to 0000-00-00' ),
+    true,
+    'col_default_is( tab, col, zero date def, desc )',
+    'mydate should default to 0000-00-00',
+    '',
+    ''
+);
+
+
+-- Make sure that it works when the default is an expression.
+-- Note: MySQL converts 'now()' to 'CURRENT_TIMESTAMP'
+
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', 'myat', 'CURRENT_TIMESTAMP', '' ),
+    true,
+    'col_default_is( tab, col, expression )',
+    'Column sometab.myat should have as default `CURRENT_TIMESTAMP`',
+    '',
+    ''
+);
+
+-- Check with NULL as default
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', 'numb', NULL, 'desc' ),
+    true,
+    'col_default_is( sch, tab, col, null def, desc )',
+    'desc',
+    '',
+    ''
+);
+
+
+-- Check with a nonexistent column.
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'sometab', '__asdfasdfs__', NULL, 'desc' ),
+    false,
+    'col_default_is( sch, tab, non existent col, def, desc )',
+    'Error #     Column taptest.sometab.__asdfasdfs__ does not exist',
     '',
     ''
 );
