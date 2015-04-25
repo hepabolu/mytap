@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(195);
+SELECT tap.plan(210);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -11,12 +11,12 @@ CREATE DATABASE taptest;
 -- This will be rolled back. :-)
 DROP TABLE IF EXISTS taptest.sometab;
 CREATE TABLE taptest.sometab(
-    id      INT NOT NULL PRIMARY KEY,
+    id      INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     uint    INT(5) UNSIGNED,
     name    TEXT DEFAULT '',
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
-    myat    TIMESTAMP DEFAULT NOW(),
+    myat    TIMESTAMP DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,
     mydate  DATE DEFAULT '0000-00-00',
     plain   INT,
     KEY `WeirdIndexName` (`myNum`)
@@ -669,7 +669,7 @@ SELECT tap.check_test(
 SELECT tap.check_test(
     col_default_is( 'taptest', 'sometab', 'mydate', '0000-00-00', 'mydate should default to 0000-00-00' ),
     true,
-    'col_default_is( tab, col, zero date def, desc )',
+    'col_default_is( sch, tab, col, zero date def, desc )',
     'mydate should default to 0000-00-00',
     '',
     ''
@@ -682,7 +682,7 @@ SELECT tap.check_test(
 SELECT tap.check_test(
     col_default_is( 'taptest', 'sometab', 'myat', 'CURRENT_TIMESTAMP', '' ),
     true,
-    'col_default_is( tab, col, expression )',
+    'col_default_is( sch, tab, col, expression )',
     'Column sometab.myat should have as default `CURRENT_TIMESTAMP`',
     '',
     ''
@@ -704,6 +704,55 @@ SELECT tap.check_test(
     col_default_is( 'taptest', 'sometab', '__asdfasdfs__', NULL, 'desc' ),
     false,
     'col_default_is( sch, tab, non existent col, def, desc )',
+    'Error #     Column taptest.sometab.__asdfasdfs__ does not exist',
+    '',
+    ''
+);
+
+/****************************************************************************/
+-- Test col_extra_is()
+
+SELECT tap.check_test(
+    col_extra_is( 'taptest', 'sometab', 'id', 'AUTO_INCREMENT', 'desc'),
+    true,
+    'col_extra_is( sch, tab, col, extra, desc )',
+    'desc',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_extra_is( 'taptest', 'sometab', 'name', '', 'desc'),
+    true,
+    'col_extra_is( sch, tab, col, empty extra, desc )',
+    'desc',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_extra_is( 'taptest', 'sometab', 'name', NULL, 'desc'),
+    true,
+    'col_extra_is( sch, tab, col, null extra, desc )',
+    'desc',
+    '',
+    ''
+);
+
+SELECT tap.check_test(
+    col_extra_is( 'taptest', 'sometab', 'name', 'foo', 'desc'),
+    false,
+    'col_extra_is( sch, tab, col, wrong extra, desc )',
+    'desc',
+    '',
+    ''
+);
+
+-- Check with a nonexistent column.
+SELECT tap.check_test(
+    col_extra_is( 'taptest', 'sometab', '__asdfasdfs__', NULL, 'desc' ),
+    false,
+    'col_extra_is( sch, tab, non existent col, def, desc )',
     'Error #     Column taptest.sometab.__asdfasdfs__ does not exist',
     '',
     ''

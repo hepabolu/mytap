@@ -356,4 +356,46 @@ END //
 
 /****************************************************************************/
 
+-- _col_extra_is ( schema, table, column, extra )
+
+-- note: in MySQL 5.5x 'extra' default to ''
+
+DROP FUNCTION IF EXISTS _col_extra_is //
+CREATE FUNCTION _col_extra_is ( dbname TEXT, tname TEXT, cname TEXT, cextra TEXT )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    IF cextra IS NULL THEN
+        set cextra = '';
+    END IF;
+    SELECT true into ret
+      FROM information_schema.columns as db
+     WHERE db.table_schema = dbname
+       AND db.table_name = tname
+       AND db.column_name = cname
+       AND db.extra = cextra;
+
+    RETURN coalesce(ret, false);
+END //
+
+DROP FUNCTION IF EXISTS col_extra_is //
+CREATE FUNCTION col_extra_is ( dbname TEXT, tname TEXT, cname TEXT, cextra TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat( 'Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have as extra ', quote_ident(cextra) );
+    END IF;
+
+    RETURN ok( _col_extra_is( dbname, tname, cname, cextra ), description );
+END //
+
+/****************************************************************************/
+
 DELIMITER ;
