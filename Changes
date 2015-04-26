@@ -9,6 +9,8 @@ Revision history for MyTAP
 * all kinds of column related tests added
 * has_function, hasnt_function, has_procedure, hasnt_procedure added
 
+Note: these tests are only tested on MySQL 5.5x
+
 0.02  2010-08-30T17:36:29
 -------------------------
 * Modified exception-throwing code to always clear out the cached data before
