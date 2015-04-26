@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(210);
+SELECT tap.plan(225);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -21,6 +21,8 @@ CREATE TABLE taptest.sometab(
     plain   INT,
     KEY `WeirdIndexName` (`myNum`)
 );
+
+CREATE OR REPLACE VIEW taptest.myView as select myNum as viewNum, plain from taptest.sometab;
 
 /****************************************************************************/
 -- Test has_column
@@ -64,6 +66,28 @@ SELECT tap.check_test(
   ''
 );
 
+-- check with column in view
+
+SELECT tap.check_test(
+  tap.has_column('taptest', 'myView', 'viewNum', 'my own description'),
+  true,
+  'has_column( sch, view, col, desc )',
+  'my own description',
+  '',
+  ''
+);
+
+-- underlying column should fail
+
+SELECT tap.check_test(
+  tap.has_column('taptest', 'myView', 'myNum', 'my own description'),
+  false,
+  'has_column( sch, view, underlying col, desc )',
+  'my own description',
+  '',
+  ''
+);
+
 /****************************************************************************/
 -- Test hasnt_column
 SELECT tap.check_test(
@@ -101,6 +125,28 @@ SELECT tap.check_test(
   tap.hasnt_column('taptest', 'sometab', 'foo', 'my own description'),
   true,
   'hasnt_column( sch, tab, col, desc )',
+  'my own description',
+  '',
+  ''
+);
+
+-- check with column in view
+
+SELECT tap.check_test(
+  tap.hasnt_column('taptest', 'myView', 'viewNum', 'my own description'),
+  false,
+  'hasnt_column( sch, view, existing col, desc )',
+  'my own description',
+  '',
+  ''
+);
+
+-- check with original column name from table in view
+
+SELECT tap.check_test(
+  tap.hasnt_column('taptest', 'myView', 'myNum', 'my own description'),
+  true,
+  'hasnt_column( sch, view, non existing col, desc )',
   'my own description',
   '',
   ''
@@ -708,6 +754,16 @@ SELECT tap.check_test(
     '',
     ''
 );
+
+SELECT tap.check_test(
+    col_default_is( 'taptest', 'myView', 'myNum', 24, 'desc' ),
+    false,
+    'col_default_is( sch, view, non existent col, def, desc )',
+    'Error #     Column taptest.myView.myNum does not exist',
+    '',
+    ''
+);
+
 
 /****************************************************************************/
 -- Test col_extra_is()
