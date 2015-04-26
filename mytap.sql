@@ -529,26 +529,34 @@ BEGIN
       FROM information_schema.tables
      WHERE table_name = tname
        AND table_schema = dbname
-       AND table_type <> 'SYSTEM VIEW';
+       AND table_type = 'BASE TABLE';
     RETURN COALESCE(ret, 0);
 END //
 
+-- has_table( schema, table, description )
 DROP FUNCTION IF EXISTS has_table //
-CREATE FUNCTION has_table(dbname TEXT, tname TEXT) RETURNS TEXT
+CREATE FUNCTION has_table (dbname TEXT, tname TEXT, description TEXT)
+RETURNS TEXT 
 BEGIN
-    RETURN ok(
-        _has_table(dbname, tname),
-        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should exist')
-    );
+    IF description = '' THEN
+        SET description = concat('Table ', 
+            quote_ident(dbname), '.', quote_ident(tname), ' should exist' );
+    END IF;
+
+    RETURN ok( _has_table( dbname, tname ), description );
 END //
 
+-- hasnt_table( schema, table, description )
 DROP FUNCTION IF EXISTS hasnt_table //
-CREATE FUNCTION hasnt_table(dbname TEXT, tname TEXT) RETURNS TEXT
+CREATE FUNCTION hasnt_table (dbname TEXT, tname TEXT, description TEXT)
+RETURNS TEXT 
 BEGIN
-    RETURN ok(
-        NOT _has_table(dbname, tname),
-        concat('Table ', quote_ident(dbname), '.', quote_ident(tname), ' should not exist')
-    );
+    IF description = '' THEN
+        SET description = concat('Table ', 
+            quote_ident(dbname), '.', quote_ident(tname), ' should not exist' );
+    END IF;
+
+    return ok( NOT _has_table( dbname, tname ), description );
 END //
 
 -- check_test( test_output, pass, name, description, diag, match_diag )
@@ -690,3 +698,7 @@ BEGIN
 END //
 
 DELIMITER ;
+
+source ./mytap-view.sql
+source ./mytap-column.sql
+source ./mytap-routines.sql
