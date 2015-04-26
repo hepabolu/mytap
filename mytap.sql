@@ -701,3 +701,4 @@ DELIMITER ;
 
 source ./mytap-view.sql
 source ./mytap-column.sql
+source ./mytap-routines.sql
