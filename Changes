@@ -1,7 +1,13 @@
 Revision history for MyTAP
 ==========================
 
-0.03
+0.03  2015-04-26T08:12:37
+-------------------------
+* _has_table reworked to distinguish between views and tables
+* has_table and hasnt_tabel reworked to allow custom description
+* has_view, hasnt_view, has_security_invoker, has_security_definer tests added
+* all kinds of column related tests added
+* has_function, hasnt_function, has_procedure, hasnt_procedure added
 
 0.02  2010-08-30T17:36:29
 -------------------------
