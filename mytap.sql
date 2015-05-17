@@ -529,7 +529,7 @@ BEGIN
       FROM information_schema.tables
      WHERE table_name = tname
        AND table_schema = dbname
-       AND table_type <> 'SYSTEM VIEW';
+       AND table_type = 'BASE TABLE';
     RETURN COALESCE(ret, 0);
 END //
 
@@ -690,3 +690,7 @@ BEGIN
 END //
 
 DELIMITER ;
+
+source ./mytap-table.sql
+source ./mytap-column.sql 
+source ./mytap-view.sql
