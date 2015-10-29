@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(225);
+SELECT tap.plan(228);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -19,6 +19,7 @@ CREATE TABLE taptest.sometab(
     myat    TIMESTAMP DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,
     mydate  DATE DEFAULT '0000-00-00',
     plain   INT,
+    enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
     KEY `WeirdIndexName` (`myNum`)
 );
 
@@ -583,6 +584,18 @@ SELECT tap.check_test(
     '',
     ''
 );
+
+-- test for data type enum, note MySQL removes the spaces after the comma
+
+SELECT tap.check_test(
+    tap.col_has_type( 'taptest', 'sometab', 'enumCol', "enum('VAL1','VAL2','VAL3')", ''),
+    true,
+    'col_has_type( sch, tab, col, enum type )',
+    'Column sometab.enumCol should have type enum(''VAL1'',''VAL2'',''VAL3'')',
+    '',
+    ''
+);
+
 
 -- Make sure nonexisting column is correctly detected
 SELECT tap.check_test(
