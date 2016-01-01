@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(228);
+SELECT tap.plan(270);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -526,6 +526,151 @@ SELECT tap.check_test(
     '',
     0
 );
+
+/****************************************************************************/
+
+-- Test col_has_named_index
+
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'myNum', '', '' ),
+    false,
+    'col_has_named_index( sch, tab, col has different index key name)',
+    'Column sometab.myNum should have index key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'myNum', '', 'my own description' ),
+    false,
+    'col_has_named_index( sch, tab, col has differente index key name, desc)',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_named_index( database(), 'sometab', 'myNum', 'WeirdIndexName', '' ),
+    true,
+    'col_has_named_index( current database, tab, col has index key with a different name than the column)',
+    'Column sometab.myNum should have index key WeirdIndexName',
+    '',
+    0
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'name', '', '' ),
+    false,
+    'col_has_named_index( sch, tab, col without any key)',
+    'Column sometab.name should have index key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'myNum', 'myNum', '' ),
+    false,
+    'col_has_named_index( sch, tab, col a different key name)',
+    'Column sometab.myNum should have index key myNum',
+    '',
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'foo', '', '' ),
+    false,
+    'col_has_named_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_named_index( 'taptest', 'sometab', 'id', '', '' ),
+    false,
+    'col_has_named_index( sch, tab, col has primary key)',
+    'Column sometab.id should have index key',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_hasnt_named_index
+
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'name', '', '' ),
+    true,
+    'col_hasnt_named_index( sch, tab, col has not index key)',
+    'Column sometab.name should not have index key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'name', '', 'my own description' ),
+    true,
+    'col_hasnt_named_index( sch, tab, col has not index key, descr )',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( database(), 'sometab', 'name', '', '' ),
+    true,
+    'col_hasnt_named_index( current database, tab, col has no key)',
+    'Column sometab.name should not have index key',
+    '',
+    0
+);
+
+use tap;
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'myNum', 'WeirdIndexName', '' ),
+    false,
+    'col_hasnt_named_index( sch, tab, col with index key)',
+    'Column sometab.myNum should not have index key WeirdIndexName',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'myNum', '', '' ),
+    true,
+    'col_hasnt_named_index( sch, tab, col with index key, but not the column name)',
+    'Column sometab.myNum should not have index key',
+    '',
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'foo', '', '' ),
+    false,
+    'col_hasnt_named_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_hasnt_named_index( 'taptest', 'sometab', 'id', '', '' ),
+    true,
+    'col_hasnt_named_index( sch, tab, col has index key)',
+    'Column sometab.id should not have INDEX key',
+    '',
+    0
 );
 
 /****************************************************************************/
