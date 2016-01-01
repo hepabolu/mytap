@@ -1,6 +1,12 @@
 Revision history for MyTAP
 ==========================
 
+0.04  2016-01-01T21:55:58 
+-------------------------
+* col_has_named_index, col_hasnt_named_index added to allow index key names 
+  that differ from the column name. Defaults to column name.
+* tests added for the new functions
+
 0.03  2015-04-26T08:12:37
 -------------------------
 * _has_table reworked to distinguish between views and tables
