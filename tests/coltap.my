@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS taptest.sometab;
 CREATE TABLE taptest.sometab(
     id      INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     uint    INT(5) UNSIGNED,
-    name    TEXT DEFAULT '',
+    name    TEXT,
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
     myat    TIMESTAMP DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,
