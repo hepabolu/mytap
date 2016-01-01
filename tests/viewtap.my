@@ -36,7 +36,7 @@ SELECT tap.check_test(
     'has_view( sch, view )',
     'View taptest.myview should exist',
     '',
-    ''
+    0
 );
 
 use taptest;
@@ -46,7 +46,7 @@ SELECT tap.check_test(
     'has_view( current database, view )',
     'View taptest.myview should exist',
     '',
-    ''
+    0
 );
 
 use tap;
@@ -58,7 +58,7 @@ SELECT tap.check_test(
     'has_view( sch, non existing view )',
     'View taptest.foo should exist',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -67,7 +67,7 @@ SELECT tap.check_test(
   'has_view( sch, view, descr)',
   'my own description',
   '',
-  ''
+  0
 );
 
 SELECT tap.check_test(
@@ -76,7 +76,7 @@ SELECT tap.check_test(
     'has_view( sch, table instead of view )',
     'View taptest.sometab should exist',
     '',
-    ''
+    0
 );
 
 
@@ -88,7 +88,7 @@ SELECT tap.check_test(
     'hasnt_view( sch, non existing view )',
     'View taptest.foo should not exist',
     '',
-    ''
+    0
 );
 
 use taptest;
@@ -98,7 +98,7 @@ SELECT tap.check_test(
     'hasnt_view( current database, non existing view )',
     'View taptest.foo should not exist',
     '',
-    ''
+    0
 );
 
 use tap;
@@ -110,7 +110,7 @@ SELECT tap.check_test(
     'hasnt_view( sch, existing view )',
     'View taptest.myview should not exist',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -119,7 +119,7 @@ SELECT tap.check_test(
   'hasnt_view( sch, view, descr)',
   'my own description',
   '',
-  ''
+  0
 );
 
 SELECT tap.check_test(
@@ -128,7 +128,7 @@ SELECT tap.check_test(
     'hasnt_view( sch, table instead of view )',
     'View taptest.sometab should not exist',
     '',
-    ''
+    0
 );
 
 /****************************************************************************/
@@ -140,7 +140,7 @@ SELECT tap.check_test(
     'has_security_invoker( sch, view )',
     'View taptest.invokerView should have security INVOKER',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -149,7 +149,7 @@ SELECT tap.check_test(
     'has_security_invoker( sch, view, desc )',
     'desc',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -158,7 +158,7 @@ SELECT tap.check_test(
     'has_security_invoker( sch, view with wrong security )',
     'View taptest.myView should have security INVOKER',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -167,7 +167,7 @@ SELECT tap.check_test(
     'has_security_invoker( sch, non existent view )',
     'Error #     View taptest.__adfafsadf__ does not exist',
     '',
-    ''
+    0
 );
 
 /****************************************************************************/
@@ -179,7 +179,7 @@ SELECT tap.check_test(
     'has_security_definer( sch, view )',
     'View taptest.myView should have security DEFINER',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -188,7 +188,7 @@ SELECT tap.check_test(
     'has_security_definer( sch, view, desc )',
     'desc',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -197,7 +197,7 @@ SELECT tap.check_test(
     'has_security_definer( sch, view with wrong security )',
     'View taptest.invokerView should have security DEFINER',
     '',
-    ''
+    0
 );
 
 SELECT tap.check_test(
@@ -206,7 +206,7 @@ SELECT tap.check_test(
     'has_security_definer( sch, non existent view )',
     'Error #     View taptest.__adfafsadf__ does not exist',
     '',
-    ''
+    0
 );
 
 /****************************************************************************/
