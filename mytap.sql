@@ -1,3 +1,5 @@
+SET GLOBAL log_bin_trust_function_creators = 1;
+
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
@@ -329,7 +331,7 @@ BEGIN
     RETURN (have IS NOT NULL AND want IS NOT NULL AND have = want)
         OR (have IS NULL AND want IS NULL)
         OR 0;
-END;
+END //
 
 DROP FUNCTION IF EXISTS eq //
 CREATE FUNCTION eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
@@ -690,3 +692,5 @@ BEGIN
 END //
 
 DELIMITER ;
+
+SET GLOBAL log_bin_trust_function_creators = 0;
