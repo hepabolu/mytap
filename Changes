@@ -1,6 +1,12 @@
 Revision history for MyTAP
 ==========================
 
+0.05  2016-06-22T19:25:12 
+-------------------------
+* col_has_pos_in_named_index, col_has_pos_in_named_index added to test
+  for index keys that combine multiple columns.
+* tests added for the new functions.
+
 0.04  2016-01-01T21:55:58 
 -------------------------
 * col_has_named_index, col_hasnt_named_index added to allow index key names 

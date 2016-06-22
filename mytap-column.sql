@@ -244,7 +244,7 @@ BEGIN
                diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
     END IF;
 
-    SET kname := coalesce(kname, cname); -- use the column name as index name is nothing is given
+    SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
     IF description = '' THEN
         SET description = concat('Column ', 
             quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
@@ -263,13 +263,82 @@ BEGIN
                diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
     END IF;
 
-    SET kname := coalesce(kname, cname); -- use the column name as index name is nothing is given
+    SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
     IF description = '' THEN
         SET description = concat('Column ', 
             quote_ident(tname), '.', quote_ident(cname), ' should not have INDEX key ', kname );
     END IF;
 
     RETURN ok( NOT _col_has_named_index(dbname, tname, cname, kname), description );
+END //
+
+/****************************************************************************/
+-- _col_has_pos_in_named_index (schema, table, column, position )
+
+DROP FUNCTION IF EXISTS _col_has_pos_in_named_index //
+CREATE FUNCTION _col_has_pos_in_named_index ( dbname TEXT, tname TEXT, cname TEXT, kname TEXT, position INT )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    SELECT true into ret
+      FROM information_schema.statistics as db
+     WHERE db.table_schema = dbname
+       AND db.table_name = tname
+       AND db.column_name = cname
+       AND db.index_name = kname
+       AND db.seq_in_index = position;
+    RETURN coalesce(ret, false);
+END //
+
+-- col_has_pos_in_named_index ( schema, table, column, keyname, position )
+DROP FUNCTION IF EXISTS col_has_pos_in_named_index //
+CREATE FUNCTION col_has_pos_in_named_index ( dbname TEXT, tname TEXT, cname TEXT, kname TEXT, position INT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
+
+    IF NOT _col_has_named_index( dbname, tname, cname, kname ) THEN
+        SET description = concat('Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
+        RETURN fail(concat('Error ', diag(description)));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat('Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have position ', position, ' in INDEX ', quote_ident(kname) );
+    END IF;
+
+    RETURN ok( _col_has_pos_in_named_index(dbname, tname, cname, kname, position), description );
+END //
+
+-- col_hasnt_pos_in_named_index( schema, table, column, keyname, position )
+DROP FUNCTION IF EXISTS col_hasnt_pos_in_named_index //
+CREATE FUNCTION col_hasnt_pos_in_named_index ( dbname TEXT, tname TEXT, cname TEXT, kname TEXT, position INT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
+    IF NOT _col_has_named_index( dbname, tname, cname, kname ) THEN
+        SET description = concat('Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
+          RETURN fail(concat('Error ', diag(description)));
+    END IF;
+    IF description = '' THEN
+        SET description = concat('Column ', 
+            quote_ident(tname), '.', quote_ident(cname), ' should not have position ', position, ' in INDEX ', quote_ident(kname) );
+    END IF;
+
+    RETURN ok( NOT _col_has_pos_in_named_index(dbname, tname, cname, kname, position), description );
 END //
 
 /****************************************************************************/
