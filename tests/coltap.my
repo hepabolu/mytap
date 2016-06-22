@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(270);
+SELECT tap.plan(321);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -20,7 +20,8 @@ CREATE TABLE taptest.sometab(
     mydate  DATE DEFAULT '0000-00-00',
     plain   INT,
     enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
-    KEY `WeirdIndexName` (`myNum`)
+    KEY `WeirdIndexName` (`myNum`),
+    KEY `multiIndex` (`myNum`,`mydate`)
 );
 
 CREATE OR REPLACE VIEW taptest.myView as select myNum as viewNum, plain from taptest.sometab;
@@ -543,7 +544,7 @@ SELECT tap.check_test(
 SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'myNum', '', 'my own description' ),
     false,
-    'col_has_named_index( sch, tab, col has differente index key name, desc)',
+    'col_has_named_index( sch, tab, col has different index key name, desc)',
     'my own description',
     '',
     0
@@ -669,6 +670,181 @@ SELECT tap.check_test(
     true,
     'col_hasnt_named_index( sch, tab, col has index key)',
     'Column sometab.id should not have INDEX key',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_has_pos_in_named_index
+-- col_has_pos_in_named_index ( schema, table, column, keyname, position, desc )
+
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'myNum', 'falseName', 1, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col has different index key name)',
+    'Error # Column sometab.myNum should have INDEX key falseName',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'myNum', 'falseName', 1, 'my own description' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col has different index key name, desc)',
+    'Error # Column sometab.myNum should have INDEX key falseName',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( database(), 'sometab', 'mydate', 'multiIndex', 2, '' ),
+    true,
+    'col_has_pos_in_named_index( current database, tab, col, correct pos)',
+    'Column sometab.mydate should have position 2 in INDEX multiIndex',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( database(), 'sometab', 'mynum', 'multiIndex', 1, 'myNum should have pos 1' ),
+    true,
+    'col_has_pos_in_named_index( current database, tab, col, correct pos)',
+    'myNum should have pos 1',
+    '',
+    0
+);
+
+use tap;
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'name', '', 1, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col without any key)',
+    'Error # Column sometab.name should have INDEX key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'myNum', 'multiIndex', 2, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col, wrong pos )',
+    'Column sometab.mynum should have position 2 in INDEX multiIndex',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'myNum', 'WeirdIndexName', 1, 'myNum is the only one in WeirdIndexName' ),
+    true,
+    'col_has_pos_in_named_index( sch, tab, col, single index, correct pos )',
+    'myNum is the only one in WeirdIndexName',
+    '',
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'foo', '', 1, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_pos_in_named_index( 'taptest', 'sometab', 'id', '', 1, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col has primary key)',
+    'Error # Column sometab.id should have INDEX key',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_hasnt_pos_in_named_index
+
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'name', '', 1, '' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, col has not index key)',
+    'Error # Column sometab.name should have INDEX key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'name', '', 1, 'my own description' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, col has not index key, descr )',
+    'Error # Column sometab.name should have INDEX key',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( database(), 'sometab', 'mydate', 'multiIndex', 1, '' ),
+    true,
+    'col_hasnt_pos_in_named_index( current database, tab, col, wrong pos)',
+    'Column sometab.mydate should not have position 1 in index multiIndex',
+    '',
+    0
+);
+
+use tap;
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'mydate', 'WeirdIndexName', 1, '' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, col with index key)',
+    'Error # Column sometab.mydate should have INDEX key WeirdIndexName',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'myNum', '', 1, '' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, col with index key, but not the column name)',
+    'Error # Column sometab.myNum should have INDEX key',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'myNum', 'multiIndex', 1, '' ),
+    false,
+    'col_has_pos_in_named_index( sch, tab, col, wrong pos )',
+    'Column sometab.myNum should not have position 1 in INDEX multiIndex',
+    '',
+    0
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'foo', '', 1, '' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_hasnt_pos_in_named_index( 'taptest', 'sometab', 'id', '', 1, '' ),
+    false,
+    'col_hasnt_pos_in_named_index( sch, tab, col has index key)',
+    'Error # Column sometab.id should have INDEX key',
     '',
     0
 );
@@ -976,6 +1152,7 @@ SELECT tap.check_test(
 /****************************************************************************/
 -- Finish the tests and clean up.
 call tap.finish();
+
 DROP DATABASE IF EXISTS taptest;
 
 ROLLBACK;
