@@ -1,4 +1,4 @@
-MyTAP 0.03
+MyTAP 0.05
 ==========
 
 MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
@@ -280,12 +280,96 @@ identifier names.
 
     SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
 
-This function tests whether or not a table exists in a database. The first
+This function tests whether a table exists in a database. The first
 argument is a database name, the second is a table name, and the third is the
 test description. If you want to test for a table in the current database, use
 the `DATABASE()` function to specify the current databasen name. If you omit
 the test description, it will be set to "Table ':database'.':table' should
 exist".
+
+`__hasnt_table( database, table, description )` checks if the table does NOT exist.
+
+### `has_column( database, table, column, description )`
+
+This function tests whether the column exists in the given table of the database.
+
+`hasnt_column( database, table, column, description )` checks if the column does NOT exist
+
+### `col_is_null( database, table, column, description )`
+
+This function tests if the column has the attribute 'allow null'.
+
+`col_isnt_null( database, table, column, description )` checks if the column does NOT have the attribut 'allow null'.
+
+### `col_has_primary_key( database, table, column, description )`
+
+This function tests if the column is part of a primary key.
+
+`col_hasnt_primary_key( database, table, column, description )` checks if the column is NOT part of a primary key.
+
+### `col_has_index_key( database, table, column, description )`
+
+This function tests if the column is part of a key, not a primary key.
+
+`col_hasnt_index_key( database, table, column, description )` checks if this column is NOT part of a key.
+
+### `col_has_named_index( database, table, column, keyname, description )`
+
+This function tests if the column is part of a key with a specific name.
+
+`col_has_named_index( database, table, column, keyname, description )` checks if the column is NOT part of a key with a specific name.
+
+### `col_has_pos_in_named_index( database, table, column, keyname, position, description )`
+
+This function tests if the column has the given position in a composite index of the given name. A composite index is an index on multiple columns.
+
+`col_hasnt_pos_in_named_index( database, table, column, keyname, position, description )` checks if the column does NOT have the given position in the given index.
+
+### `col_has_type( database, table, column, type, description )`
+
+This function tests if the column has the given datatype.
+
+`col_hasnt_type( database, table, column, type, description )` checks if the column does NOT have the given datatype.
+
+### `col_has_default( database, table, column, description )`
+
+This function tests if the column has a default value. Note, this function does NOT tests the actual default value, just that the attribute of a default value is set.
+
+`col_hasnt_default( database, table, column, description )` checks if the column does NOT have the 'default' attribute set.
+
+### `col_default_is( database, table, column, default, description )`
+
+This function tests if the column has the given default value. 
+__Note__: MySQL 5.5x does not distinguish between 'no default' and 
+'null as default' and 'empty string as default'.
+
+### `col_extra_is( database, table, column, extra, description )`
+
+This function tests if the column has the given extra attributes. Examples of 'extra' are `on update current timestamp`.
+
+### `has_function( database, function, description )`
+
+This function tests if the function with the given name exists in the database.
+
+`hasnt_function( database, function, description )` checks if the function with the given name does NOT exist in the database.
+
+### `has_procedure( database, procedure, description )`
+
+This function tests if the procedure with the given name exists in the database.
+
+`hasnt_procedure( database, procedure, description )` checks if the procedure with the given name does NOT exist in the database.
+
+### `has_view ( database, view, description )`
+
+This function tests if the view with the given name exists in the database.
+
+`hasnt_view ( database, view, description )` checks if the view with the given name does NOT exist in the database.
+
+### `has_security_invoker ( database, view, description )`
+
+This function tests if the view has the attribute `security INVOKER`.
+
+`has_security_definer ( database, view, description )` checks if the view has the attribute `security DEFINER`.
 
 No Test for the Wicked
 ======================
@@ -674,6 +758,7 @@ Author
 ------
 
 [David E. Wheeler](http://justatheory.com/)
+Fork: [Hepabolu](https://github.com/hepabolu/mytap)
 
 Credits
 -------
