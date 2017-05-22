@@ -1,3 +1,4 @@
+SET GLOBAL log_bin_trust_function_creators = 1;
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
@@ -128,15 +129,22 @@ DROP FUNCTION IF EXISTS _tap //
 CREATE FUNCTION _tap(aok BOOLEAN, test_num INTEGER, descr TEXT, todo_why TEXT)
 RETURNS TEXT
 BEGIN
-    RETURN concat(CASE aok WHEN TRUE THEN '' ELSE 'not ' END,
+    RETURN concat(CASE aok WHEN TRUE THEN CAST('' AS CHAR CHARACTER SET utf8) ELSE CAST('not ' AS CHAR CHARACTER SET utf8) END,
         'ok ', test_num,
-        CASE descr WHEN '' THEN '' ELSE COALESCE( concat(' - ', substr(diag( descr ), 3)), '' ) END,
-        COALESCE( concat(' ', diag( concat('TODO ', todo_why) )), ''),
+        CASE descr WHEN '' THEN '' ELSE COALESCE( concat(CAST(' - ' AS CHAR CHARACTER SET utf8),CAST(substr(diag( descr ), 3) AS CHAR CHARACTER SET utf8)), '' ) END,
+        COALESCE( concat(CAST(' ' AS CHAR CHARACTER SET utf8), diag( concat(CAST('TODO ' AS CHAR CHARACTER SET utf8),CAST(todo_why AS CHAR CHARACTER SET utf8)) )), ''),
         CASE WHEN aok THEN '' ELSE concat('\n',
-            diag(concat('Failed ',
-                CASE WHEN todo_why IS NULL THEN '' ELSE '(TODO) ' END,
+            diag(concat(CAST('Failed '  AS CHAR CHARACTER SET utf8),
+                CASE WHEN todo_why IS NULL 
+                     THEN CAST('' AS CHAR CHARACTER SET utf8) 
+                     ELSE  CAST('(TODO) ' AS CHAR CHARACTER SET utf8) 
+                END,
                 'test ', test_num,
-                CASE descr WHEN '' THEN '' ELSE COALESCE(concat(': "', descr, '"'), '') END,
+                CASE descr WHEN '' THEN CAST('' AS CHAR CHARACTER SET utf8) 
+                ELSE COALESCE(concat(CAST(': "' AS CHAR CHARACTER SET utf8), 
+                                     CAST(descr AS CHAR CHARACTER SET utf8), 
+                                     CAST('"' AS CHAR CHARACTER SET utf8)), CAST('' AS CHAR CHARACTER SET utf8)
+                            ) END,
                 CASE WHEN aok IS NULL THEN concat('\n', '    (test result was NULL)') ELSE '' END
         ))) END
     );
@@ -194,7 +202,7 @@ BEGIN
     IF exp_tests = 0 OR exp_tests IS NULL THEN
          -- No plan. Output one now.
         SET exp_tests = curr_test;
-        SET ret = concat('1..', COALESCE(exp_tests, 0));
+        SET ret = concat(CAST('1..' AS CHAR CHARACTER SET utf8), CAST(COALESCE(exp_tests, 0) AS CHAR CHARACTER SET utf8));
     END IF;
 
     IF curr_test <> exp_tests THEN
@@ -204,7 +212,7 @@ BEGIN
         )));
     ELSEIF num_faild > 0 THEN
         SET ret = concat(ret, CASE WHEN ret THEN '\n' ELSE '' END, diag(concat(
-            'Looks like you failed ', num_faild, ' test',
+            'Looks like you failed ', CAST(num_faild AS CHAR CHARACTER SET utf8), ' test',
             CASE num_faild WHEN 1 THEN '' ELSE 's' END,
             ' of ', exp_tests
         )));
