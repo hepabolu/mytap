@@ -1,3 +1,5 @@
+SET GLOBAL log_bin_trust_function_creators = 1;
+
 CREATE SCHEMA IF NOT EXISTS tap;
 USE tap;
 
@@ -329,7 +331,7 @@ BEGIN
     RETURN (have IS NOT NULL AND want IS NOT NULL AND have = want)
         OR (have IS NULL AND want IS NULL)
         OR 0;
-END;
+END //
 
 DROP FUNCTION IF EXISTS eq //
 CREATE FUNCTION eq( have TEXT, want TEXT, descr TEXT) RETURNS TEXT
@@ -536,10 +538,10 @@ END //
 -- has_table( schema, table, description )
 DROP FUNCTION IF EXISTS has_table //
 CREATE FUNCTION has_table (dbname TEXT, tname TEXT, description TEXT)
-RETURNS TEXT 
+RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Table ', 
+        SET description = concat('Table ',
             quote_ident(dbname), '.', quote_ident(tname), ' should exist' );
     END IF;
 
@@ -549,10 +551,10 @@ END //
 -- hasnt_table( schema, table, description )
 DROP FUNCTION IF EXISTS hasnt_table //
 CREATE FUNCTION hasnt_table (dbname TEXT, tname TEXT, description TEXT)
-RETURNS TEXT 
+RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Table ', 
+        SET description = concat('Table ',
             quote_ident(dbname), '.', quote_ident(tname), ' should not exist' );
     END IF;
 
@@ -702,3 +704,5 @@ DELIMITER ;
 source ./mytap-view.sql
 source ./mytap-column.sql
 source ./mytap-routines.sql
+
+SET GLOBAL log_bin_trust_function_creators = 0;
