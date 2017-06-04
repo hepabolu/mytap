@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>MyTAP by hepabolu</title>
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=1612e3404a32f3e5d2a80ca79420ad27758705e3">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>MyTAP</h1>
+        <p>MySQL Unit Testing Suite</p>
+
+        
+          <p class="view"><a href="http://github.com/hepabolu/mytap">View the Project on GitHub <small></small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <h1 id="mytap-integration">MyTAP Integration</h1>
+
+<p>So you’ve caught the database testing bug and now you want to
+integrate MyTAP tests into your project’s test suite. Excellent. You’ve
+come to the right place. Just find your favorite programming language
+below and follow along. Don’t see your language here yet? If you figure
+out how to do it, please send us the instructions!</p>
+
+<ul>
+  <li><a href="#perl" title="MyTAP Perl Integration">Perl</a></li>
+  <li><a href="#php" title="MyTAP Php Integration">PHP</a></li>
+  <li><a href="#python" title="MyTAP Python Integration">Python</a></li>
+</ul>
+
+<h2 id="perl">Perl</h2>
+
+<p>Chances are, if you’re writing Perl applications, you’re already using
+<a href="http://search.cpan.org/perldoc/Test::More">Test::More</a>
+and <a href="http://search.cpan.org/perldoc/Test::More">Test::Harness</a> to write and run your tests. If you use <a href="http://search.cpan.org/perldoc/Module::Build">Module::Build</a> to build your application, here’s how to hook in MyTAP tests so that they run right along with your Perl tests.</p>
+
+<h3 id="requirements">Requirements</h3>
+
+<ul>
+  <li><a href="http://search.cpan.org/perldoc/Module::Build">Module::Build</a> 0.36 or later</li>
+  <li><a href="http://search.cpan.org/perldoc/TAP::Parser::SourceHandler::MySQL">TAP::Parser::SourceHandler::MySQL</a> 3.22 or later</li>
+</ul>
+
+<h3 id="instructions">Instructions</h3>
+
+<ul>
+  <li>Put your tests in the <code class="highlighter-rouge">t/</code> directory of your project, just like the Perl tests. Give them a suffix of “.my”, leaving your Perl tests with a suffix of “.t”. You don’t need to set any special variables in the test scripts. They can be as simple as this:</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    BEGIN;
+    SELECT tap.plan( 1 );
+    SELECT tap.pass('W00t!');
+    CALL tap.finish();
+    ROLLBACK;
+</code></pre>
+</div>
+
+<ul>
+  <li>In <code class="highlighter-rouge">Build.PL</code>, configure Module::Build like so:</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    use strict;
+    use warnings;
+    use Module::Build::DB;    
+
+    Module::Build::DB-&gt;new(
+        module_name        =&gt; 'My::App,
+        test_file_exts     =&gt; [qw(.t .my)],
+        configure_requires =&gt; {
+            'Module::Build =&gt; '0.36',
+        },
+        build_requires     =&gt; {
+            'Module::Build                      =&gt; '0.36',
+            'TAP::Parser::SourceHandler::MySQL' =&gt; '3.22',
+        },
+        tap_harness_args =&gt; {
+            sources =&gt; {
+                Perl  =&gt; undef,
+                MyTAP =&gt; {
+                    database =&gt; 'try',
+                    username =&gt; 'root',
+                    suffix   =&gt; '.my',
+                },
+            },
+        },
+    )-&gt;create_build_script;
+</code></pre>
+</div>
+
+<p>What this does is tell Module::Build to use TAP::Harness to run tests, rather than Test::Harness, and it tells it to use the MyTAP source handler to run tests with file names ending in “.my”.</p>
+
+<ul>
+  <li>
+    <p>Tweak this as necessary to match your configuration. For example, the database you connect to may not be “try”, and the user may not be “root”. You might also need to specify a host name and port; consult the <a href="http://search.cpan.org/perldoc?TAP::Parser::SourceHandler::MyTAP">TAP::Parser::SourceHandler::MyTAP</a> documentation to decide what other options you might need to specify. And of course, you should fill in more parameters to <code class="highlighter-rouge">new()</code> (you probably already have them).</p>
+  </li>
+  <li>
+    <p>Now you can run your tests as usual:</p>
+  </li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>    ./Build test
+    t/perl.t......ok
+    t/mytap.my....ok
+    All tests successful.
+    Files=2, Tests=6,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.03 c 0.02 csys =  0.09 CPU)
+    Result: PASS
+</code></pre>
+</div>
+
+<ul>
+  <li>Profit. Have fun!</li>
+</ul>
+
+<p>Support for running MyTAP tests with <a href="http://search.cpan.org/perldoc/ExtUtils::MakeMaker">ExtUtils::MakeMaker</a> is planned, as well. Just bug Schwern to commit the patch and release a new version!</p>
+
+<h2 id="php">PHP</h2>
+
+<p>We’re sure there’s a way to integrate MyTAP tests with <a href="http://www.phpunit.de/">PHPUnit</a> or <a href="http://code.google.com/p/snaptest/">SnapTest</a>. If you figure it out, please send the instructions to the <a href="http://lists.pgfoundry.org/mailman/listinfo/pgtap-users">pgtap-users</a> mail list and we’ll add
+them to this page!</p>
+
+<h2 id="python">Python</h2>
+
+<p>We’re sure there’s a way to integrate MyTAP tests with <a href="http://pyunit.sourceforge.net/">PyUnit</a>. Certainly with <a href="http://git.codesimply.com/?p=PyTAP.git;a=summary/">PyTAP</a>. If you figure it out, please send the instructions to the <a href="http://lists.pgfoundry.org/mailman/listinfo/pgtap-users">pgtap-users</a> mail list and we’ll add
+them to this page!</p>
+
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="http://github.com/hepabolu">hepabolu</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+
+
+  
+  </body>
+</html>
