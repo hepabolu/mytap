@@ -1,10 +1,11 @@
 ---
-layout: page
-title: MyTap
+layout: default
+title: Documentation
 permalink: /documentation/
 ---
 
-{{ page.title }} 
+# {{ page.title }} 
+
 __Version: 0.05__
 
 MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
@@ -15,7 +16,9 @@ well as the ability to integrate with other TAP-emitting test frameworks.
 
 To install MyTAP into a MySQL database, just run `mytap.sql`:
 
-    mysql -u root < mytap.sql
+```bash
+mysql -u root < mytap.sql
+```
 
 This will install all of the assertion functions, as well as a cache table,
 into a database named "tap".
@@ -24,27 +27,31 @@ into a database named "tap".
 
 Here's an example of how to write a MyTAP test script:
 
-    -- Start a transaction.
-    BEGIN;
+```sql
+-- Start a transaction.
+BEGIN;
 
-    -- Plan the tests.
-    SELECT tap.plan(1);
+-- Plan the tests.
+SELECT tap.plan(1);
 
-    -- Run the tests.
-    SELECT tap.pass( 'My test passed, w00t!' );
+-- Run the tests.
+SELECT tap.pass( 'My test passed, w00t!' );
 
-    -- Finish the tests and clean up.
-    CALL tap.finish();
-    ROLLBACK;
+-- Finish the tests and clean up.
+CALL tap.finish();
+ROLLBACK;
+```
 
 Note how the TAP test functions are reference from another database so as to
 keep them separate from your application database.
 
 Now you're ready to run your test script!
 
-    % mysql -u root --disable-pager --batch --raw --skip-column-names --unbuffered --database test --execute 'source test.sql'
-    1..1
-    ok 1 - My test passed, w00t!
+```bash
+% mysql -u root --disable-pager --batch --raw --skip-column-names --unbuffered --database test --execute 'source test.sql'
+1..1
+ok 1 - My test passed, w00t!
+```
 
 Yeah, that's rather a lot of options to have to remember to get valid tap. I
 suggest that you install
@@ -52,7 +59,9 @@ suggest that you install
 instead and just use its [`my_prove`](http://search.cpan.org/perldoc?my_prove)
 utility:
 
-    % my_prove -u root --database test test.sql
+```bash
+% my_prove -u root --database test test.sql
+```
 
 # Using MyTAP
 
