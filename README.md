@@ -72,7 +72,7 @@ Public Repository
 -----------------
 
 The source code for MyTAP is available on
-[GitHub](http://github.com/theory/mytap/). Please feel free to fork and
+[GitHub](http://github.com/hepabolu/mytap/). Please feel free to fork and
 contribute!
 
 Authors
