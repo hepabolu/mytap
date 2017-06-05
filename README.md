@@ -61,7 +61,7 @@ high legibility for humans. TAP started life as part of the test harness for
 Perl but now has implementations in C/C++, Python, PHP, JavaScript, Perl,
 PostgreSQL, and now MySQL.
 
-More information on the use of MyTAP can be found in the (documentation)[https://hepabolu.github.io/mytap]
+More information on the use of MyTAP can be found in the [documentation](https://hepabolu.github.io/mytap).
 
 
 To Do
