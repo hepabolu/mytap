@@ -81,24 +81,32 @@ many tests your script is going to run to protect against premature failure.
 The preferred way to do this is to declare a plan by calling the `plan()`
 function:
 
-    SELECT tap.plan( 42 );
+```sql
+SELECT tap.plan( 42 );
+```
 
 There are rare cases when you will not know beforehand how many tests your
 script is going to run. In this case, you can declare that you have no plan.
 (Try to avoid using this as it weakens your test.)
 
-    CALL tap.no_plan();
+```sql
+CALL tap.no_plan();
+```
 
 Often, though, you'll be able to calculate the number of tests, like so:
 
-    SELECT plan( COUNT(*) )
-      FROM foo;
+```sql
+SELECT plan( COUNT(*) )
+  FROM foo;
+```
 
 At the end of your script, you should always tell MyTAP that the tests have
 completed, so that it can output any diagnostics about failures or a
 discrepancy between the planned number of tests and the number actually run:
 
-    CALL tap.finish();
+```sql
+CALL tap.finish();
+```
 
 ## Test names
 
@@ -106,15 +114,19 @@ By convention, each test is assigned a number in order. This is largely done
 automatically for you. However, it's often very useful to assign a name to
 each test. Would you rather see this?
 
-      ok 4
-      not ok 5
-      ok 6
+```
+ok 4
+not ok 5
+ok 6
+```
 
 Or this?
 
-      ok 4 - basic multi-variable
-      not ok 5 - simple exponential
-      ok 6 - force == mass * acceleration
+```
+ok 4 - basic multi-variable
+not ok 5 - simple exponential
+ok 6 - force == mass * acceleration
+```
 
 The latter gives you some idea of what failed. It also makes it easier to find
 the test in your script, simply search for "simple exponential".
@@ -133,7 +145,9 @@ the test succeeded or failed.
 
 ### `ok( boolean, description )` ###
 
-    SELECT tap.ok( @this = @that, @description );
+```sql
+SELECT tap.ok( @this = @that, @description );
+```
 
 This function simply evaluates any expression (`@this = @that` is just a
 simple example) and uses that to determine if the test succeeded or failed. A
@@ -141,11 +155,13 @@ true expression passes, a false one fails. Very simple.
 
 For example:
 
-    SELECT tap.ok( 9 ^ 2 = 81,    'simple exponential' );
-    SELECT tap.ok( 9 < 10,        'simple comparison' );
-    SELECT tap.ok( 'foo' ~ '^f',  'simple regex' );
-    SELECT tap.ok( active,        concat(name, ' widget active' ))
-      FROM widgets;
+```sql
+SELECT tap.ok( 9 ^ 2 = 81,    'simple exponential' );
+SELECT tap.ok( 9 < 10,        'simple comparison' );
+SELECT tap.ok( 'foo' ~ '^f',  'simple regex' );
+SELECT tap.ok( active,        concat(name, ' widget active' ))
+  FROM widgets;
+```
 
 (Mnemonic:  "This is ok.")
 
@@ -156,36 +172,46 @@ gives others an idea of your intentions. The description is optional, but we
 
 Should an `ok()` fail, it will produce some diagnostics:
 
-    not ok 18 - sufficient mucus
-    #     Failed test 18: "sufficient mucus"
+```
+not ok 18 - sufficient mucus
+#     Failed test 18: "sufficient mucus"
+```
 
 Furthermore, should the boolean test result argument be passed as a `NULL`,
 `ok()` will assume a test failure and attach an additional diagnostic:
 
-    not ok 18 - sufficient mucus
-    #     Failed test 18: "sufficient mucus"
-    #     (test result was NULL)
+```
+not ok 18 - sufficient mucus
+#     Failed test 18: "sufficient mucus"
+#     (test result was NULL)
+```
 
 ### `eq( anyelement, anyelement, description )` ###
 ### `isnt_eq( anyelement, anyelement, description )` ###
 
-    SELECT tap.eq(   @this, @that, @description );
-    SELECT tap.not_eq( @this, @that, @description );
+```sql
+SELECT tap.eq(   @this, @that, @description );
+SELECT tap.not_eq( @this, @that, @description );
+```
 
 Similar to `ok()`, `eq()` and `not_eq()` compare their two arguments with `=`
 AND `<>`, respectively, and use the result of that to determine if the test
 succeeded or failed. So these:
 
-    -- Is the ultimate answer 42?
-    SELECT tap.eq( ultimate_answer(), 42, 'Meaning of Life' );
+```sql
+-- Is the ultimate answer 42?
+SELECT tap.eq( ultimate_answer(), 42, 'Meaning of Life' );
 
-    -- foo() doesn't return empty
-    SELECT tap.not_eq( foo(), '', 'Got some foo' );
+-- foo() doesn't return empty
+SELECT tap.not_eq( foo(), '', 'Got some foo' );
+```
 
 are similar to these:
 
-    SELECT tap.ok(   ultimate_answer() =  42, 'Meaning of Life' );
-    SELECT tap.isnt( foo()             <> '', 'Got some foo'    );
+```sql
+SELECT tap.ok(   ultimate_answer() =  42, 'Meaning of Life' );
+SELECT tap.isnt( foo()             <> '', 'Got some foo'    );
+```
 
 (Mnemonic: "This is that." "This isn't that.")
 
@@ -198,13 +224,17 @@ So why use these test functions? They produce better diagnostics on failure.
 `eq()` and `not_eq()` know what the test was and why it failed. For
 example this test:
 
-    SELECT tap.eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
+```sql
+SELECT tap.eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
+```
 
 Will produce something like this:
 
-    # Failed test 17:  "Is foo the same as bar?"
-    #         have: waffle
-    #         want: yarblokos
+```
+# Failed test 17:  "Is foo the same as bar?"
+#         have: waffle
+#         want: yarblokos
+```
 
 So you can figure out what went wrong without re-running the test.
 
@@ -213,17 +243,23 @@ possible.
 
 ### `matches( anyelement, regex, description )` ###
 
-    SELECT matches( @this, '^that', @description );
+```sql
+SELECT matches( @this, '^that', @description );
+```
 
 Similar to `eq()`, `matches()` matches `@this` against the regex `/^that/`.
 
 So this:
 
-    SELECT matches( @this, '^that', 'this is like that' );
+```sql
+SELECT matches( @this, '^that', 'this is like that' );
+```
 
 is similar to:
 
-    SELECT ok( @this REGEXP '^that', 'this is like that' );
+```sql
+SELECT ok( @this REGEXP '^that', 'this is like that' );
+```
 
 (Mnemonic "This matches that".)
 
@@ -232,23 +268,31 @@ diagnostics on failure.
 
 ### `doesnt_match( anyelement, regex, description )` ###
 
-    SELECT doesnt_match( @this, '^that', @description );
+```sql
+SELECT doesnt_match( @this, '^that', @description );
+```
 
 This functions works exactly as `matches()` does, only it checks if `@this`
 *does not* match the given pattern.
 
 ### `alike( anyelement, pattern, description )` ###
 
-    SELECT alike( @this, 'that%', @description );
+```sql
+SELECT alike( @this, 'that%', @description );
+```
 
 Similar to `matches()`, `alike()` matches `@this` against the SQL `LIKE`
 pattern 'that%'. So this:
 
-    SELECT alike( @this, 'that%', 'this is alike that' );
+```sql
+SELECT alike( @this, 'that%', 'this is alike that' );
+```
 
 is similar to:
 
-    SELECT ok( @this LIKE 'that%', 'this is like that' );
+```sql
+SELECT ok( @this LIKE 'that%', 'this is like that' );
+```
 
 (Mnemonic "This is like that".)
 
@@ -257,7 +301,9 @@ Better diagnostics on failure.
 
 ### `unalike( anyelement, pattern, description )` ###
 
-    SELECT unalike( @this, 'that%', @description );
+```sql
+SELECT unalike( @this, 'that%', @description );
+```
 
 Works exactly as `alike()`, only it checks if `@this` *does not* match the
 given pattern.
@@ -265,8 +311,10 @@ given pattern.
 ### `pass( description )` ###
 ### `fail( description )` ###
 
-    SELECT tap.pass( @description );
-    SELECT tap.fail( @description );
+```sql
+SELECT tap.pass( @description );
+SELECT tap.fail( @description );
+```
 
 Sometimes you just want to say that the tests have passed. Usually the case is
 you've got some complicated condition that is difficult to wedge into an
@@ -286,7 +334,9 @@ identifier names.
 
 ### `has_table( database, table, description )` ###
 
-    SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
+```sql
+SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
+```
 
 This function tests whether a table exists in a database. The first
 argument is a database name, the second is a table name, and the third is the
@@ -399,21 +449,25 @@ than just `\echo` or `SELECT foo`.
 Returns a diagnostic message which is guaranteed not to interfere with
 test output. Handy for this sort of thing:
 
-    -- Output a diagnostic message if the collation is not en_US.UTF-8.
-    SELECT tap.diag(concat(
-         'These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,\n',
-         'but yours is set to ', VARIABLE_VALUE, '.\n',
-         'As a result, some tests may fail. YMMV.'
-    ))
-      FROM information_schema.global_variables
-     WHERE VARIABLE_NAME = 'CHARACTER_SET_DATABASE'
-       AND VARIABLE_VALUE <> 'utf-8'
+```sql
+-- Output a diagnostic message if the collation is not en_US.UTF-8.
+SELECT tap.diag(concat(
+     'These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,\n',
+     'but yours is set to ', VARIABLE_VALUE, '.\n',
+     'As a result, some tests may fail. YMMV.'
+))
+  FROM information_schema.global_variables
+ WHERE VARIABLE_NAME = 'CHARACTER_SET_DATABASE'
+   AND VARIABLE_VALUE <> 'utf-8'
+```
 
 Which would produce:
 
-    # These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,
-    # but yours is set to latin1.
-    # As a result, some tests may fail. YMMV. 
+```
+# These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,
+# but yours is set to latin1.
+# As a result, some tests may fail. YMMV. 
+```
 
 ## Conditional Tests
 
@@ -430,19 +484,21 @@ Outputs SKIP test results. Use it in a conditional expression within a
 `SELECT` statement to replace the output of a test that you otherwise would
 have run.
 
-    SELECT CASE WHEN mysql_version() < 501000
-        THEN skip(1, 'ExtractValue() not supported before 5.1' )
-        ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
-    END;
+```sql
+SELECT CASE WHEN mysql_version() < 501000
+    THEN skip(1, 'ExtractValue() not supported before 5.1' )
+    ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
+END;
 
-    SELECT CASE WHEN mysql_version() < 501000
-        THEN skip(2, 'ExtractValue() not supported before 5.1' )
-        ELSE concat(
-            ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work'),
-            '\n',
-            ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
-        )
-    END;
+SELECT CASE WHEN mysql_version() < 501000
+    THEN skip(2, 'ExtractValue() not supported before 5.1' )
+    ELSE concat(
+        ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work'),
+        '\n',
+        ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
+    )
+END;
+```
 
 Note how use of the conditional `CASE` statement has been used to determine
 whether or not to run a couple of tests. If they are to be run, they are run
@@ -455,11 +511,13 @@ skipping.
 Declares a series of tests that you expect to fail and why. Perhaps it's
 because you haven't fixed a bug or haven't finished a new feature:
 
-    SELECT todo(2, 'URIGeller not finished');
+```sql
+SELECT todo(2, 'URIGeller not finished');
 
-    SET card 'Eight of clubs';
-    SELECT eq( yourCard(), @card, 'Is THIS your card?' );
-    SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
+SET card 'Eight of clubs';
+SELECT eq( yourCard(), @card, 'Is THIS your card?' );
+SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
+```
 
 With `todo()`, `@how_many` specifies how many tests are expected to fail.
 pgTAP will run the tests normally, but print out special flags indicating they
@@ -486,12 +544,14 @@ tests.
 
 Note that you can nest TODO tests, too:
 
-    SELECT todo_start('working on this');
-    -- lots of code
-    SELECT todo_start('working on that');
-    -- more code
-    SELECT todo_end();
-    SELECT todo_end();
+```sql
+SELECT todo_start('working on this');
+-- lots of code
+SELECT todo_start('working on that');
+-- more code
+SELECT todo_end();
+SELECT todo_end();
+```
 
 This is generally not recommended, but large testing systems often have weird
 internal needs.
@@ -500,13 +560,14 @@ The `todo_start()` and `todo_end()` function should also work with the
 `todo()` function, although it's not guaranteed and its use is also
 discouraged:
 
-
-    SELECT todo_start('working on this');
-    -- lots of code
-    SELECT todo(2, 'working on that');
-    -- Two tests for which the above line applies
-    -- Followed by more tests scoped till the following line.
-    SELECT todo_end();
+```sql
+SELECT todo_start('working on this');
+-- lots of code
+SELECT todo(2, 'working on that');
+-- Two tests for which the above line applies
+-- Followed by more tests scoped till the following line.
+SELECT todo_end();
+```
 
 We recommend that you pick one style or another of TODO to be on the safe
 side.
@@ -527,24 +588,29 @@ pTAP provides a few extra functions to make the work of testing more pleasant.
 
 ### `mytap_version()` ###
 
-    SELECT mytap_version();
+```sql
+SELECT mytap_version();
+```
 
 Returns the version of MyTAP installed in the server. The value is `NUMERIC`,
 and thus suitable for comparing to a decimal value.
 
 ### `mysql_version()` ###
 
-    SELECT mysql_version();
+```sql
+SELECT mysql_version();
+```
 
 Returns an integer representation of the server version number. This function
 is useful for determining whether or not certain tests should be run or
 skipped (using `skip()`) depending on the version of MySQL. For example:
 
-    SELECT CASE WHEN mysql_version() < 501000
-        THEN skip('ExtractValue() not supported before 5.1' )
-        ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
-    END;
-
+```sql
+SELECT CASE WHEN mysql_version() < 501000
+    THEN skip('ExtractValue() not supported before 5.1' )
+    ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
+END;
+```
 The revision level is in the hundres position, the minor version in the ten
 thousands position, and the major version in the hundred thousands position
 and above (assuming MySQL 10 is ever released, it will be in the millions
@@ -567,22 +633,23 @@ values always compare case-insensitively. Sure you could do this with
 `eq()` and the `LOWER()` function, but if you're doing this all the time,
 you might want to simplify things. Here's how to go about it:
 
-    DROP FUNCTION IF EXITS lc_is
-    DELIMITER //
-    CREATE FUNCTION lc_is (have TEXT, want TEXT, descr TEXT)
-    RETURNS TEXT
-    BEGIN
-        IF LOWER(have) = LOWER(want) THEN
-            RETURN ok(1, descr);
-        END IF;
-        RETURN concat(ok( 0, descr ), '\n', diag(concat(
-               '    Have: ', have,
-             '\n    Want: ', want
-        )));
-    END //
+```sql
+DROP FUNCTION IF EXITS lc_is
+DELIMITER //
+CREATE FUNCTION lc_is (have TEXT, want TEXT, descr TEXT)
+RETURNS TEXT
+BEGIN
+    IF LOWER(have) = LOWER(want) THEN
+        RETURN ok(1, descr);
+    END IF;
+    RETURN concat(ok( 0, descr ), '\n', diag(concat(
+           '    Have: ', have,
+         '\n    Want: ', want
+    )));
+END //
 
-    DELIMITER ;
-
+DELIMITER ;
+```
 
 Yep, that's it. The key is to always use MyTAP's `ok()` function to guarantee
 that the output is properly formatted, uses the next number in the sequence,
@@ -594,12 +661,13 @@ Of course, you don't have to directly use `ok()`; you can also use another
 MyTAP function that ultimately calls `ok()`. IOW, while the above example
 is instructive, this version is easier on the eyes:
 
-    CREATE FUNCTION lc_is ( have TEXT, want TEXT, descr TEXT )
-    RETURNS TEXT
-    BEGIN
-         RETURN eq( LOWER(have), LOWER(want), descr);
-    END //
-
+```sql
+CREATE FUNCTION lc_is ( have TEXT, want TEXT, descr TEXT )
+RETURNS TEXT
+BEGIN
+     RETURN eq( LOWER(have), LOWER(want), descr);
+END //
+```
 But either way, let MyTAP handle recording the test results and formatting the
 output.
 
@@ -610,18 +678,20 @@ handy-dandy test function!
 
 ### `check_test( test_output, is_ok, name, want_description, want_diag, match_diag )` ###
 
-    SELECT check_test(
-        lc_eq('This', 'THAT', 'not eq'),
-        0,
-        'lc_eq fail',
-        'not eq',
-        '    Want: this\n    Have: that'
-    );
+```sql
+SELECT check_test(
+    lc_eq('This', 'THAT', 'not eq'),
+    0,
+    'lc_eq fail',
+    'not eq',
+    '    Want: this\n    Have: that'
+);
 
-    SELECT check_test(
-        lc_eq('This', 'THIS', 'eq'),
-        1
-    );
+SELECT check_test(
+    lc_eq('This', 'THIS', 'eq'),
+    1
+);
+```
 
 This function runs anywhere between one and three tests against a test
 function. For the impatient, the arguments are:
@@ -653,21 +723,27 @@ short test name to make it easier to track down failures in your test script.
 runs. For example, without a short name, the above example will yield output
 like so:
 
-    not ok 14 - Test should pass
+```
+not ok 14 - Test should pass
+```
 
 Yeah, but which test? So give it a very succinct name and you'll know what
 test. If you have a lot of these, it won't be much help. So give each call
 to `check_test()` a name:
 
-    SELECT check_test(
-        lc_eq('This', 'THIS', 'eq'),
-        true,
-        'Simple lc_eq test',
-    );
+```sql
+SELECT check_test(
+    lc_eq('This', 'THIS', 'eq'),
+    true,
+    'Simple lc_eq test',
+);
+```
 
 Then you'll get output more like this:
 
-    not ok 14 - Simple lc_test should pass
+```sql
+not ok 14 - Simple lc_test should pass
+```
 
 Which will make it much easier to find the failing test in your test script.
 
@@ -677,19 +753,21 @@ none is passed to it. You want to make sure that your function generates the
 test description you think it should! This will cause a second test to be run
 on your test function. So for something like this:
 
-    SELECT check_test(
-        lc_eq( ''this'', ''THIS'' ),
-        true,
-        'lc_eq() test',
-        'this is THIS'
-    );
-
+```sql
+SELECT check_test(
+    lc_eq( ''this'', ''THIS'' ),
+    true,
+    'lc_eq() test',
+    'this is THIS'
+);
+```
 The output then would look something like this, assuming that the `lc_eq()`
 function generated the proper description (the above example does not):
 
-    ok 42 - lc_eq() test should pass
-    ok 43 - lc_eq() test should have the proper description
-
+```
+ok 42 - lc_eq() test should pass
+ok 43 - lc_eq() test should have the proper description
+```
 See how there are two tests run for a single call to `check_test()`? Be sure
 to adjust your plan accordingly. Also note how the test name was used in the
 descriptions for both tests.
@@ -697,9 +775,11 @@ descriptions for both tests.
 If the test had failed, it would output a nice diagnostics. Internally it just
 uses `eq()` to compare the strings:
 
-    # Failed test 43:  "lc_eq() test should have the proper description"
-    #         have: 'this is this'
-    #         want: 'this is THIS'
+```
+# Failed test 43:  "lc_eq() test should have the proper description"
+#         have: 'this is this'
+#         want: 'this is THIS'
+```
 
 The fifth argument, `@want_diag`, which is also optional, compares the
 diagnostics generated during the test to an expected string. Such diagnostics
@@ -711,28 +791,33 @@ Assuming you've followed that rule in your `lc_eq()` test function, see what
 happens when a `lc_eq()` fails. Write your test to test the diagnostics like
 so:
 
-    SELECT * FROM check_test(
-        lc_eq( ''this'', ''THat'' ),
-        false,
-        'lc_eq() failing test',
-        'this is THat',
-        '    Want: this\n    Have: THat
-    );
+```sql
+SELECT * FROM check_test(
+    lc_eq( ''this'', ''THat'' ),
+    false,
+    'lc_eq() failing test',
+    'this is THat',
+    '    Want: this\n    Have: THat'
+);
+```
 
 This of course triggers a third test to run. The output will look like so:
 
-    ok 44 - lc_eq() failing test should fail
-    ok 45 - lc_eq() failing test should have the proper description
-    ok 46 - lc_eq() failing test should have the proper diagnostics
-
+```
+ok 44 - lc_eq() failing test should fail
+ok 45 - lc_eq() failing test should have the proper description
+ok 46 - lc_eq() failing test should have the proper diagnostics
+```
 And of course, it the diagnostic test fails, it will output diagnostics just
 like a description failure would, something like this:
 
-    # Failed test 46:  "lc_eq() failing test should have the proper diagnostics"
-    #         have:     Have: this
-    #     Want: that
-    #         want:     Have: this
-    #     Want: THat
+```
+# Failed test 46:  "lc_eq() failing test should have the proper diagnostics"
+#         have:     Have: this
+#     Want: that
+#         want:     Have: this
+#     Want: THat
+```
 
 If you pass in the optional sixth argument, `@match_diag`, the `@want_diag`
 argument will be compared to the actual diagnostic output using `matches()`
