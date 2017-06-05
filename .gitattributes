@@ -1,2 +1,1 @@
-*.sql linguist-language=SQL
-tests/*.my linguist-language=SQL
+
