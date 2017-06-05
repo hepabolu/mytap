@@ -1,2 +1,2 @@
-*.sql linguist-language=Sql
-*.my  linguist-language=Sql
+*.sql linguist-language=SQL
+tests/*.my linguist-language=SQL
