@@ -1,5 +1,14 @@
 theme: jekyll-theme-cayman
 title: MyTAP
 description: Unit testing for MySQL
+show_downloads: false
+google_analytics:
+theme:
+
+header_pages:
+  - index.md
+  - documentation.md
+  - integration.md
+
 exclude:
   - oldsite
