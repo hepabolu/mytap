@@ -8,7 +8,7 @@ MyTAP is a suite of database functions that make it easy to write [TAP](http://t
 
 Why would you want to unit test your database? Well, there are a couple of scenarios in which it can be useful.
 
-## Application Development
+# Application Development
 
 So you write MySQL-backed applications, maybe in [Rails](http://rubyonrails.org), or [Django](https://www.djangoproject.com), or [Catalyst](http://www.catalystframework.org), and because you’re an [agile developer](https://en.wikipedia.org/wiki/Agile_software_development), you write lots of tests to make sure that your application works as you practice iterative development. But, as one of the most important parts of your application, should you not also test the database? Sure, you write tests of your API, and the API covers the database, but that’s not really unit testing the database itself, is it?
 
@@ -72,7 +72,7 @@ The upshot is that you have to connect to the database, set up transactions, exe
 
 Now isn’t that a lot easier to read? Unlike the Perl tests, the MyTAP tests can just compare values directly in the database. There is no need to do any extra work to get the database interface to talk to the database, fetch data, convert it, etc. You just use SQL. And if you’re working hard to keep SQL in the database and application code in the application, why would you write database tests in Application code? Just write them in SQL and be done with it!
 
-## Schema Validation
+# Schema Validation
 
 Even better is the scenario in which you need to test your database schema objects, to make sure that everything is where it should be. MyTAP provides a wealth of test functions that make schema testing a snap!:
 
@@ -89,7 +89,7 @@ Even better is the scenario in which you need to test your database schema objec
 
 And there are many more testing functions to be had. Read the [complete documentation]({{ site.baseurl}}/documentation.html) for all the good stuff.
 
-## Library Development
+# Library Development
 
 If you’re developing third-party libraries for MySQL, perhaps [writing functions and procedures](https://dev.mysql.com/doc/refman/5.5/en/create-procedure.html) or [user-defined functions](https://dev.mysql.com/doc/refman/5.5/en/adding-functions.html), agile development demands that you write tests as you go. MyTAP makes it easy. See its [own test suite](https://github.com/hepabolu/mytap/tree/master/tests) for a good example of such test-driven developement tests. Running them with [my_prove](http://search.cpan.org/~dwheeler/TAP-Parser-SourceHandler-MyTAP-3.27/bin/my_prove) looks like so:
 
@@ -106,7 +106,7 @@ If you’re developing third-party libraries for MySQL, perhaps [writing functio
     Result: PASS
 
 
-## Get Started
+# Get Started
 
 So, what are you waiting for? Download the latest version of MyTAP, or grab fork the [git repository](https://github.com/hepabolu/mytap), read the [documentation]({{ site.baseurl}}/documentation.html), and get going with those tests!
 
