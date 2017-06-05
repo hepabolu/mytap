@@ -12,12 +12,6 @@ come to the right place. Just find your favorite programming language
 below and follow along. Don't see your language here yet? If you figure
 out how to do it, please send us the instructions!
 
-<ul>
-  <li><a href="#perl" title="MyTAP Perl Integration">Perl</a></li>
-  <li><a href="#php" title="MyTAP Php Integration">PHP</a></li>
-  <li><a href="#python" title="MyTAP Python Integration">Python</a></li>
-</ul>
-
 ## Perl
 
 Chances are, if you're writing Perl applications, you're already using
