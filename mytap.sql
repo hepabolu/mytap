@@ -701,8 +701,8 @@ END //
 
 DELIMITER ;
 
-source ./mytap-view.mysql
-source ./mytap-column.mysql
-source ./mytap-routines.mysql
+source ./mytap-view.sql
+source ./mytap-column.sql
+source ./mytap-routines.sql
 
 SET GLOBAL log_bin_trust_function_creators = 0;

@@ -8,7 +8,7 @@ PASSW=$2
 MYSLOPTS="-u $USER -p$PASSW --disable-pager --batch --raw --skip-column-names --unbuffered"
 
 echo "============= updating tap ============="
-mysql $MYSLOPTS --execute 'source ./mytap.mysql'
+mysql $MYSLOPTS --execute 'source ./mytap.sql'
 
 echo "============= hastap ============="
 mysql $MYSLOPTS --database tap --execute 'source tests/hastap.my'
