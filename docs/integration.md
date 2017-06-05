@@ -1,7 +1,6 @@
 ---
 layout: default
 title: Integration
-permalink: /integration/
 ---
 
 # MyTAP Integration
