@@ -1,0 +1,835 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <!-- this template was designed by http://www.tristarwebdesign.co.uk - please visit for more templates & information - thank you. -->
+  <head>
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MyTAP: Documentation</title>
+    <link rel="stylesheet" type="text/css" href="ui/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="ui/css/menu.css" />
+    <!--[if IE 6]>
+      <link rel="stylesheet" type="text/css" href="ui/css/ie.css" />
+    <![endif]-->
+  </head>
+
+  <body>
+    <div id="main">
+      <!-- DOC INTRO HERE -->
+<h1 id="MyTAP+0.03">MyTAP 0.02</h1>
+
+<p>MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
+procedures. It includes a collection of TAP-emitting assertion functions, as
+well as the ability to integrate with other TAP-emitting test frameworks.</p>
+      <!-- END DOC INTRO HERE -->
+      <div id="toc">
+        <!-- TOC SANS "MyTAP x.xx" -->
+<h1>Contents</h1>
+<ul>
+<li><a href="#Installation">Installation</a></li>
+<li><a href="#MyTAP+Test+Scripts">MyTAP Test Scripts</a></li>
+<li><a href="#Using+MyTAP">Using MyTAP</a><ul>
+<li><a href="#I+love+it+when+a+plan+comes+together">I love it when a plan comes together</a></li>
+<li><a href="#Test+names">Test names</a></li>
+<li><a href="#I'm+ok,+you're+not+ok">I'm ok, you're not ok</a><ul>
+<li><a href="#ok"><code>ok()</code></a></li>
+<li><a href="#eq"><code>eq()</code></a></li>
+<li><a href="#isnt_eq"><code>isnt_eq()</code></a></li>
+<li><a href="#matches"><code>matches()</code></a></li>
+<li><a href="#doesnt_match"><code>doesnt_match()</code></a></li>
+<li><a href="#alike"><code>alike()</code></a></li>
+<li><a href="#unalike"><code>unalike()</code></a></li>
+<li><a href="#pass"><code>pass()</code></a></li>
+<li><a href="#fail"><code>fail()</code></a></li></ul></li></ul></li>
+<li><a href="#The+Schema+Things">The Schema Things</a><ul><li><ul><li><a href="#has_table"><code>has_table()</code></a></li></ul></li></ul></li>
+<li><a href="#No+Test+for+the+Wicked">No Test for the Wicked</a><ul>
+<li><a href="#Diagnostics">Diagnostics</a><ul>
+<li><a href="#diag"><code>diag()</code></a></li></ul></li>
+<li><a href="#Conditional+Tests">Conditional Tests</a><ul>
+<li><a href="#skip"><code>skip()</code></a></li>
+<li><a href="#todo"><code>todo()</code></a></li>
+<li><a href="#todo_start"><code>todo_start()</code></a></li>
+<li><a href="#todo_end()">todo_end()</a></li>
+<li><a href="#in_todo()">in_todo()</a></li></ul></li>
+<li><a href="#Utility+Functions">Utility Functions</a><ul>
+<li><a href="#mytap_version"><code>mytap_version()</code></a></li>
+<li><a href="#mysql_version"><code>mysql_version()</code></a></li></ul></li></ul></li>
+<li><a href="#Compose+Yourself">Compose Yourself</a><ul>
+<li><a href="#Testing+Test+Functions">Testing Test Functions</a><ul>
+<li><a href="#check_test"><code>check_test()</code></a></li></ul></li>
+<li><a href="#To+Do">To Do</a></li>
+<li><a href="#Public+Repository">Public Repository</a></li>
+<li><a href="#Author">Author</a></li>
+<li><a href="#Credits">Credits</a></li>
+<li><a href="#Copyright+and+License">Copyright and License</a></li>
+</ul>
+        <!-- END TOC -->
+      </div>
+      <!-- DOCS HERE, WITH INTRO MOVED ABOVE -->
+<h1 id="Installation">Installation</h1>
+
+<p>To install MyTAP into a MySQL database, just run <code>mytap.sql</code>:</p>
+
+<pre><code>mysql -u root &lt; mytap.sql
+</code></pre>
+
+<p>This will install all of the assertion functions, as well as a cache table,
+into a database named &ldquo;tap&rdquo;.</p>
+
+<h1 id="MyTAP+Test+Scripts">MyTAP Test Scripts</h1>
+
+<p>Here&rsquo;s an example of how to write a MyTAP test script:</p>
+
+<pre><code>-- Start a transaction.
+BEGIN;
+
+-- Plan the tests.
+SELECT tap.plan(1);
+
+-- Run the tests.
+SELECT tap.pass( 'My test passed, w00t!' );
+
+-- Finish the tests and clean up.
+CALL tap.finish();
+ROLLBACK;
+</code></pre>
+
+<p>Note how the TAP test functions are reference from another database so as to
+keep them separate from your application database.</p>
+
+<p>Now you're ready to run your test script!</p>
+
+<pre><code>% mysql -u root --disable-pager --batch --raw --skip-column-names --unbuffered --database test --execute 'source test.sql'
+1..1
+ok 1 - My test passed, w00t!
+</code></pre>
+
+<p>Yeah, that&rsquo;s rather a lot of options to have to remember to get valid tap. I
+suggest that you install
+<a href="http://search.cpan.org/dist/TAP-Parser-SourceHandler-MyTAP">TAP::Parser::SourceHandler::MyTAP</a>
+instead and just use its <a href="http://search.cpan.org/perldoc?my_prove"><code>my_prove</code></a>
+utility:</p>
+
+<pre><code>% my_prove -u root --database test test.sql
+</code></pre>
+
+<h1 id="Using+MyTAP">Using MyTAP</h1>
+
+<p>The purpose of MyTAP is to provide a wide range of testing utilities that
+output TAP. TAP, or the &ldquo;Test Anything Protocol&rdquo;, is an emerging standard for
+representing the output from unit tests. It owes its success to its format as
+a simple text-based interface that allows for practical machine parsing and
+high legibility for humans. TAP started life as part of the test harness for
+Perl but now has implementations in C/C++, Python, PHP, JavaScript, Perl,
+PostgreSQL, and now MySQL.</p>
+
+<h2 id="I+love+it+when+a+plan+comes+together">I love it when a plan comes together</h2>
+
+<p>Before anything else, you need a testing plan. This basically declares how
+many tests your script is going to run to protect against premature failure.</p>
+
+<p>The preferred way to do this is to declare a plan by calling the <code>plan()</code>
+function:</p>
+
+<pre><code>SELECT tap.plan( 42 );
+</code></pre>
+
+<p>There are rare cases when you will not know beforehand how many tests your
+script is going to run. In this case, you can declare that you have no plan.
+(Try to avoid using this as it weakens your test.)</p>
+
+<pre><code>CALL tap.no_plan();
+</code></pre>
+
+<p>Often, though, you'll be able to calculate the number of tests, like so:</p>
+
+<pre><code>SELECT plan( COUNT(*) )
+  FROM foo;
+</code></pre>
+
+<p>At the end of your script, you should always tell MyTAP that the tests have
+completed, so that it can output any diagnostics about failures or a
+discrepancy between the planned number of tests and the number actually run:</p>
+
+<pre><code>CALL tap.finish();
+</code></pre>
+
+<h2 id="Test+names">Test names</h2>
+
+<p>By convention, each test is assigned a number in order. This is largely done
+automatically for you. However, it&rsquo;s often very useful to assign a name to
+each test. Would you rather see this?</p>
+
+<pre><code>  ok 4
+  not ok 5
+  ok 6
+</code></pre>
+
+<p>Or this?</p>
+
+<pre><code>  ok 4 - basic multi-variable
+  not ok 5 - simple exponential
+  ok 6 - force == mass * acceleration
+</code></pre>
+
+<p>The latter gives you some idea of what failed. It also makes it easier to find
+the test in your script, simply search for &ldquo;simple exponential&rdquo;.</p>
+
+<p>Many test functions take a name argument. It&rsquo;s optional, but highly suggested
+that you use it.</p>
+
+<h2 id="I'm+ok,+you're+not+ok">I'm ok, you're not ok</h2>
+
+<p>The basic purpose of MyTAP&mdash;and of any TAP-emitting test framework, for that
+matter&mdash;is to print out either &ldquo;ok #&rdquo; or &ldquo;not ok #&rdquo;, depending on whether a
+given test succeeded or failed. Everything else is just gravy.</p>
+
+<p>All of the following functions return &ldquo;ok&rdquo; or &ldquo;not ok&rdquo; depending on whether
+the test succeeded or failed.</p>
+
+<h3 id="ok"><code>ok( boolean, description )</code></h3>
+
+<pre><code>SELECT tap.ok( @this = @that, @description );
+</code></pre>
+
+<p>This function simply evaluates any expression (<code>@this = @that</code> is just a
+simple example) and uses that to determine if the test succeeded or failed. A
+true expression passes, a false one fails. Very simple.</p>
+
+<p>For example:</p>
+
+<pre><code>SELECT tap.ok( 9 ^ 2 = 81,    'simple exponential' );
+SELECT tap.ok( 9 &lt; 10,        'simple comparison' );
+SELECT tap.ok( 'foo' ~ '^f',  'simple regex' );
+SELECT tap.ok( active,        concat(name, ' widget active' ))
+  FROM widgets;
+</code></pre>
+
+<p>(Mnemonic:  &ldquo;This is ok.&rdquo;)</p>
+
+<p>The <code>@description</code> is a very short description of the test that will be printed
+out. It makes it very easy to find a test in your script when it fails and
+gives others an idea of your intentions. The description is optional, but we
+<em>very</em> strongly encourage its use.</p>
+
+<p>Should an <code>ok()</code> fail, it will produce some diagnostics:</p>
+
+<pre><code>not ok 18 - sufficient mucus
+#     Failed test 18: "sufficient mucus"
+</code></pre>
+
+<p>Furthermore, should the boolean test result argument be passed as a <code>NULL</code>,
+<code>ok()</code> will assume a test failure and attach an additional diagnostic:</p>
+
+<pre><code>not ok 18 - sufficient mucus
+#     Failed test 18: "sufficient mucus"
+#     (test result was NULL)
+</code></pre>
+
+<h3 id="eq"><code>eq( anyelement, anyelement, description )</code></h3>
+
+<h3 id="isnt_eq"><code>isnt_eq( anyelement, anyelement, description )</code></h3>
+
+<pre><code>SELECT tap.eq(   @this, @that, @description );
+SELECT tap.not_eq( @this, @that, @description );
+</code></pre>
+
+<p>Similar to <code>ok()</code>, <code>eq()</code> and <code>not_eq()</code> compare their two arguments with <code>=</code>
+AND <code>&lt;&gt;</code>, respectively, and use the result of that to determine if the test
+succeeded or failed. So these:</p>
+
+<pre><code>-- Is the ultimate answer 42?
+SELECT tap.eq( ultimate_answer(), 42, 'Meaning of Life' );
+
+-- foo() doesn't return empty
+SELECT tap.not_eq( foo(), '', 'Got some foo' );
+</code></pre>
+
+<p>are similar to these:</p>
+
+<pre><code>SELECT tap.ok(   ultimate_answer() =  42, 'Meaning of Life' );
+SELECT tap.isnt( foo()             &lt;&gt; '', 'Got some foo'    );
+</code></pre>
+
+<p>(Mnemonic: &ldquo;This is that.&rdquo; &ldquo;This isn&rsquo;t that.&rdquo;)</p>
+
+<p><em>Note:</em> <code>NULL</code>s are not treated as unknowns by <code>eq()</code> or <code>not_eq()</code>. That
+is, if <code>@this</code> and <code>@that</code> are both <code>NULL</code>, the test will pass, and if only
+one of them is <code>NULL</code>, the test will fail.</p>
+
+<p>So why use these test functions? They produce better diagnostics on failure.
+<code>ok()</code> cannot know what you are testing for (beyond the description), but
+<code>eq()</code> and <code>not_eq()</code> know what the test was and why it failed. For
+example this test:</p>
+
+<pre><code>SELECT tap.eq( 'waffle', 'yarblokos', 'Is foo the same as bar?' );
+</code></pre>
+
+<p>Will produce something like this:</p>
+
+<pre><code># Failed test 17:  "Is foo the same as bar?"
+#         have: waffle
+#         want: yarblokos
+</code></pre>
+
+<p>So you can figure out what went wrong without re-running the test.</p>
+
+<p>You are encouraged to use <code>eq()</code> and <code>not_eq()</code> over <code>ok()</code> where
+possible.</p>
+
+<h3 id="matches"><code>matches( anyelement, regex, description )</code></h3>
+
+<pre><code>SELECT matches( @this, '^that', @description );
+</code></pre>
+
+<p>Similar to <code>eq()</code>, <code>matches()</code> matches <code>@this</code> against the regex <code>/^that/</code>.</p>
+
+<p>So this:</p>
+
+<pre><code>SELECT matches( @this, '^that', 'this is like that' );
+</code></pre>
+
+<p>is similar to:</p>
+
+<pre><code>SELECT ok( @this REGEXP '^that', 'this is like that' );
+</code></pre>
+
+<p>(Mnemonic &ldquo;This matches that&rdquo;.)</p>
+
+<p>Its advantages over <code>ok()</code> are similar to that of <code>eq()</code> and <code>not_eq()</code>: Better
+diagnostics on failure.</p>
+
+<h3 id="doesnt_match"><code>doesnt_match( anyelement, regex, description )</code></h3>
+
+<pre><code>SELECT doesnt_match( @this, '^that', @description );
+</code></pre>
+
+<p>This functions works exactly as <code>matches()</code> does, only it checks if <code>@this</code>
+<em>does not</em> match the given pattern.</p>
+
+<h3 id="alike"><code>alike( anyelement, pattern, description )</code></h3>
+
+<pre><code>SELECT alike( @this, 'that%', @description );
+</code></pre>
+
+<p>Similar to <code>matches()</code>, <code>alike()</code> matches <code>@this</code> against the SQL <code>LIKE</code>
+pattern &lsquo;that%&rsquo;. So this:</p>
+
+<pre><code>SELECT alike( @this, 'that%', 'this is alike that' );
+</code></pre>
+
+<p>is similar to:</p>
+
+<pre><code>SELECT ok( @this LIKE 'that%', 'this is like that' );
+</code></pre>
+
+<p>(Mnemonic &ldquo;This is like that&rdquo;.)</p>
+
+<p>Its advantages over <code>ok()</code> are similar to that of <code>eq()</code> and <code>not_eq()</code>:
+Better diagnostics on failure.</p>
+
+<h3 id="unalike"><code>unalike( anyelement, pattern, description )</code></h3>
+
+<pre><code>SELECT unalike( @this, 'that%', @description );
+</code></pre>
+
+<p>Works exactly as <code>alike()</code>, only it checks if <code>@this</code> <em>does not</em> match the
+given pattern.</p>
+
+<h3 id="pass"><code>pass( description )</code></h3>
+
+<h3 id="fail"><code>fail( description )</code></h3>
+
+<pre><code>SELECT tap.pass( @description );
+SELECT tap.fail( @description );
+</code></pre>
+
+<p>Sometimes you just want to say that the tests have passed. Usually the case is
+you've got some complicated condition that is difficult to wedge into an
+<code>ok()</code>. In this case, you can simply use <code>pass()</code> (to declare the test ok) or
+<code>fail()</code> (for not ok). They are synonyms for <code>ok(1, @description)</code> and
+<code>ok(0, @description)</code>.</p>
+
+<p>Use these functions very, very, very sparingly.</p>
+
+<h1 id="The+Schema+Things">The Schema Things</h1>
+
+<p>Need to make sure that your database is designed just the way you think it
+should be? Use these test functions and rest easy.</p>
+
+<p>A note on comparisons: MyTAP uses a simple equivalence test (<code>=</code>) to compare
+identifier names.</p>
+
+<h3 id="has_table"><code>has_table( database, table, description )</code></h3>
+
+<pre><code>SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
+</code></pre>
+
+<p>This function tests whether or not a table exists in a database. The first
+argument is a database name, the second is a table name, and the third is the
+test description. If you want to test for a table in the current database, use
+the <code>DATABASE()</code> function to specify the current databasen name. If you omit
+the test description, it will be set to &ldquo;Table &lsquo;:database&rsquo;.&lsquo;:table&rsquo; should
+exist&rdquo;.</p>
+
+<h1 id="No+Test+for+the+Wicked">No Test for the Wicked</h1>
+
+<p>There is more to MyTAP. Oh <em>so</em> much more! You can output your own
+<a href="#Diagnostics">diagnostics</a>. You can write <a href="#Conditional+Tests">conditional
+tests</a> based on the output of <a href="#Utility+Functions">utility
+functions</a>. You can <a href="#Tap+That+Batch">batch up tests in
+functions</a>. Read on to learn all about it.</p>
+
+<h2 id="Diagnostics">Diagnostics</h2>
+
+<p>If you pick the right test function, you'll usually get a good idea of what
+went wrong when it failed. But sometimes it doesn&rsquo;t work out that way. So here
+we have ways for you to write your own diagnostic messages which are safer
+than just <code>\echo</code> or <code>SELECT foo</code>.</p>
+
+<h3 id="diag"><code>diag( text )</code></h3>
+
+<p>Returns a diagnostic message which is guaranteed not to interfere with
+test output. Handy for this sort of thing:</p>
+
+<pre><code>-- Output a diagnostic message if the collation is not en_US.UTF-8.
+SELECT tap.diag(concat(
+     'These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,\n',
+     'but yours is set to ', VARIABLE_VALUE, '.\n',
+     'As a result, some tests may fail. YMMV.'
+))
+  FROM information_schema.global_variables
+ WHERE VARIABLE_NAME = 'CHARACTER_SET_DATABASE'
+   AND VARIABLE_VALUE &lt;&gt; 'utf-8'
+</code></pre>
+
+<p>Which would produce:</p>
+
+<pre><code># These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,
+# but yours is set to latin1.
+# As a result, some tests may fail. YMMV. 
+</code></pre>
+
+<h2 id="Conditional+Tests">Conditional Tests</h2>
+
+<p>Sometimes running a test under certain conditions will cause the test script
+or function to die. A certain function or feature isn&rsquo;t implemented (such as
+<code>information_schema.global_variables()</code> prior to MySQL 5.1), some resource
+isn&rsquo;t available (like a replication), or a third party library isn&rsquo;t
+available. In these cases it&rsquo;s necessary to skip tests, or declare that they
+are supposed to fail but will work in the future (a todo test).</p>
+
+<h3 id="skip"><code>skip( how_many, why )</code></h3>
+
+<p>Outputs SKIP test results. Use it in a conditional expression within a
+<code>SELECT</code> statement to replace the output of a test that you otherwise would
+have run.</p>
+
+<pre><code>SELECT CASE WHEN mysql_version() &lt; 501000
+    THEN skip(1, 'ExtractValue() not supported before 5.1' )
+    ELSE ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work')
+END;
+
+SELECT CASE WHEN mysql_version() &lt; 501000
+    THEN skip(2, 'ExtractValue() not supported before 5.1' )
+    ELSE concat(
+        ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work'),
+        '\n',
+        ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work')
+    )
+END;
+</code></pre>
+
+<p>Note how use of the conditional <code>CASE</code> statement has been used to determine
+whether or not to run a couple of tests. If they are to be run, they are run
+through <code>concat()</code>, so that we can run a few tests in the same query. If we
+don&rsquo;t want to run them, we call <code>skip()</code> and tell it how many tests we're
+skipping.</p>
+
+<h3 id="todo"><code>todo( how_many, why )</code></h3>
+
+<p>Declares a series of tests that you expect to fail and why. Perhaps it&rsquo;s
+because you haven&rsquo;t fixed a bug or haven&rsquo;t finished a new feature:</p>
+
+<pre><code>SELECT todo(2, 'URIGeller not finished');
+
+SET card 'Eight of clubs';
+SELECT eq( yourCard(), @card, 'Is THIS your card?' );
+SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
+</code></pre>
+
+<p>With <code>todo()</code>, <code>@how_many</code> specifies how many tests are expected to fail.
+pgTAP will run the tests normally, but print out special flags indicating they
+are &ldquo;todo&rdquo; tests. The test harness will interpret these failures as ok. Should
+any todo test pass, the harness will report it as an unexpected success. You
+then know that the thing you had todo is done and can remove the call to
+<code>todo()</code>.</p>
+
+<p>The nice part about todo tests, as opposed to simply commenting out a block of
+tests, is that they're like a programmatic todo list. You know how much work
+is left to be done, you're aware of what bugs there are, and you'll know
+immediately when they're fixed.</p>
+
+<h3 id="todo_start"><code>todo_start( why )</code></h3>
+
+<p>This function allows you declare all subsequent tests as TODO tests, up until
+the <code>todo_end()</code> function is called.</p>
+
+<p>The <code>todo()</code> syntax is generally pretty good about figuring out whether or not
+we're in a TODO test. However, often we find it difficult to specify the
+<em>number</em> of tests that are TODO tests. Thus, you can instead use
+<code>todo_start()</code> and <code>todo_end()</code> to more easily define the scope of your TODO
+tests.</p>
+
+<p>Note that you can nest TODO tests, too:</p>
+
+<pre><code>SELECT todo_start('working on this');
+-- lots of code
+SELECT todo_start('working on that');
+-- more code
+SELECT todo_end();
+SELECT todo_end();
+</code></pre>
+
+<p>This is generally not recommended, but large testing systems often have weird
+internal needs.</p>
+
+<p>The <code>todo_start()</code> and <code>todo_end()</code> function should also work with the
+<code>todo()</code> function, although it&rsquo;s not guaranteed and its use is also
+discouraged:</p>
+
+<pre><code>SELECT todo_start('working on this');
+-- lots of code
+SELECT todo(2, 'working on that');
+-- Two tests for which the above line applies
+-- Followed by more tests scoped till the following line.
+SELECT todo_end();
+</code></pre>
+
+<p>We recommend that you pick one style or another of TODO to be on the safe
+side.</p>
+
+<h3 id="todo_end()">todo_end()</h3>
+
+<p>Stops running tests as TODO tests. This function is fatal if called without a
+preceding <code>todo_start()</code> method call.</p>
+
+<h3 id="in_todo()">in_todo()</h3>
+
+<p>Returns true if the test is currently inside a TODO block.</p>
+
+<h2 id="Utility+Functions">Utility Functions</h2>
+
+<p>Along with the usual array of testing, planning, and diagnostic functions,
+pTAP provides a few extra functions to make the work of testing more pleasant.</p>
+
+<h3 id="mytap_version"><code>mytap_version()</code></h3>
+
+<pre><code>SELECT mytap_version();
+</code></pre>
+
+<p>Returns the version of MyTAP installed in the server. The value is <code>NUMERIC</code>,
+and thus suitable for comparing to a decimal value.</p>
+
+<h3 id="mysql_version"><code>mysql_version()</code></h3>
+
+<pre><code>SELECT mysql_version();
+</code></pre>
+
+<p>Returns an integer representation of the server version number. This function
+is useful for determining whether or not certain tests should be run or
+skipped (using <code>skip()</code>) depending on the version of MySQL. For example:</p>
+
+<pre><code>SELECT CASE WHEN mysql_version() &lt; 501000
+    THEN skip('ExtractValue() not supported before 5.1' )
+    ELSE ok( ExtractValue('&lt;a&gt;&lt;b/&gt;&lt;/a&gt;', 'count(/a/b)'), 'ExtractValue should work')
+END;
+</code></pre>
+
+<p>The revision level is in the hundres position, the minor version in the ten
+thousands position, and the major version in the hundred thousands position
+and above (assuming MySQL 10 is ever released, it will be in the millions
+position).</p>
+
+<h1 id="Compose+Yourself">Compose Yourself</h1>
+
+<p>So, you've been using MyTAP for a while, and now you want to write your own
+test functions. Go ahead; I don&rsquo;t mind. In fact, I encourage it. How? Why,
+by providing a function you can use to test your tests, of course!</p>
+
+<p>But first, a brief primer on writing your own test functions. There isn&rsquo;t much
+to it, really. Just write your function to do whatever comparison you want. As
+long as you have a boolean value indicating whether or not the test passed,
+you're golden. Just then use <code>ok()</code> to ensure that everything is tracked
+appropriately by a test script.</p>
+
+<p>For example, say that you wanted to create a function to ensure that two text
+values always compare case-insensitively. Sure you could do this with
+<code>eq()</code> and the <code>LOWER()</code> function, but if you're doing this all the time,
+you might want to simplify things. Here&rsquo;s how to go about it:</p>
+
+<pre><code>DROP FUNCTION IF EXITS lc_is
+DELIMITER //
+CREATE FUNCTION lc_is (have TEXT, want TEXT, descr TEXT)
+RETURNS TEXT
+BEGIN
+    IF LOWER(have) = LOWER(want) THEN
+        RETURN ok(1, descr);
+    END IF;
+    RETURN concat(ok( 0, descr ), '\n', diag(concat(
+           '    Have: ', have,
+         '\n    Want: ', want
+    )));
+END //
+
+DELIMITER ;
+</code></pre>
+
+<p>Yep, that&rsquo;s it. The key is to always use MyTAP&rsquo;s <code>ok()</code> function to guarantee
+that the output is properly formatted, uses the next number in the sequence,
+and the results are properly recorded in the database for summarization at
+the end of the test script. You can also provide diagnostics as appropriate;
+just append them to the output of <code>ok()</code> as we've done here.</p>
+
+<p>Of course, you don&rsquo;t have to directly use <code>ok()</code>; you can also use another
+MyTAP function that ultimately calls <code>ok()</code>. IOW, while the above example
+is instructive, this version is easier on the eyes:</p>
+
+<pre><code>CREATE FUNCTION lc_is ( have TEXT, want TEXT, descr TEXT )
+RETURNS TEXT
+BEGIN
+     RETURN eq( LOWER(have), LOWER(want), descr);
+END //
+</code></pre>
+
+<p>But either way, let MyTAP handle recording the test results and formatting the
+output.</p>
+
+<h2 id="Testing+Test+Functions">Testing Test Functions</h2>
+
+<p>Now you've written your test function. So how do you test it? Why, with this
+handy-dandy test function!</p>
+
+<h3 id="check_test"><code>check_test( test_output, is_ok, name, want_description, want_diag, match_diag )</code></h3>
+
+<pre><code>SELECT check_test(
+    lc_eq('This', 'THAT', 'not eq'),
+    0,
+    'lc_eq fail',
+    'not eq',
+    '    Want: this\n    Have: that'
+);
+
+SELECT check_test(
+    lc_eq('This', 'THIS', 'eq'),
+    1
+);
+</code></pre>
+
+<p>This function runs anywhere between one and three tests against a test
+function. For the impatient, the arguments are:</p>
+
+<ul>
+<li><code>@test_output</code> &ndash; The output from your test. Usually it&rsquo;s just returned by a
+call to the test function itself. Required.</li>
+<li><code>@is_ok</code> &ndash; Boolean indicating whether or not the test is expected to pass.
+Required.</li>
+<li><code>@name</code> &ndash; A brief name for your test, to make it easier to find failures in
+your test script. Optional.</li>
+<li><code>@want_description</code> &ndash; Expected test description to be output by the test.
+Optional. Use an empty string to test that no description is output.</li>
+<li><code>@want_diag</code> &ndash; Expected diagnostic message output during the execution of
+a test. Must always follow whatever is output by the call to <code>ok()</code>.
+Optional. Use an empty string to test that no description is output.</li>
+<li><code>@match_diag</code> &ndash; Use <code>matches()</code> to compare the diagnostics rather than
+<code>@eq()</code>. Useful for those situations where you're not sure what will be
+in the output, but you can match it with a regular expression.</li>
+</ul>
+
+
+<p>Now, on with the detailed documentation. At its simplest, you just pass in the
+output of your test function (and it must be one and <strong>only one</strong> test
+function&rsquo;s output, or you'll screw up the count, so don&rsquo;t do that!) and a
+boolean value indicating whether or not you expect the test to have passed.
+That looks something like the second example above.</p>
+
+<p>All other arguments are optional, but I recommend that you <em>always</em> include a
+short test name to make it easier to track down failures in your test script.
+<code>check_test()</code> uses this name to construct descriptions of all of the tests it
+runs. For example, without a short name, the above example will yield output
+like so:</p>
+
+<pre><code>not ok 14 - Test should pass
+</code></pre>
+
+<p>Yeah, but which test? So give it a very succinct name and you'll know what
+test. If you have a lot of these, it won&rsquo;t be much help. So give each call
+to <code>check_test()</code> a name:</p>
+
+<pre><code>SELECT check_test(
+    lc_eq('This', 'THIS', 'eq'),
+    true,
+    'Simple lc_eq test',
+);
+</code></pre>
+
+<p>Then you'll get output more like this:</p>
+
+<pre><code>not ok 14 - Simple lc_test should pass
+</code></pre>
+
+<p>Which will make it much easier to find the failing test in your test script.</p>
+
+<p>The optional fourth argument is the description you expect to be output. This
+is especially important if your test function generates a description when
+none is passed to it. You want to make sure that your function generates the
+test description you think it should! This will cause a second test to be run
+on your test function. So for something like this:</p>
+
+<pre><code>SELECT check_test(
+    lc_eq( ''this'', ''THIS'' ),
+    true,
+    'lc_eq() test',
+    'this is THIS'
+);
+</code></pre>
+
+<p>The output then would look something like this, assuming that the <code>lc_eq()</code>
+function generated the proper description (the above example does not):</p>
+
+<pre><code>ok 42 - lc_eq() test should pass
+ok 43 - lc_eq() test should have the proper description
+</code></pre>
+
+<p>See how there are two tests run for a single call to <code>check_test()</code>? Be sure
+to adjust your plan accordingly. Also note how the test name was used in the
+descriptions for both tests.</p>
+
+<p>If the test had failed, it would output a nice diagnostics. Internally it just
+uses <code>eq()</code> to compare the strings:</p>
+
+<pre><code># Failed test 43:  "lc_eq() test should have the proper description"
+#         have: 'this is this'
+#         want: 'this is THIS'
+</code></pre>
+
+<p>The fifth argument, <code>@want_diag</code>, which is also optional, compares the
+diagnostics generated during the test to an expected string. Such diagnostics
+<strong>must</strong> follow whatever is output by the call to <code>ok()</code> in your test. Your
+test function should not call <code>diag()</code> until after it calls <code>ok()</code> or things
+will get truly funky.</p>
+
+<p>Assuming you've followed that rule in your <code>lc_eq()</code> test function, see what
+happens when a <code>lc_eq()</code> fails. Write your test to test the diagnostics like
+so:</p>
+
+<pre><code>SELECT * FROM check_test(
+    lc_eq( ''this'', ''THat'' ),
+    false,
+    'lc_eq() failing test',
+    'this is THat',
+    '    Want: this\n    Have: THat
+);
+</code></pre>
+
+<p>This of course triggers a third test to run. The output will look like so:</p>
+
+<pre><code>ok 44 - lc_eq() failing test should fail
+ok 45 - lc_eq() failing test should have the proper description
+ok 46 - lc_eq() failing test should have the proper diagnostics
+</code></pre>
+
+<p>And of course, it the diagnostic test fails, it will output diagnostics just
+like a description failure would, something like this:</p>
+
+<pre><code># Failed test 46:  "lc_eq() failing test should have the proper diagnostics"
+#         have:     Have: this
+#     Want: that
+#         want:     Have: this
+#     Want: THat
+</code></pre>
+
+<p>If you pass in the optional sixth argument, <code>@match_diag</code>, the <code>@want_diag</code>
+argument will be compared to the actual diagnostic output using <code>matches()</code>
+instead of <code>eq()</code>. This allows you to use a regular expression in the
+<code>@want_diag</code> argument to match the output, for those situations where some
+part of the output might vary, such as time-based diagnostics.</p>
+
+<p>I realize that all of this can be a bit confusing, given the various haves and
+wants, but it gets the job done. Of course, if your diagnostics use something
+other than indented &ldquo;have&rdquo; and &ldquo;want&rdquo;, such failures will be easier to read.
+But either way, <em>do</em> test your diagnostics!</p>
+
+<h2 id="To+Do">To Do</h2>
+
+<ul>
+<li>Port lot of other assertion functions from <a href="http://pgtap.org/">pgTAP</a>.</li>
+</ul>
+
+
+<h2 id="Public+Repository">Public Repository</h2>
+
+<p>The source code for MyTAP is available on
+<a href="http://github.com/theory/mytap/">GitHub</a>. Please feel free to fork and
+contribute!</p>
+
+<h2 id="Author">Author</h2>
+
+<p><a href="http://justatheory.com/">David E. Wheeler</a></p>
+
+<h2 id="Credits">Credits</h2>
+
+<ul>
+<li>Michael Schwern and chromatic for Test::More.</li>
+<li>Adrian Howard for Test::Exception.</li>
+</ul>
+
+
+<h2 id="Copyright+and+License">Copyright and License</h2>
+
+<p>Copyright &copy; 2010 David E. Wheeler. Some rights reserved.</p>
+
+<p>Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose, without fee, and without a written agreement is
+hereby granted, provided that the above copyright notice and this paragraph
+and the following two paragraphs appear in all copies.</p>
+
+<p>IN NO EVENT SHALL KINETICODE BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING
+OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF KINETICODE HAS
+BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<p>KINETICODE SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN &ldquo;AS IS&rdquo; BASIS, AND
+KINETICODE HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.</p>
+      <!-- END DOCS -->
+    </div>
+    <div id="menu">
+      <div id="menutop">
+        <a title="MyTAP home" href="/"><img alt="home" src="ui/img/tap.jpg" width="200" alt="tap" /></a>
+      </div>
+
+      <div class="navcontainer">
+        <ul class="navlist">
+          <li><a title="MyTAP home" href="./">Home</a></li>
+          <li><a title="Download MyTAP from GitHub" href="http://github.com/theory/mytap/downloads">Download</a></li>
+          <li><a title="Read the complete MyTAP documentation" href="documentation.html" id="selected">Documentation</a></li>
+          <li><a title="Read the documenaton for my_prove" href="http://search.cpan.org/perldoc?my_prove">my_prove</a></li>
+          <li><a title="Integrate MyTAP into your test suite" href="integration.html">Integration</a></li>
+          <li><a title="MyTAP GitHub Repository" href="http://github.com/theory/mytap/">GitHub</a></li>
+        </ul>
+      </div>
+
+      <br />
+
+      <div class="navcontainer">
+        <ul class="navlist">
+          <li><a title="Just a Theory" href="http://justatheory.com/">Code: David E. Wheeler</a></li>
+          <li><a title="derby web design" href="http://www.tristarwebdesign.co.uk">Webdesign: tri-star</a></li>
+          <li><a title="Courtland Whited's Flickr Photostream" href="http://flickr.com/photos/idreaminir/">Photo: Courtland Whited</a></li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
