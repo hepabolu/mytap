@@ -19,4 +19,13 @@
       </nav>
     {% endif %}
   </div>
+
+  {% if site.data.releases %}
+    <div class="releases">
+      {% assign current_release = site.data.releases | last %}
+      {% if current_release %}
+      <span>Current version: {{ current_release.version }} {{ current_release.date }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
 </header>
