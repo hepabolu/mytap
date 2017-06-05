@@ -10,5 +10,9 @@ header_pages:
   - integration.md
   - about.md
 
+toc:
+  minItemsToShowToc: 3
+  showCollapsed: true
+
 exclude:
   - oldsite

@@ -13,12 +13,12 @@
     <script type="text/javascript">
       $(function() {
         $('.main-content').toc({
-          showAlways:true,
           renderIn:'#renderToc',
           contentsText:"Table of Contents",
           hideText:'<i class="fa fa-minus"></i>',
           showText:'<i class="fa fa-plus"></i>',
-          showCollapsed:false
+          showCollapsed: {{ site.toc.showCollapsed }},
+          minItemsToShowToc: {{ site.toc.minItemsToShowToc }}
         });
       });
     </script>
