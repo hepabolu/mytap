@@ -1,5 +1,4 @@
-theme: jekyll-theme-cayman
+theme: jekyll-theme-minimal
 title: MyTAP
-description: Unit testing for MySQL
 exclude:
   - oldsite
