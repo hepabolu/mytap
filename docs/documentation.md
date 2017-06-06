@@ -6,7 +6,7 @@ permalink: /documentation/
 
 # {{ page.title }} 
 
-__Version: 0.05__
+__Version: 0.06__
 
 MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
 procedures. It includes a collection of TAP-emitting assertion functions, as
