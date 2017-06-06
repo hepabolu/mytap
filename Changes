@@ -4,6 +4,9 @@ Revision history for MyTAP
 0.06
 -------------------------
 * has_table and hasnt_table moved to separate file
+* has_trigger and hasnt_trigger added to test if a table has a
+  certain trigger
+* tests added for the new functions
 
 0.05  2016-06-22T19:25:12
 -------------------------

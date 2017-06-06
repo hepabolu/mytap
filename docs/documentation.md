@@ -429,6 +429,13 @@ This function tests if the view has the attribute `security INVOKER`.
 
 `has_security_definer ( database, view, description )` checks if the view has the attribute `security DEFINER`.
 
+### `has_trigger (database, table, trigger, description)`
+
+This function checks if a trigger with the given name exists for the given table exists in the database.
+
+`hasnt_trigger (database, table, trigger, description)` checks if a trigger with the given name exists for the given table does NOT exist in the database.
+
+
 # No Test for the Wicked
 
 There is more to MyTAP. Oh *so* much more! You can output your own
