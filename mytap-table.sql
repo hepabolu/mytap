@@ -85,7 +85,7 @@ BEGIN
 END //
 
 -- hasnt_trigger( schema, table, trigger, description )
-DROP FUNCTION IF EXISTS _hasnt_trigger //
+DROP FUNCTION IF EXISTS hasnt_trigger //
 
 CREATE FUNCTION hasnt_trigger( dbname TEXT, tname TEXT, triggername TEXT, description TEXT )
 RETURNS text CHARSET utf8

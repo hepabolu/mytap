@@ -6,16 +6,16 @@ DELIMITER //
 
 DROP FUNCTION IF EXISTS _has_column  //
 CREATE FUNCTION _has_column (dbname TEXT, tname TEXT, cname TEXT )
-RETURNS BOOLEAN 
+RETURNS BOOLEAN
 BEGIN
 	DECLARE b_result boolean;
-	
+
         SELECT true into b_result
           FROM information_schema.columns as db
          WHERE db.table_schema = dbname
            AND db.table_name = tname
            AND db.column_name = cname;
-    
+
     RETURN coalesce(b_result, false);
 END //
 
@@ -26,7 +26,7 @@ CREATE FUNCTION has_column ( dbname TEXT, tname TEXT, cname TEXT, description TE
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should exist' );
     END IF;
 
@@ -40,7 +40,7 @@ CREATE FUNCTION hasnt_column ( dbname TEXT, tname TEXT, cname TEXT, description 
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not exist' );
     END IF;
 
@@ -78,7 +78,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should allow NULL' );
     END IF;
 
@@ -96,7 +96,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not allow NULL' );
     END IF;
 
@@ -134,7 +134,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have PRIMARY key' );
     END IF;
 
@@ -152,7 +152,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not have PRIMARY key' );
     END IF;
 
@@ -190,7 +190,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key' );
     END IF;
 
@@ -208,7 +208,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not have INDEX key' );
     END IF;
 
@@ -246,7 +246,7 @@ BEGIN
 
     SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
     END IF;
 
@@ -265,7 +265,7 @@ BEGIN
 
     SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not have INDEX key ', kname );
     END IF;
 
@@ -304,13 +304,13 @@ BEGIN
     SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
 
     IF NOT _col_has_named_index( dbname, tname, cname, kname ) THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
         RETURN fail(concat('Error ', diag(description)));
     END IF;
 
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have position ', position, ' in INDEX ', quote_ident(kname) );
     END IF;
 
@@ -329,12 +329,12 @@ BEGIN
 
     SET kname := coalesce(kname, cname); -- use the column name as index name if nothing is given
     IF NOT _col_has_named_index( dbname, tname, cname, kname ) THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have INDEX key ', quote_ident(kname) );
           RETURN fail(concat('Error ', diag(description)));
     END IF;
     IF description = '' THEN
-        SET description = concat('Column ', 
+        SET description = concat('Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not have position ', position, ' in INDEX ', quote_ident(kname) );
     END IF;
 
@@ -370,7 +370,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat( 'Column ', 
+        SET description = concat( 'Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have type ', quote_ident(ctype) );
     END IF;
 
@@ -381,7 +381,7 @@ END //
 
 -- _col_has_default (schema, table, column )
 
--- note: MySQL 5.5x does not distinguish between 'no default' and 
+-- note: MySQL 5.5x does not distinguish between 'no default' and
 -- 'null as default' and 'empty string as default'
 
 DROP FUNCTION IF EXISTS _col_has_default //
@@ -409,7 +409,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat( 'Column ', 
+        SET description = concat( 'Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have a default' );
     END IF;
 
@@ -426,7 +426,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat( 'Column ', 
+        SET description = concat( 'Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should not have a default' );
     END IF;
 
@@ -437,7 +437,7 @@ END //
 
 -- _col_default_is (schema, table, column, default )
 
--- note: MySQL 5.5x does not distinguish between 'no default' and 
+-- note: MySQL 5.5x does not distinguish between 'no default' and
 -- 'null as default' and 'empty string as default'
 
 DROP FUNCTION IF EXISTS _col_default_is //
@@ -474,7 +474,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat( 'Column ', 
+        SET description = concat( 'Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have as default ', quote_ident(cdefault) );
     END IF;
 
@@ -516,7 +516,7 @@ BEGIN
     END IF;
 
     IF description = '' THEN
-        SET description = concat( 'Column ', 
+        SET description = concat( 'Column ',
             quote_ident(tname), '.', quote_ident(cname), ' should have as extra ', quote_ident(cextra) );
     END IF;
 
