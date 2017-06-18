@@ -30,7 +30,7 @@ DROP FUNCTION IF EXISTS mytap_version //
 CREATE FUNCTION mytap_version()
 RETURNS VARCHAR(10)
 BEGIN
-    RETURN '0.06';
+    RETURN '0.07';
 END //
 
 DROP FUNCTION IF EXISTS mysql_version //
