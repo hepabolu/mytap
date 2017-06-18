@@ -30,7 +30,7 @@ DROP FUNCTION IF EXISTS mytap_version //
 CREATE FUNCTION mytap_version()
 RETURNS VARCHAR(10)
 BEGIN
-    RETURN '0.05';
+    RETURN '0.06';
 END //
 
 DROP FUNCTION IF EXISTS mysql_version //
@@ -521,46 +521,6 @@ BEGIN
     RETURN ident;
 END //
 
-
-DROP FUNCTION IF EXISTS _has_table //
-CREATE FUNCTION _has_table(dbname TEXT, tname TEXT) RETURNS BOOLEAN
-BEGIN
-    DECLARE ret BOOLEAN;
-    SELECT 1
-      INTO ret
-      FROM information_schema.tables
-     WHERE table_name = tname
-       AND table_schema = dbname
-       AND table_type = 'BASE TABLE';
-    RETURN COALESCE(ret, 0);
-END //
-
--- has_table( schema, table, description )
-DROP FUNCTION IF EXISTS has_table //
-CREATE FUNCTION has_table (dbname TEXT, tname TEXT, description TEXT)
-RETURNS TEXT
-BEGIN
-    IF description = '' THEN
-        SET description = concat('Table ',
-            quote_ident(dbname), '.', quote_ident(tname), ' should exist' );
-    END IF;
-
-    RETURN ok( _has_table( dbname, tname ), description );
-END //
-
--- hasnt_table( schema, table, description )
-DROP FUNCTION IF EXISTS hasnt_table //
-CREATE FUNCTION hasnt_table (dbname TEXT, tname TEXT, description TEXT)
-RETURNS TEXT
-BEGIN
-    IF description = '' THEN
-        SET description = concat('Table ',
-            quote_ident(dbname), '.', quote_ident(tname), ' should not exist' );
-    END IF;
-
-    return ok( NOT _has_table( dbname, tname ), description );
-END //
-
 -- check_test( test_output, pass, name, description, diag, match_diag )
 DROP FUNCTION IF EXISTS check_test //
 CREATE FUNCTION check_test(
@@ -701,6 +661,7 @@ END //
 
 DELIMITER ;
 
+source ./mytap-table.sql
 source ./mytap-view.sql
 source ./mytap-column.sql
 source ./mytap-routines.sql
