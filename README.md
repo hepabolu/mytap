@@ -1,4 +1,4 @@
-MyTAP 0.05
+MyTAP 0.06
 ==========
 
 MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
