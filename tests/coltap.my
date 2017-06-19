@@ -17,7 +17,7 @@ CREATE TABLE taptest.sometab(
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
     myat    TIMESTAMP DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,
-    mydate  DATE DEFAULT '0000-00-00',
+    mydate  DATE DEFAULT '1900-01-01',
     plain   INT,
     enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
     KEY `WeirdIndexName` (`myNum`),
@@ -1048,10 +1048,10 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    col_default_is( 'taptest', 'sometab', 'mydate', '0000-00-00', 'mydate should default to 0000-00-00' ),
+    col_default_is( 'taptest', 'sometab', 'mydate', '1900-01-01', 'mydate should default to 1900-01-01' ),
     true,
     'col_default_is( sch, tab, col, zero date def, desc )',
-    'mydate should default to 0000-00-00',
+    'mydate should default to 1900-01-01',
     '',
     0
 );
