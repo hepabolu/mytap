@@ -618,7 +618,7 @@ SELECT CASE WHEN mysql_version() < 501000
     ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
 END;
 ```
-The revision level is in the hundres position, the minor version in the ten
+The revision level is in the hundreds position, the minor version in the ten
 thousands position, and the major version in the hundred thousands position
 and above (assuming MySQL 10 is ever released, it will be in the millions
 position).
