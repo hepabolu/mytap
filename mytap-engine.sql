@@ -3,7 +3,7 @@ DELIMITER //
 /****************************************************************************/
 -- STORAGE ENGINE DEFINITIONS
 
--- _has_engin( storage_engine )
+-- _has_engine( storage_engine )
 DROP FUNCTION IF EXISTS _has_engine //
 CREATE FUNCTION _has_engine(ename TEXT)
 RETURNS BOOLEAN
