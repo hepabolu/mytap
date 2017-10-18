@@ -661,6 +661,10 @@ END //
 
 DELIMITER ;
 
+source ./mytap-engine.sql
+source ./mytap-collation.sql
+source ./mytap-charset.sql
+source ./mytap-user.sql
 source ./mytap-table.sql
 source ./mytap-view.sql
 source ./mytap-column.sql
