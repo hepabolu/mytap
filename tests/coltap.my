@@ -2,6 +2,8 @@
 
 BEGIN;
 
+SET SESSION sql_mode = '';
+
 SELECT tap.plan(321);
 -- SELECT * from no_plan();
 
