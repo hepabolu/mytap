@@ -659,6 +659,30 @@ BEGIN
     RETURN tap;
 END //
 
+-- general pgTAP method to pretty print differences in lists
+DROP FUNCTION IF EXISTS _are //
+CREATE FUNCTION _are (what TEXT, extras TEXT, missing TEXT, description TEXT)
+RETURNS TEXT
+BEGIN
+DECLARE msg TEXT    DEFAULT '';
+DECLARE res BOOLEAN DEFAULT TRUE;
+
+    IF extras <> '' THEN
+        SET res = FALSE;
+        SET msg = CONCAT('\n', CONCAT('\n'
+            '    Extra ', what, ':\n\t' , REPLACE( extras, ',', '\n\t')));
+    END IF;
+    
+    IF missing <> '' THEN
+        SET res = FALSE;
+        SET msg = CONCAT(msg, CONCAT('\n'
+            '    Missing ', what, ':\n\t' , REPLACE( missing, ',', '\n\t')));
+    END IF;
+
+    RETURN CONCAT(ok(res, description), diag(msg));
+END //
+
+
 DELIMITER ;
 
 source ./mytap-engine.sql
