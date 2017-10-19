@@ -38,7 +38,7 @@ CREATE FUNCTION mysql_version() RETURNS integer
 BEGIN
     RETURN (substring_index(version(), '.', 1) * 100000)
          + (substring_index(substring_index(version(), '.', 2), '.', -1) * 1000)
-         + CAST(substring_index(substring_index(version(), '.', 3), '.', -1) AS UNSIGNED);
+         + CAST(substring_index(substring_index(substring_index(version(), '-', 1),'.', 3), '.', -1) AS UNSIGNED);
 END //
 
 DROP FUNCTION IF EXISTS _get //
