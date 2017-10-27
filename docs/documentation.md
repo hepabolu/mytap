@@ -4,7 +4,7 @@ title: Documentation
 permalink: /documentation/
 ---
 
-# {{ page.title }} 
+# {{ page.title }}
 
 __Version: 0.06__
 
@@ -341,7 +341,7 @@ SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
 This function tests whether a table exists in a database. The first
 argument is a database name, the second is a table name, and the third is the
 test description. If you want to test for a table in the current database, use
-the `DATABASE()` function to specify the current databasen name. If you omit
+the `DATABASE()` function to specify the current database name. If you omit
 the test description, it will be set to "Table ':database'.':table' should
 exist".
 
@@ -357,7 +357,9 @@ This function tests whether the column exists in the given table of the database
 
 This function tests if the column has the attribute 'allow null'.
 
-`col_isnt_null( database, table, column, description )` checks if the column does NOT have the attribut 'allow null'.
+### `col_not_null( database, table, column, description )`
+
+This function checks if the column does NOT have the attribute 'allow null'.
 
 ### `col_has_primary_key( database, table, column, description )`
 
@@ -397,8 +399,8 @@ This function tests if the column has a default value. Note, this function does 
 
 ### `col_default_is( database, table, column, default, description )`
 
-This function tests if the column has the given default value. 
-__Note__: MySQL 5.5x does not distinguish between 'no default' and 
+This function tests if the column has the given default value.
+__Note__: MySQL 5.5x does not distinguish between 'no default' and
 'null as default' and 'empty string as default'.
 
 ### `col_extra_is( database, table, column, extra, description )`
@@ -473,7 +475,7 @@ Which would produce:
 ```
 # These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,
 # but yours is set to latin1.
-# As a result, some tests may fail. YMMV. 
+# As a result, some tests may fail. YMMV.
 ```
 
 ## Conditional Tests
@@ -846,5 +848,3 @@ But either way, *do* test your diagnostics!
 The source code for MyTAP is available on
 [GitHub](http://github.com/hepabolu/mytap/). Please feel free to fork and
 contribute!
-
-
