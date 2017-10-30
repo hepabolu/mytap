@@ -244,7 +244,8 @@ BEGIN
   FROM `information_schema`.`statistics`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `index_name` = iname;
+  AND `index_name` = iname
+  LIMIT 1; -- for multi column index
        
   RETURN COALESCE(ret, 0);
 END //
@@ -302,7 +303,8 @@ BEGIN
   FROM `information_schema`.`statistics`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `index_name` = iname;
+  AND `index_name` = iname
+  LIMIT 1; -- for multi-col index
        
   RETURN COALESCE(ret, NULL);
 END //
@@ -343,7 +345,8 @@ BEGIN
   FROM `information_schema`.`statistics`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `index_name` = iname;
+  AND `index_name` = iname
+  LIMIT 1; -- for multi-col index
        
   RETURN NOT ret;
 END //
@@ -433,7 +436,8 @@ BEGIN
   DECLARE extras    TEXT;
 
   IF description = '' THEN 
-    SET description = 'The correct indexes should be defined';
+    SET description = CONCAT('The correct indexes should be defined for table ',
+      quote_ident(sname), '.', quote_ident(tname));
   END IF;
     
   IF NOT _has_table( sname, tname ) THEN
