@@ -48,7 +48,7 @@ END //
 
 /****************************************************************************/
 
-
+/*
 -- _has_trigger( schema, table, trigger, description )
 DROP FUNCTION IF EXISTS _has_trigger //
 CREATE FUNCTION _has_trigger(dbname TEXT, tname TEXT, triggername TEXT)
@@ -103,7 +103,7 @@ BEGIN
     RETURN ok(NOT _has_trigger( dbname, tname, triggername ), description );
 END //
 
-
+/*
 
 /**************************************************************************/
 
@@ -134,7 +134,7 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('A Primary Key should be defined for Table ', 
-			quote_ident(sname), '.', quote_ident(tname));
+      quote_ident(sname), '.', quote_ident(tname));
   END IF;
 
   IF NOT _has_table( sname, tname ) THEN
@@ -152,12 +152,12 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('A Primary Key shouldn\'t be defined for Table ', 
-			quote_ident(sname), '.', quote_ident(tname));
+      quote_ident(sname), '.', quote_ident(tname));
   END IF;
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok( FALSE, description), '\n', 
-			diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
   END IF;
 
   RETURN ok(NOT _has_constraint(sname, tname, 'PRIMARY KEY'), description);
@@ -170,12 +170,12 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('A Foreign Key should be defined for Table ', 
-			quote_ident(sname), '.', quote_ident(tname));
+      quote_ident(sname), '.', quote_ident(tname));
   END IF;
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok( FALSE, description), '\n', 
-			diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
   END IF;
 
   RETURN ok(_has_constraint(sname, tname, 'FOREIGN KEY'), description);
@@ -187,12 +187,12 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Foreign Key should NOT be defined for Table ', 
-			quote_ident(sname), '.', quote_ident(tname));
+      quote_ident(sname), '.', quote_ident(tname));
   END IF;
 
   IF NOT _has_table( dbname, tname ) THEN
     RETURN CONCAT(ok( FALSE, description), '\n', 
-			diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
   END IF;
 
   RETURN ok(NOT _has_constraint(sname, tname, 'FOREIGN KEY'), description);
@@ -274,7 +274,7 @@ BEGIN
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok( FALSE, description), '\n', 
       diag( CONCAT('    Table ', quote_ident(sname), '.', 
-				quote_ident(tname), ' does not exist' )));
+        quote_ident(tname), ' does not exist' )));
   END IF;
 
   IF NOT _has_collation(cname) THEN
@@ -327,7 +327,7 @@ BEGIN
 
   IF NOT _has_charset( cname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
-	    diag(CONCAT('    Character Set ', quote_ident(cname), ' is not available')));
+      diag(CONCAT('    Character Set ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_table_character_set( sname, tname), cname, description);
@@ -357,7 +357,7 @@ BEGIN
         )
      ) msng;
 
-	RETURN COALESCE(ret, '');
+  RETURN COALESCE(ret, '');
 END //
 
 DROP FUNCTION IF EXISTS _extra_tables //
@@ -373,59 +373,59 @@ BEGIN
       FROM `information_schema`.`tables`
       WHERE `table_schema` = sname
       AND `table_type` = 'BASE TABLE'
-			AND `table_name` NOT IN 
+      AND `table_name` NOT IN 
         (
           SELECT `ident`
           FROM `idents2`
         )
     ) xtra;
 
-	RETURN COALESCE(ret, '');
+  RETURN COALESCE(ret, '');
 END //
 
 
 DROP FUNCTION IF EXISTS tables_are //
-CREATE FUNCTION tables_are( sname VARCHAR(64), want TEXT, description TEXT) 
+CREATE FUNCTION tables_are(sname VARCHAR(64), want TEXT, description TEXT) 
 RETURNS TEXT
 BEGIN
-	DECLARE sep       CHAR(1) DEFAULT ','; 
+  DECLARE sep       CHAR(1) DEFAULT ','; 
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
   DECLARE missing   TEXT; 
   DECLARE extras    TEXT;
 
   IF description = '' THEN 
-		SET description = 'The correct tables should be defined';
-	END IF;
+    SET description = 'The correct tables should be defined';
+  END IF;
 
   IF NOT _has_schema(sname) THEN
-		RETURN CONCAT( ok( FALSE, description), '\n', 
+    RETURN CONCAT( ok( FALSE, description), '\n', 
       diag( CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
   END IF;
     
   SET want = _fixCSL(want); 
 
-	IF want IS NULL THEN
-		RETURN CONCAT(ok(FALSE,description),'\n',
-			diag(CONCAT('Invalid character in comma separated list of expected schemas\n', 
+  IF want IS NULL THEN
+    RETURN CONCAT(ok(FALSE,description),'\n',
+      diag(CONCAT('Invalid character in comma separated list of expected schemas\n', 
                   'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
-	END IF;
+  END IF;
 
-	DROP TEMPORARY TABLE IF EXISTS idents1;
-	CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
-		ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-	DROP TEMPORARY TABLE IF EXISTS idents2;
-	CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
-		ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+  DROP TEMPORARY TABLE IF EXISTS idents1;
+  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+  DROP TEMPORARY TABLE IF EXISTS idents2;
+  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
     
-	WHILE want != '' > 0 DO
-		SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-		SET @val = uqi(@val);
+  WHILE want != '' > 0 DO
+    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
+    SET @val = uqi(@val);
     IF  @val <> '' THEN 
-			INSERT IGNORE INTO idents1 VALUE(@val);
+      INSERT IGNORE INTO idents1 VALUE(@val);
       INSERT IGNORE INTO idents2 VALUE(@val); 
-		END IF;
-		SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-	END WHILE;
+    END IF;
+    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
+  END WHILE;
 
   SET missing = _missing_tables(sname);
   SET extras  = _extra_tables(sname);
