@@ -51,60 +51,60 @@ END //
 /****************************************************************************/
 
 -- NULLABLE
-
--- _col_nullable ( schema, table, column, bool )
+-- _col_nullable(schema, table, column)
 DROP FUNCTION IF EXISTS _col_nullable //
-CREATE FUNCTION _col_nullable ( dbname TEXT, tname TEXT, cname TEXT)
-RETURNS BOOLEAN
+CREATE FUNCTION _col_nullable(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS VARCHAR(3)
 BEGIN
-    DECLARE ret BOOLEAN;
+    DECLARE ret VARCHAR(3);
 
-    SELECT true into ret
-      FROM information_schema.columns as db
-     WHERE db.table_schema = dbname
-       AND db.table_name = tname
-       AND db.column_name = cname
-       AND db.is_nullable = 'YES';
-    RETURN coalesce(ret, false);
+    SELECT `is_nullable` INTO ret
+    FROM `information_schema`.`columns`
+    WHERE `table_schema` = sname
+    AND `table_name` = tname
+    AND `column_name` = cname;
+
+    RETURN ret;
 END //
 
 
 -- col_is_null( schema, table, column )
 DROP FUNCTION IF EXISTS col_is_null //
-CREATE FUNCTION col_is_null ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+CREATE FUNCTION col_is_null(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT )
 RETURNS TEXT
 BEGIN
-    IF NOT _has_column( dbname, tname, cname ) THEN
-        RETURN fail(concat('Error ',
-               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
-    END IF;
+  IF description = '' THEN
+    SET description = concat('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should allow NULL');
+  END IF;
 
-    IF description = '' THEN
-        SET description = concat('Column ',
-            quote_ident(tname), '.', quote_ident(cname), ' should allow NULL' );
-    END IF;
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag (CONCAT('    Column ', quote_ident(sname), '.', quote_ident(tname), '.', 
+        quote_ident(cname), ' does not exist')));
+  END IF;
 
-    RETURN ok( _col_nullable(dbname, tname, cname), description );
+  RETURN eq(_col_nullable(sname, tname, cname),'YES', description);
 END //
 
 
 -- col_not_null( schema, table, column, description )
 DROP FUNCTION IF EXISTS col_not_null //
-CREATE FUNCTION col_not_null ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+CREATE FUNCTION col_not_null(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
+  IF description = '' THEN
+    SET description = concat('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should be NOT NULL');
+  END IF;
 
-    IF NOT _has_column( dbname, tname, cname ) THEN
-        RETURN fail(concat('Error ',
-               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
-    END IF;
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag (CONCAT('    Column ', quote_ident(sname), '.', quote_ident(tname), '.', 
+        quote_ident(cname), ' does not exist')));
+  END IF;
 
-    IF description = '' THEN
-        SET description = concat('Column ',
-            quote_ident(tname), '.', quote_ident(cname), ' should NOT allow NULL' );
-    END IF;
-
-    RETURN ok( NOT _col_nullable(dbname, tname, cname), description );
+  RETURN eq(_col_nullable(sname, tname, cname),'NO', description);
 END //
 
 
@@ -363,7 +363,7 @@ BEGIN
      WHERE db.table_schema = dbname
        AND db.table_name = tname
        AND db.column_name = cname
-       AND db.column_type = ctype;
+       AND db.data_type = ctype;
     RETURN coalesce(ret, false);
 END //
 
@@ -379,7 +379,7 @@ BEGIN
 
     IF description = '' THEN
         SET description = concat( 'Column ',
-            quote_ident(tname), '.', quote_ident(cname), ' should have type ', quote_ident(ctype) );
+            quote_ident(tname), '.', quote_ident(cname), ' should have data type ', quote_ident(ctype) );
     END IF;
 
     RETURN ok( _col_has_type( dbname, tname, cname, ctype ), description );
@@ -390,9 +390,9 @@ END //
 
 DROP FUNCTION IF EXISTS _col_type //
 CREATE FUNCTION _col_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
-RETURNS VARCHAR(64)
+RETURNS LONGTEXT
 BEGIN
-  DECLARE ret VARCHAR(64);
+  DECLARE ret LONGTEXT;
 
   SELECT `column_type` INTO ret
   FROM `information_schema`.`columns`
@@ -406,12 +406,12 @@ END //
 -- col_has_type is not available in pgTAP. The convention would have 
 -- col_type_is which would output expected and actual for failed tests
 DROP FUNCTION IF EXISTS col_type_is //
-CREATE FUNCTION col_type_is( sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64), description TEXT )
+CREATE FUNCTION col_type_is( sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT )
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
 	SET description = CONCAT( 'Column ', quote_ident(tname), '.', quote_ident(cname), 
-      ' should have type ', quote_ident(ctype));
+      ' should have column type ', quote_ident(ctype));
   END IF;
 
   IF NOT _has_column( sname, tname, cname ) THEN
@@ -419,7 +419,7 @@ BEGIN
 	  diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), ' does not exist')));
   END IF;
 
-  RETURN eq(_col_type( sname, tname, cname), _datatype(ctype), description);
+  RETURN eq(_col_type( sname, tname, cname), ctype, description);
 END //
 
 
@@ -480,94 +480,77 @@ BEGIN
 END //
 
 /****************************************************************************/
--- XX FIX THIS XX
--- _col_default_is (schema, table, column, default )
 
--- note: MySQL 5.5x does not distinguish between 'no default' and
--- 'null as default' and 'empty string as default'
 
-DROP FUNCTION IF EXISTS _col_default_is //
-CREATE FUNCTION _col_default_is ( dbname TEXT, tname TEXT, cname TEXT, cdefault TEXT  )
-RETURNS BOOLEAN
+DROP FUNCTION IF EXISTS _col_default//
+CREATE FUNCTION _col_default(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS LONGTEXT
 BEGIN
-    DECLARE ret BOOLEAN;
+  DECLARE ret LONGTEXT;
 
-    IF cdefault = '' OR cdefault IS NULL THEN
-        SELECT true into ret
-          FROM information_schema.columns as db
-         WHERE db.table_schema = dbname
-           AND db.table_name = tname
-           AND db.column_name = cname
-           AND db.column_default IS NULL;
-    ELSE
-        SELECT true into ret
-          FROM information_schema.columns as db
-         WHERE db.table_schema = dbname
-           AND db.table_name = tname
-           AND db.column_name = cname
-           AND db.column_default = cdefault;
-    END IF;
-    RETURN coalesce(ret, false);
+  SELECT `column_default` INTO ret
+  FROM `information_schema`.`columns`
+  WHERE `table_schema` = sname
+  AND `table_name` = tname
+  AND `column_name` = cname;
+
+  RETURN ret ;
 END //
 
 DROP FUNCTION IF EXISTS col_default_is //
-CREATE FUNCTION col_default_is ( dbname TEXT, tname TEXT, cname TEXT, cdefault TEXT, description TEXT )
+CREATE FUNCTION col_default_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cdefault LONGTEXT, description TEXT )
 RETURNS TEXT
 BEGIN
-    IF NOT _has_column( dbname, tname, cname ) THEN
-        RETURN fail(concat('Error ',
-               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
-    END IF;
+  IF description = '' THEN
+    SET description = CONCAT('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should have as default ', quote_ident(cdefault));
+  END IF;
 
-    IF description = '' THEN
-        SET description = concat( 'Column ',
-            quote_ident(tname), '.', quote_ident(cname), ' should have as default ', quote_ident(cdefault) );
-    END IF;
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+       diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), ' does not exist')));
+  END IF;
 
-    RETURN ok( _col_default_is( dbname, tname, cname, cdefault ), description );
+  RETURN eq(_col_default(sname, tname, cname), cdefault, description);
 END //
+
 
 
 /****************************************************************************/
--- XXX FIX THIS XXX
--- _col_extra_is ( schema, table, column, extra )
-
 -- note: in MySQL 5.5x 'extra' default to ''
 
 DROP FUNCTION IF EXISTS _col_extra_is //
-CREATE FUNCTION _col_extra_is ( dbname TEXT, tname TEXT, cname TEXT, cextra TEXT )
-RETURNS BOOLEAN
+CREATE FUNCTION _col_extra_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS VARCHAR(30)
 BEGIN
-    DECLARE ret BOOLEAN;
+  DECLARE ret VARCHAR(30);
 
-    IF cextra IS NULL THEN
-        set cextra = '';
-    END IF;
-    SELECT true into ret
-      FROM information_schema.columns as db
-     WHERE db.table_schema = dbname
-       AND db.table_name = tname
-       AND db.column_name = cname
-       AND db.extra = cextra;
+  SELECT `extra` INTO ret
+  FROM `information_schema`.`columns`
+  WHERE `table_schema` = sname
+  AND `table_name` = tname
+  AND `column_name` = cname;
 
-    RETURN coalesce(ret, false);
+  RETURN ret;
 END //
 
 DROP FUNCTION IF EXISTS col_extra_is //
-CREATE FUNCTION col_extra_is ( dbname TEXT, tname TEXT, cname TEXT, cextra TEXT, description TEXT )
+CREATE FUNCTION col_extra_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cextra VARCHAR(30), description TEXT)
 RETURNS TEXT
 BEGIN
-    IF NOT _has_column( dbname, tname, cname ) THEN
-        RETURN fail(concat('Error ',
-               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+  IF description = '' THEN
+    SET description = CONCAT( 'Column ',
+      quote_ident(tname), '.', quote_ident(cname), 
+        ' should have as extra ', quote_ident(cextra));
     END IF;
 
-    IF description = '' THEN
-        SET description = concat( 'Column ',
-            quote_ident(tname), '.', quote_ident(cname), ' should have as extra ', quote_ident(cextra) );
+    IF NOT _has_column(sname, tname, cname) THEN
+      RETURN CONCAT(ok(FALSE, description), '\n',
+        diag (CONCAT('    Column ', quote_ident(sname), '.', quote_ident(tname), 
+          '.', quote_ident(cname), ' does not exist')));
     END IF;
 
-    RETURN ok( _col_extra_is( dbname, tname, cname, cextra ), description );
+    RETURN eq(_col_extra_is(sname, tname, cname), cextra, description);
 END //
 
 
@@ -617,7 +600,7 @@ BEGIN
   
   SELECT `collation_name` INTO ret
   FROM `information_schema`.`columns`
-  WHERE `table_schema` = dbname
+  WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname;
 
@@ -640,7 +623,7 @@ BEGIN
 		' does not exist')));
   END IF;
 
-  RETURN eq(_col_collation_is(sname, tname, cname), ccoll, description);
+  RETURN eq(_col_collation(sname, tname, cname), ccoll, description);
 END //
 
 
@@ -685,7 +668,7 @@ BEGIN
         (
           SELECT `ident`
           FROM `idents2`
-		)
+        )
 	) xtra;
 
   RETURN COALESCE(ret, '');
@@ -702,7 +685,7 @@ BEGIN
 
   IF description = '' THEN 
 	SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname), 
-      'should have the correct columns');
+      ' should have the correct columns');
   END IF;
     
   IF NOT _has_table(sname,tname) THEN
