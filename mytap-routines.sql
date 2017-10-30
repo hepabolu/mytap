@@ -66,12 +66,12 @@ DROP FUNCTION IF EXISTS hasnt_procedure //
 CREATE FUNCTION hasnt_procedure ( dbname TEXT, rname TEXT, description TEXT )
 RETURNS TEXT
 BEGIN
-    IF description = '' THEN
-        SET description = concat('Procedure ', 
-            quote_ident(dbname), '.', quote_ident(rname), ' should not exist' );
-    END IF;
+  IF description = '' THEN
+    SET description = concat('Procedure ', 
+      quote_ident(dbname), '.', quote_ident(rname), ' should not exist' );
+  END IF;
 
-    RETURN ok( NOT _has_routine( dbname, rname, 'PROCEDURE' ), description );
+  RETURN ok(NOT _has_routine( dbname, rname, 'PROCEDURE' ), description );
 END //
 
 
@@ -103,7 +103,7 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = concat('Function ', quote_ident(sname), '.', quote_ident(rname), 
-	' should return ', quote_ident(_datatype(dtype)));
+      ' should return ', quote_ident(_datatype(dtype)));
   END IF;
 
   IF NOT _has_routine(sname, rname, 'FUNCTION') THEN
@@ -290,7 +290,7 @@ END //
 
 -- procedure_sql_data_access_is( schema, procedure, security type , description )
 DROP FUNCTION IF EXISTS procedure_sql_data_access_is //
-CREATE FUNCTION procedure_sql_data_access_is( sname VARCHAR(64), rname VARCHAR(64), sda VARCHAR(64), description TEXT )
+CREATE FUNCTION procedure_sql_data_access_is(sname VARCHAR(64), rname VARCHAR(64), sda VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
