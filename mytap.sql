@@ -811,6 +811,7 @@ END //
 
 DELIMITER ;
 
+source ./mytap-schemata.sql;
 source ./mytap-engine.sql;
 source ./mytap-collation.sql;
 source ./mytap-charset.sql;
