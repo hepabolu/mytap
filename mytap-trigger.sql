@@ -29,13 +29,13 @@ CREATE FUNCTION has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(6
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
+    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
       ' should exist');
   END IF;
 
   IF NOT _has_table(sname, tname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname), 
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -49,12 +49,12 @@ CREATE FUNCTION hasnt_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
+    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
       ' should exist');
   END IF;
 
   IF NOT _has_table(sname, tname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
@@ -72,7 +72,7 @@ CREATE FUNCTION _trigger_event(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHA
 RETURNS VARCHAR(6)
 BEGIN
   DECLARE ret VARCHAR(6);
-  
+
   SELECT `event_manipulation` INTO ret
   FROM `information_schema`.`triggers`
   WHERE `event_object_schema` = sname
@@ -87,13 +87,13 @@ CREATE FUNCTION trigger_event_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARC
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = concat('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
+    SET description = concat('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
       ' Event should occur for ', qv(UPPER(evnt)));
   END IF;
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr), 
+      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -110,7 +110,7 @@ CREATE FUNCTION _trigger_timing(sname VARCHAR(64), tname VARCHAR(64), trgr VARCH
 RETURNS VARCHAR(6)
 BEGIN
   DECLARE ret VARCHAR(6);
-  
+
   SELECT `action_timing` INTO ret
   FROM `information_schema`.`triggers`
   WHERE `event_object_schema` = sname
@@ -125,13 +125,13 @@ CREATE FUNCTION trigger_timing_is(sname VARCHAR(64), tname VARCHAR(64), trgr VAR
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
+    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
       ' should have Timing ', qv(UPPER(timing)));
   END IF;
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr), 
+      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -148,7 +148,7 @@ CREATE FUNCTION _trigger_order(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHA
 RETURNS BIGINT
 BEGIN
   DECLARE ret BIGINT;
-  
+
   SELECT `action_order` INTO ret
   FROM `information_schema`.`triggers`
   WHERE `event_object_schema` = sname
@@ -163,13 +163,13 @@ CREATE FUNCTION trigger_order_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARC
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
+    SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
       ' should have Action Order ', qv(seq));
   END IF;
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr), 
+      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -187,7 +187,7 @@ CREATE FUNCTION _trigger_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(6
 RETURNS LONGTEXT
 BEGIN
   DECLARE ret LONGTEXT;
-  
+
   SELECT `action_statement` INTO ret
   FROM `information_schema`.`triggers`
   WHERE `event_object_schema` = sname
@@ -208,7 +208,7 @@ BEGIN
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr), 
+      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -221,13 +221,13 @@ END //
 -- Check that the proper triggers are defined
 
 DROP FUNCTION IF EXISTS _missing_triggers //
-CREATE FUNCTION _missing_triggers(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _missing_triggers(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
 
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
-  FROM 
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
+  FROM
     (
       SELECT `ident`
       FROM `idents1`
@@ -237,18 +237,18 @@ BEGIN
           FROM `information_schema`.`triggers`
           WHERE `trigger_schema` = sname
           AND `event_object_table` = tname
- )
+        )
      ) msng;
 
   RETURN COALESCE(ret, '');
 END //
 
 DROP FUNCTION IF EXISTS _extra_triggers //
-CREATE FUNCTION _extra_triggers(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _extra_triggers(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
-  
+
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
   FROM 
     (
@@ -268,12 +268,12 @@ END //
 
 
 DROP FUNCTION IF EXISTS triggers_are //
-CREATE FUNCTION triggers_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT) 
+CREATE FUNCTION triggers_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
 BEGIN
-  DECLARE sep       CHAR(1) DEFAULT ','; 
+  DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
-  DECLARE missing   TEXT; 
+  DECLARE missing   TEXT;
   DECLARE extras    TEXT;
 
   IF description = '' THEN 
@@ -282,11 +282,11 @@ BEGIN
   END IF;
 
   IF NOT _has_table(sname,tname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
-    
+
   SET want = _fixCSL(want); 
 
   IF want IS NULL THEN
@@ -296,25 +296,25 @@ BEGIN
   END IF;
 
   DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
+  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
     ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
   DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
+  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)
     ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-    
+ 
   WHILE want != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
     SET @val = uqi(@val);
     IF  @val <> '' THEN 
       INSERT IGNORE INTO idents1 VALUE(@val);
-      INSERT IGNORE INTO idents2 VALUE(@val); 
+      INSERT IGNORE INTO idents2 VALUE(@val);
     END IF;
     SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
   END WHILE;
 
   SET missing = _missing_triggers(sname,tname);
   SET extras  = _extra_triggers(sname,tname);
-        
+
   RETURN _are('triggers', extras, missing, description);
 END //
 

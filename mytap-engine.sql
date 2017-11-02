@@ -40,11 +40,11 @@ CREATE FUNCTION _engine_default()
 RETURNS VARCHAR(64)
 BEGIN
   DECLARE ret VARCHAR(64);
-  
+
   SELECT `engine` INTO ret
   FROM `information_schema`.`engines`
   WHERE `support` = 'DEFAULT';
-  
+
   RETURN COALESCE(ret, 0);
 END //
 
@@ -56,12 +56,13 @@ CREATE FUNCTION engine_is_default(ename VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-	SET description = CONCAT('Storage Engine ', quote_ident(ename), ' should be the default');
+  SET description = CONCAT('Storage Engine ', quote_ident(ename),
+    ' should be the default');
   END IF;
 
   IF NOT _has_engine(ename) THEN
     RETURN CONCAT(ok(FALSE, description),'\n',
-	  diag (CONCAT('Storage engine ', quote_ident(ename), ' is not available')));
+      diag (CONCAT('Storage engine ', quote_ident(ename), ' is not available')));
   END IF;
 
   RETURN eq(_engine_default(), ename, description);

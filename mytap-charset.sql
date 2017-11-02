@@ -11,11 +11,11 @@ CREATE FUNCTION _has_charset(cname TEXT)
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
-    
+
   SELECT 1 INTO ret
   FROM `information_schema`.`character_sets`
   WHERE `character_set_name` = cname;
-    
+
   RETURN COALESCE(ret, 0);
 END //
 

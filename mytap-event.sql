@@ -1,8 +1,8 @@
-/************************************************************************************/
-
 -- EVENTS
+-- ======
 -- >= 5.5
 
+/************************************************************************************/
 
 DELIMITER //
 
@@ -37,7 +37,7 @@ CREATE FUNCTION _has_event(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
-  
+
   SELECT 1 INTO ret
   FROM `information_schema`.`events`
   WHERE `event_schema` = sname
@@ -51,12 +51,12 @@ CREATE FUNCTION has_event(sname VARCHAR(64), ename VARCHAR(64), description TEXT
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should exist');
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
     END IF;
 
@@ -69,18 +69,17 @@ CREATE FUNCTION hasnt_event(sname VARCHAR(64), ename VARCHAR(64), description TE
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should not exist');
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
     END IF;
 
-    RETURN ok(NOT _has_event(sname, ename), description);
+  RETURN ok(NOT _has_event(sname, ename), description);
 END //
-
 
 
 /****************************************************************************/
@@ -92,7 +91,7 @@ CREATE FUNCTION _event_type(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(9)
 BEGIN
   DECLARE ret VARCHAR(9);
-  
+
   SELECT `event_type` INTO ret
   FROM `information_schema`.`events`
   WHERE `event_schema` = sname
@@ -106,12 +105,12 @@ CREATE FUNCTION event_type_is(sname VARCHAR(64), ename VARCHAR(64), etype VARCHA
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Event Type ', qv(etype));
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
@@ -129,7 +128,7 @@ CREATE FUNCTION _event_interval_value(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(256)
 BEGIN
   DECLARE ret VARCHAR(256);
-  
+
   SELECT `interval_value` INTO ret
   FROM `information_schema`.`events`
   WHERE `event_schema` = sname
@@ -143,17 +142,17 @@ CREATE FUNCTION event_interval_value_is(sname VARCHAR(64), ename VARCHAR(64), iv
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Interval Value ', qv(ivalue));
   END IF;
 
   IF NOT _has_event(sname,ename) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename), 
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
-    END IF;
+  END IF;
 
-    RETURN eq(_event_interval_value(sname, ename), ivalue, description);
+  RETURN eq(_event_interval_value(sname, ename), ivalue, description);
 END //
 
 /****************************************************************************/
@@ -166,7 +165,7 @@ CREATE FUNCTION _event_interval_field(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(18)
 BEGIN
   DECLARE ret VARCHAR(18);
-  
+
   SELECT `interval_field` INTO ret
   FROM `information_schema`.`events`
   WHERE `event_schema` = sname
@@ -180,19 +179,18 @@ CREATE FUNCTION event_interval_field_is(sname VARCHAR(64), ename VARCHAR(64), if
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Interval Field ', qv(ifield));
   END IF;
 
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename), 
+      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
     END IF;
 
     RETURN eq(_event_interval_field(sname, ename), ifield, description);
 END //
-
 
 
 /****************************************************************************/
@@ -204,7 +202,7 @@ CREATE FUNCTION _event_status(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(18)
 BEGIN
   DECLARE ret VARCHAR(18);
-  
+
   SELECT `status` INTO ret
   FROM `information_schema`.`events`
   WHERE `event_schema` = sname
@@ -218,13 +216,13 @@ CREATE FUNCTION event_status_is(sname VARCHAR(64), ename VARCHAR(64), stat VARCH
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename), 
+    SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Status ', qv(stat));
   END IF;
 
   IF NOT _has_event(sname,ename) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename), 
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
     END IF;
 
@@ -237,7 +235,7 @@ END //
 -- Check that the proper events are defined
 
 DROP FUNCTION IF EXISTS _missing_events //
-CREATE FUNCTION _missing_events(sname VARCHAR(64)) 
+CREATE FUNCTION _missing_events(sname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
@@ -259,15 +257,15 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS _extra_events //
-CREATE FUNCTION _extra_events(sname VARCHAR(64)) 
+CREATE FUNCTION _extra_events(sname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
-  
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
+
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
   FROM 
     (
-      SELECT `event_name` AS `ident` 
+      SELECT `event_name` AS `ident`
       FROM `information_schema`.`events`
       WHERE `event_schema` = sname
       AND `event_name` NOT IN 
@@ -290,30 +288,30 @@ BEGIN
   DECLARE missing   TEXT; 
   DECLARE extras    TEXT;
 
-  IF description = '' THEN 
+  IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname), ' should have the correct Events');
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT( ok( FALSE, description), '\n', 
+    RETURN CONCAT( ok(FALSE, description), '\n',
       diag( CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
   END IF;
-    
-  SET want = _fixCSL(want); 
+
+  SET want = _fixCSL(want);
 
   IF want IS NULL THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n', 
+      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
                   'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
   END IF;
 
   DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
+  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
     ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
   DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
+  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)
     ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-    
+
   WHILE want != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
     SET @val = uqi(@val);
@@ -326,7 +324,7 @@ BEGIN
 
   SET missing = _missing_events(sname);
   SET extras  = _extra_events(sname);
-        
+
   RETURN _are('events', extras, missing, description);
 END //
 

@@ -1,4 +1,4 @@
--- SCHEMA 
+-- SCHEMA
 -- ======
 
 DELIMITER //
@@ -11,11 +11,11 @@ CREATE FUNCTION _has_schema( sname VARCHAR(64))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
-  
+
   SELECT 1 INTO ret
   FROM `information_schema`.`schemata`
   WHERE `schema_name` = sname;
-  
+
   RETURN COALESCE(ret, 0);
 END //
 
@@ -55,11 +55,11 @@ CREATE FUNCTION _schema_collation_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
 BEGIN
   DECLARE ret VARCHAR(32);
-  
+
   SELECT `default_collation_name` INTO ret
   FROM `information_schema`.`schemata`
   WHERE `schema_name` = sname;
-  
+
   RETURN COALESCE(ret, NULL);
 END //
 
@@ -80,7 +80,7 @@ BEGIN
 
   IF NOT _has_collation(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-        diag (CONCAT('    Collation ', quote_ident(cname), ' is not available' )));
+      diag (CONCAT('    Collation ', quote_ident(cname), ' is not available' )));
   END IF;
 
   RETURN eq(_schema_collation_is(sname), cname , description);
@@ -97,11 +97,11 @@ CREATE FUNCTION _schema_charset_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
 BEGIN
   DECLARE ret VARCHAR(32);
-    
+
   SELECT `default_character_set_name` INTO ret
   FROM `information_schema`.`schemata`
   WHERE `schema_name` = sname;
-    
+
   RETURN COALESCE(ret, NULL);
 END //
 
@@ -112,18 +112,18 @@ CREATE FUNCTION schema_charset_is( sname VARCHAR(64), cname VARCHAR(32), descrip
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Schema ', quote_ident(sname), 
+    SET description = CONCAT('Schema ', quote_ident(sname),
       ' should use Character Set ',  quote_ident(cname));
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
   END IF;
 
   IF NOT _has_charset(cname) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-       diag (CONCAT('    Character Set ', quote_ident(cname), ' is not available' )));
+      diag (CONCAT('    Character Set ', quote_ident(cname), ' is not available' )));
   END IF;
 
   RETURN eq(_schema_charset_is(sname), cname, description);
@@ -146,8 +146,8 @@ RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
 
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret 
-  FROM 
+  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret
+  FROM
     (
       SELECT `ident`
       FROM `idents1`
@@ -156,9 +156,9 @@ BEGIN
           SELECT `schema_name`
           FROM `information_schema`.`schemata`
         )
-		) msng;
+    ) msng;
 
-	RETURN COALESCE(ret, '');
+  RETURN COALESCE(ret, '');
 END //
 
 DROP FUNCTION IF EXISTS _extra_schemas //
@@ -166,8 +166,8 @@ CREATE FUNCTION _extra_schemas()
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
-  
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret 
+
+  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret
   FROM 
     (
       SELECT `schema_name` AS `ident` 
@@ -177,64 +177,60 @@ BEGIN
           SELECT `ident`
           FROM `idents2`
         )
-		) xtra;
+    ) xtra;
 
-	RETURN COALESCE(ret, '');
+  RETURN COALESCE(ret, '');
 END //
 
 
 DROP FUNCTION IF EXISTS schemas_are //
-CREATE FUNCTION schemas_are( want TEXT, description TEXT) 
+CREATE FUNCTION schemas_are(want TEXT, description TEXT)
 RETURNS TEXT
 BEGIN
-	DECLARE sep       CHAR(1) DEFAULT ','; 
+  DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
   DECLARE missing   TEXT; 
   DECLARE extras    TEXT;
 
-  IF description = '' THEN 
-		SET description = 'The correct Schemas should be defined';
-	END IF;
-    
-  SET want = _fixCSL(want); 
+  IF description = '' THEN
+    SET description = 'The correct Schemas should be defined';
+  END IF;
 
-	IF want IS NULL THEN
-		RETURN CONCAT(ok(FALSE,description),'\n',
-			diag(CONCAT('Invalid character in comma separated list of expected schemas\n', 
-                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
-	END IF;
+  SET want = _fixCSL(want);
 
   IF want IS NULL THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-			diag(CONCAT('Invalid character in comma separated list of expected schemas\n', want)));
-	END IF;
+      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
+                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
+  END IF;
 
-	DROP TEMPORARY TABLE IF EXISTS idents1;
-	CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
-		ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-	DROP TEMPORARY TABLE IF EXISTS idents2;
-	CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
-		ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-    
-	WHILE want != '' > 0 DO
-		SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-		SET @val = uqi(@val);
+  IF want IS NULL THEN
+    RETURN CONCAT(ok(FALSE,description),'\n',
+      diag(CONCAT('Invalid character in comma separated list of expected schemas\n', want)));
+  END IF;
+
+  DROP TEMPORARY TABLE IF EXISTS idents1;
+  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+  DROP TEMPORARY TABLE IF EXISTS idents2;
+  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+
+  WHILE want != '' > 0 DO
+    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
+    SET @val = uqi(@val);
     IF  @val <> '' THEN 
-			INSERT IGNORE INTO idents1 VALUE(@val);
-			INSERT IGNORE INTO idents2 VALUE(@val);
-		END IF;
-		SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-	END WHILE;
+      INSERT IGNORE INTO idents1 VALUE(@val);
+      INSERT IGNORE INTO idents2 VALUE(@val);
+    END IF;
+    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
+  END WHILE;
 
   SET missing = _missing_schemas();
   SET extras  = _extra_schemas();
-        
+
   RETURN _are('schemas', extras, missing, description);
 END //
 
 
 DELIMITER ;
-
-
-
-

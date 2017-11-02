@@ -8,7 +8,7 @@ DROP FUNCTION IF EXISTS _has_column  //
 CREATE FUNCTION _has_column(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
 BEGIN
-	DECLARE ret BOOLEAN;
+  DECLARE ret BOOLEAN;
 
   SELECT 1 INTO ret
   FROM `information_schema`.`columns`
@@ -100,7 +100,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -124,7 +124,7 @@ BEGIN
   AND `table_name` = tname
   AND `column_name` = cname
   AND `column_key` = 'PRI';
-    
+
   RETURN coalesce(ret, false);
 END //
 
@@ -137,10 +137,10 @@ BEGIN
     SET description = CONCAT('Column ',
       quote_ident(tname), '.', quote_ident(cname), ' should be a Primary Key (or part thereof)');
   END IF;
-  
+
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -159,7 +159,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -183,7 +183,7 @@ BEGIN
   AND `column_name` = cname
   AND `index_name` <> 'PRIMARY'
   LIMIT 1;
-    
+
   RETURN coalesce(ret, false);
 END //
 
@@ -199,7 +199,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -215,10 +215,10 @@ BEGIN
     SET description = concat('Column ',
         quote_ident(tname), '.', quote_ident(cname), ' should not have Index Key');
   END IF;
-  
+
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -241,7 +241,7 @@ BEGIN
   AND `table_name` = tname
   AND `column_name` = cname
   AND `index_name` = kname;
-  
+
   RETURN COALESCE(ret, 0);
 END //
 
@@ -251,15 +251,15 @@ CREATE FUNCTION col_has_named_index (sname VARCHAR(64), tname VARCHAR(64), cname
 RETURNS TEXT
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
-  
+
   IF description = '' THEN
-    SET description = concat('Column ', quote_ident(tname), '.', quote_ident(cname), 
+    SET description = concat('Column ', quote_ident(tname), '.', quote_ident(cname),
       ' should have Index Key ', quote_ident(kname));
   END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
 ' does not exist')));
   END IF;
 
@@ -276,10 +276,10 @@ BEGIN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname), 
       ' should not have INDEX Key ', quote_ident(kname));
   END IF;
-  
+
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -303,7 +303,7 @@ BEGIN
   AND `column_name` = cname
   AND `index_name` = kname
   AND `seq_in_index` = pos;
-    
+
   RETURN coalesce(ret, 0);
 END //
 
@@ -314,22 +314,22 @@ CREATE FUNCTION col_has_pos_in_named_index (sname VARCHAR(64), tname VARCHAR(64)
 RETURNS TEXT
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
-  
+
   IF description = '' THEN
     SET description = concat('Column ',
-      quote_ident(tname), '.', quote_ident(cname), ' should have position ', 
+      quote_ident(tname), '.', quote_ident(cname), ' should have position ',
         pos, ' in Index ', quote_ident(kname));
   END IF;
 
   IF NOT _col_has_named_index(sname, tname, cname, kname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-        diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname), 
+        diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
           ' should have Index Key ', quote_ident(kname))));
     END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -391,7 +391,7 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = concat('Column ', quote_ident(tname), '.', quote_ident(cname), 
-        ' should have Data Type ', quote_ident(dtype));
+        ' should have Data Type ', qv(dtype));
     END IF;
  
   IF NOT _has_column(sname, tname, cname) THEN
@@ -430,7 +430,7 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname), 
-      ' should have column type ', quote_ident(ctype));
+      ' should have Column Type ', qv(ctype));
   END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
@@ -525,7 +525,7 @@ CREATE FUNCTION col_default_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCH
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname), 
+    SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
       ' should have Default ', qv(cdefault));
   END IF;
 
@@ -601,19 +601,19 @@ BEGIN
 END //
 
 
-
 DROP FUNCTION IF EXISTS col_charset_is //
 CREATE FUNCTION col_charset_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cset VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname), 
+    SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+
       ' should have Character Set ' , quote_ident(cset));
   END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -638,7 +638,7 @@ CREATE FUNCTION _col_collation(sname VARCHAR(64), tname VARCHAR(64), cname VARCH
 RETURNS VARCHAR(32)
 BEGIN
   DECLARE ret VARCHAR(32);
-  
+
   SELECT `collation_name` INTO ret
   FROM `information_schema`.`columns`
   WHERE `table_schema` = sname
@@ -660,7 +660,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname)THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname), 
+      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
       ' does not exist')));
   END IF;
 
@@ -672,96 +672,98 @@ END //
 -- Check that only the correct columns are defined
 
 DROP FUNCTION IF EXISTS _missing_columns //
-CREATE FUNCTION _missing_columns(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _missing_columns(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
 
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
   FROM 
-	(
-	  SELECT `ident`
-	  FROM `idents1`
-	  WHERE `ident` NOT IN
-		(
-		  SELECT `column_name`
-		  FROM `information_schema`.`columns`
-		  WHERE `table_schema` = sname
-		  AND `table_name` = tname
-		)
-	) msng;
+  (
+    SELECT `ident`
+    FROM `idents1`
+    WHERE `ident` NOT IN
+    (
+      SELECT `column_name`
+      FROM `information_schema`.`columns`
+      WHERE `table_schema` = sname
+      AND `table_name` = tname
+    )
+  ) msng;
 
   RETURN COALESCE(ret, '');
 END //
 
 DROP FUNCTION IF EXISTS _extra_columns //
-CREATE FUNCTION _extra_columns(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _extra_columns(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
-  SELECT GROUP_CONCAT(qi(`ident`)) into ret FROM 
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
+  FROM
     (
-	  SELECT DISTINCT `column_name` AS `ident` 
+      SELECT DISTINCT `column_name` AS `ident` 
       FROM `information_schema`.`columns`
       WHERE `table_schema` = sname
       AND `table_name` = tname
-	  AND `column_name` NOT IN 
+      AND `column_name` NOT IN 
         (
           SELECT `ident`
           FROM `idents2`
        )
-	) xtra;
+    ) xtra;
 
   RETURN COALESCE(ret, '');
 END //
 
 DROP FUNCTION IF EXISTS columns_are //
-CREATE FUNCTION columns_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT) 
+CREATE FUNCTION columns_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
 BEGIN
-  DECLARE sep       CHAR(1) DEFAULT ','; 
+  DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
-  DECLARE missing   TEXT; 
+  DECLARE missing   TEXT;
   DECLARE extras    TEXT;
 
-  IF description = '' THEN 
-	SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname), 
+  IF description = '' THEN
+    SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
       ' should have the correct Columns');
   END IF;
-    
+
   IF NOT _has_table(sname,tname) THEN
-	RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+  RETURN CONCAT(ok(FALSE, description), '\n',
+    diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' does not exist')));
   END IF;
-    
-  SET want = _fixCSL(want); 
+
+  SET want = _fixCSL(want);
 
   IF want IS NULL THEN
-	RETURN CONCAT(ok(FALSE,description),'\n',
-	  diag(CONCAT('Invalid character in comma separated list of expected schemas\n', 
-                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
+  RETURN CONCAT(ok(FALSE,description),'\n',
+    diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
+                'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
   END IF;
 
   DROP TEMPORARY TABLE IF EXISTS idents1;
   CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
-	ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
   DROP TEMPORARY TABLE IF EXISTS idents2;
   CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
-	ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-    
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+
   WHILE want != '' > 0 DO
-	SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-	SET @val = uqi(@val);
+  SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
+  SET @val = uqi(@val);
     IF  @val <> '' THEN 
-	  INSERT IGNORE INTO idents1 VALUE(@val);
+    INSERT IGNORE INTO idents1 VALUE(@val);
       INSERT IGNORE INTO idents2 VALUE(@val); 
-	END IF;
-	SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
+  END IF;
+  SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
   END WHILE;
 
   SET missing = _missing_columns(sname, tname);
   SET extras  = _extra_columns(sname, tname);
-        
+
   RETURN _are('columns', extras, missing, description);
 END //
 

@@ -12,12 +12,12 @@ CREATE FUNCTION _has_collation(cname TEXT)
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
-  
+
   SELECT 1 INTO ret
   FROM `information_schema`.`collations`
   WHERE `collation_name` = cname
   AND `is_compiled` = 'YES';
-    
+
   RETURN COALESCE(ret, 0);
 END //
 
