@@ -33,8 +33,8 @@ CREATE FUNCTION index_is(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('Index ', quote_ident(iname), ' should be defined on ' , 
-      quote_ident(sname), '.', quote_ident(tname),  ' covering ' , want);
+    SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname), 
+      ' should be exist on ' , want);
   END IF;
     
   IF NOT _has_table(sname, tname) THEN
@@ -79,8 +79,8 @@ CREATE FUNCTION is_indexed(sname VARCHAR(64), tname VARCHAR(64), want TEXT, desc
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('An index should be defined for ' , want, 
-      ' on ', quote_ident(sname), '.', quote_ident(tname));
+    SET description = CONCAT('Index for ', quote_ident(sname), '.', quote_ident(tname),
+      ' should exist on ' , want); 
   END IF;
     
   IF NOT _has_table( sname, tname ) THEN
@@ -125,8 +125,8 @@ CREATE FUNCTION col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT, d
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('Index on ' , want, ' for ', 
-      quote_ident(sname), '.', quote_ident(tname), ' should be unique');
+    SET description = CONCAT('Unique Index for ', quote_ident(sname), '.', quote_ident(tname), 
+      ' should exist on ', want);
   END IF;
     
   IF NOT _has_table(sname, tname) THEN
@@ -176,8 +176,8 @@ CREATE FUNCTION col_is_pk( sname VARCHAR(64), tname VARCHAR(64), want TEXT, desc
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('Index on ' , want, ' for ', 
-      quote_ident(sname), '.', quote_ident(tname), ' should be a Primary Key');
+    SET description = CONCAT('Primary Key for ', quote_ident(sname), '.', quote_ident(tname), 
+      ' should exist on ', want);
   END IF;
     
   IF NOT _has_table( sname, tname ) THEN
@@ -195,6 +195,7 @@ END //
 
 
 -- Check a unique index exists on a table - it will if there's a PK
+-- perhaps relocate to mysql-table
 DROP FUNCTION IF EXISTS _has_unique //
 CREATE FUNCTION _has_unique(sname VARCHAR(64), tname VARCHAR(64)) 
 RETURNS BOOLEAN
@@ -216,8 +217,8 @@ CREATE FUNCTION has_unique(sname VARCHAR(64), tname VARCHAR(64), description TEX
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('A unique index should be defined on table ', 
-      quote_ident(sname), '.', quote_ident(tname));
+    SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' should have a Unique Index');
   END IF;
     
   IF NOT _has_table(sname, tname) THEN
@@ -256,8 +257,8 @@ CREATE FUNCTION has_index(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('An index named ', quote_ident(iname), ' should be defined for ' , 
-      quote_ident(sname), '.', quote_ident(tname));
+    SET description = CONCAT('Index ', quote_ident(sname), '.', quote_ident(iname), 
+      ' should exist');
   END IF;
     
   IF NOT _has_table(sname, tname) THEN
@@ -275,8 +276,8 @@ CREATE FUNCTION hasnt_index(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(
 RETURNS TEXT
 BEGIN
   IF description = '' THEN 
-    SET description = CONCAT('Named index ', quote_ident(iname), ' should not be defined on ' , 
-      quote_ident(sname), '.', quote_ident(tname));
+    SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname), 
+      ' should not exist');
   END IF;
     
   IF NOT _has_table( sname, tname ) THEN
@@ -315,8 +316,8 @@ CREATE FUNCTION index_is_type(sname VARCHAR(64), tname VARCHAR(64), iname VARCHA
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-     SET description = CONCAT('Index ', quote_ident(iname), ' should have type ', 
-        quote_ident(itype), ' on ' , quote_ident(sname), '.', quote_ident(tname));
+     SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname), 
+      ' should be of Type ', qv(itype));
   END IF;
 
   IF NOT _has_table( sname, tname ) THEN
@@ -327,8 +328,8 @@ BEGIN
 
   IF NOT _has_index( sname, tname, iname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Index ', quote_ident(iname), ' on ', 
-        quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('    Index ', quote_ident(tname), '.', quote_ident(iname), 
+        ' does not exist')));
   END IF;
 
   RETURN eq(_index_type( sname, tname, iname), itype, description);
@@ -358,7 +359,7 @@ BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(iname), ' on ',
       quote_ident(sname), '.', quote_ident(tname),
-				' should be unique');
+				' should be Unique');
 	END IF;
 
   IF NOT _has_table(sname, tname) THEN
@@ -369,7 +370,7 @@ BEGIN
 
   IF NOT _has_index( sname, tname, iname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Index ', quote_ident(iname), ' on ', quote_ident(sname), '.', quote_ident(tname), 
+      diag(CONCAT('    Index ', quote_ident(sname), '.', quote_ident(iname), 
         ' does not exist')));
   END IF;
 
@@ -379,6 +380,7 @@ END //
 
 /*******************************************************************/
 -- Check that the proper indexes are defined
+-- Table constraints are handled elsewhere
 
 DROP FUNCTION IF EXISTS _missing_indexes //
 CREATE FUNCTION _missing_indexes(sname VARCHAR(64), tname VARCHAR(64)) 
@@ -393,10 +395,15 @@ BEGIN
       FROM `idents1`
       WHERE `ident` NOT IN
         (
-          SELECT `index_name`
-          FROM `information_schema`.`statistics`
-          WHERE `table_schema` = sname
-          AND `table_name` = tname
+          SELECT s.`index_name`
+          FROM `information_schema`.`statistics` s
+          LEFT JOIN `information_schema`.`table_constraints` c
+            ON (s.`table_schema` = c.`table_schema`
+                AND s.`table_name` = c.`table_name` 
+                AND s.`index_name` = c.`constraint_name`)
+          WHERE s.`table_schema` = sname
+          AND s.`table_name` = tname
+          AND c.`constraint_name` IS NULL
         )
     ) msng;
 
@@ -408,14 +415,21 @@ CREATE FUNCTION _extra_indexes(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
-    
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) into ret FROM 
+  -- we want only the indexes that are NOT in both tables
+  -- constraints are handled separately
+  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret 
+  FROM 
     (
-      SELECT DISTINCT `index_name` AS `ident` 
-      FROM `information_schema`.`statistics`
-      WHERE `table_schema` = sname
-      AND `table_name` = tname
-	    AND `index_name` NOT IN 
+      SELECT DISTINCT s.`index_name` AS `ident` 
+      FROM `information_schema`.`statistics` s 
+      LEFT JOIN `information_schema`.`table_constraints` c
+      ON (s.`table_schema` = c.`table_schema`
+          AND s.`table_name` = c.`table_name` 
+          AND s.`index_name` = c.`constraint_name`)
+      WHERE c.`constraint_name` IS NULL
+      AND s.`table_schema` = sname
+      AND s.`table_name` = tname
+      AND s.`index_name` NOT IN
         (
           SELECT `ident`
           FROM `idents2`
@@ -436,9 +450,9 @@ BEGIN
   DECLARE extras    TEXT;
 
   IF description = '' THEN 
-    SET description = CONCAT('The correct indexes should be defined for table ',
-      quote_ident(sname), '.', quote_ident(tname));
-  END IF;
+   SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' should have the correct indexes');
+   END IF;
     
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
