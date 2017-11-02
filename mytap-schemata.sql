@@ -1,3 +1,6 @@
+-- SCHEMA 
+-- ======
+
 DELIMITER //
 
 /****************************************************************************/
@@ -67,12 +70,12 @@ CREATE FUNCTION schema_collation_is(sname VARCHAR(64), cname VARCHAR(32), descri
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Schema ', quote_ident(sname), ' should use collation ',  quote_ident(cname));
+    SET description = CONCAT('Schema ', quote_ident(sname), ' should have Collation ',  qv(cname));
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok( ALSE, description), '\n', 
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
+    RETURN CONCAT(ok(FALSE, description), '\n', 
+      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   IF NOT _has_collation(cname) THEN
@@ -131,16 +134,6 @@ DROP FUNCTION IF EXISTS schema_character_set_is //
 CREATE FUNCTION schema_character_set_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
-  IF description = '' THEN
-    SET description = CONCAT('Schema ', quote_ident(sname), 
-      ' should use Character Set ',  quote_ident(cname));
-  END IF;
-
-  IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
-  END IF;
-
   RETURN schema_charset_is(sname, cname, description);
 END //
 
@@ -200,7 +193,7 @@ BEGIN
   DECLARE extras    TEXT;
 
   IF description = '' THEN 
-		SET description = 'The correct schemas should be defined';
+		SET description = 'The correct Schemas should be defined';
 	END IF;
     
   SET want = _fixCSL(want); 
@@ -238,8 +231,6 @@ BEGIN
         
   RETURN _are('schemas', extras, missing, description);
 END //
-
-
 
 
 DELIMITER ;
