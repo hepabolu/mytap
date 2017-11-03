@@ -187,7 +187,7 @@ not ok 18 - sufficient mucus
 ```
 
 ### `eq( anyelement, anyelement, description )` ###
-### `isnt_eq( anyelement, anyelement, description )` ###
+### `not_eq( anyelement, anyelement, description )` ###
 
 ```sql
 SELECT tap.eq(   @this, @that, @description );
