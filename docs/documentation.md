@@ -417,6 +417,34 @@ This function tests if the procedure with the given name exists in the database.
 
 `hasnt_procedure( database, procedure, description )` checks if the procedure with the given name does NOT exist in the database.
 
+### `function_data_type_is( database, function, data_type, description )`
+
+This function tests if the function with the given name returns the given data type.
+
+### `function_is_deterministic( database, function, on_or_off, description )`
+
+This function tests if the function with the given name has is_deterministic set to the value of on_or_off.
+
+### `procedure_is_deterministic( database, procedure, on_or_off, description )`
+
+This function tests if the procedure with the given name has is_deterministic set to the value of on_or_off.
+
+### `function_security_type_is( database, function, security_type, description )`
+
+This function tests if the function with the given name has the given security_type.
+
+### `procedure_security_type_is( database, procedure, security_type, description )`
+
+This function tests if the procedure with the given name has the given security_type.
+
+### `function_sql_data_access_is( database, function, sql_data_access, description )`
+
+This function tests if the function with the given name has the given SQL data access.
+
+### `procedure_sql_data_access_is( database, procedure, sql_data_access, description )`
+
+This function tests if the procedure with the given name has the given SQL data access.
+
 ### `has_view ( database, view, description )`
 
 This function tests if the view with the given name exists in the database.
