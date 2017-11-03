@@ -6,16 +6,16 @@ DELIMITER //
 
 DROP FUNCTION IF EXISTS _has_routine  //
 CREATE FUNCTION _has_routine (dbname TEXT, rname TEXT, rtype varchar(10) )
-RETURNS BOOLEAN 
+RETURNS BOOLEAN
 BEGIN
   DECLARE ret boolean;
-  
+
         SELECT true into ret
           FROM information_schema.routines as db
          WHERE db.routine_schema = dbname
            AND db.routine_name = rname
            AND db.routine_type = rtype;
-    
+
     RETURN coalesce(ret, false);
 END //
 
@@ -26,7 +26,7 @@ CREATE FUNCTION has_function ( dbname TEXT, rname TEXT, description TEXT )
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Function ', 
+        SET description = concat('Function ',
             quote_ident(dbname), '.', quote_ident(rname), ' should exist' );
     END IF;
 
@@ -40,7 +40,7 @@ CREATE FUNCTION hasnt_function ( dbname TEXT, rname TEXT, description TEXT )
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Function ', 
+        SET description = concat('Function ',
             quote_ident(dbname), '.', quote_ident(rname), ' should not exist' );
     END IF;
 
@@ -54,7 +54,7 @@ CREATE FUNCTION has_procedure ( dbname TEXT, rname TEXT, description TEXT )
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Procedure ', 
+        SET description = concat('Procedure ',
             quote_ident(dbname), '.', quote_ident(rname), ' should exist' );
     END IF;
 
@@ -67,7 +67,7 @@ CREATE FUNCTION hasnt_procedure ( dbname TEXT, rname TEXT, description TEXT )
 RETURNS TEXT
 BEGIN
     IF description = '' THEN
-        SET description = concat('Procedure ', 
+        SET description = concat('Procedure ',
             quote_ident(dbname), '.', quote_ident(rname), ' should not exist' );
     END IF;
 
@@ -77,7 +77,7 @@ END //
 
 /****************************************************************************/
 
--- FUNCTION DATA_TYPE i.e. return type 
+-- FUNCTION DATA_TYPE i.e. return type
 
 -- _function_data_type( schema, function, returns, description )
 DROP FUNCTION IF EXISTS _function_data_type  //
@@ -85,7 +85,7 @@ CREATE FUNCTION _function_data_type(sname VARCHAR(64), rname VARCHAR(64))
 RETURNS VARCHAR(64)
 BEGIN
   DECLARE ret VARCHAR(64);
-  
+
   SELECT `data_type` INTO ret
   FROM `information_schema`.`routines`
   WHERE `routine_schema` = sname
@@ -102,7 +102,7 @@ CREATE FUNCTION function_data_type_is(sname VARCHAR(64), rname VARCHAR(64), dtyp
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = concat('Function ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = concat('Function ', quote_ident(sname), '.', quote_ident(rname),
 	' should return ', quote_ident(_datatype(dtype)));
   END IF;
 
@@ -122,16 +122,16 @@ END //
 -- _routine_is_deterministic( schema, function, deterministic, description )
 DROP FUNCTION IF EXISTS _routine_is_deterministic  //
 CREATE FUNCTION _routine_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
-RETURNS VARCHAR(3) 
+RETURNS VARCHAR(3)
 BEGIN
   DECLARE ret VARCHAR(3);
-  
+
   SELECT `is_deterministic` INTO ret
   FROM `information_schema`.`routines`
   WHERE `routine_schema` = sname
   AND `routine_name` = rname
   AND `routine_type` = rtype;
-    
+
   RETURN COALESCE(ret, NULL);
 END //
 
@@ -142,7 +142,7 @@ CREATE FUNCTION function_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), 
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
       ' should have deterministic set to ', quote_ident(val));
   END IF;
 
@@ -160,7 +160,7 @@ CREATE FUNCTION procedure_is_deterministic(sname VARCHAR(64), rname VARCHAR(64),
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname),
       ' should have is_deterministic set to ', quote_ident(val));
   END IF;
 
@@ -181,7 +181,7 @@ END //
 -- _routine_security_type( schema, routine, security_type, description )
 DROP FUNCTION IF EXISTS _routine_security_type  //
 CREATE FUNCTION _routine_security_type(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
-RETURNS VARCHAR(7) 
+RETURNS VARCHAR(7)
 BEGIN
   DECLARE ret VARCHAR(7);
 
@@ -190,7 +190,7 @@ BEGIN
   WHERE `routine_schema` = sname
   AND `routine_name` = rname
   AND `routine_type` = rtype ;
-    
+
   RETURN COALESCE(ret, NULL);
 END //
 
@@ -201,7 +201,7 @@ CREATE FUNCTION function_security_type_is(sname VARCHAR(64), rname VARCHAR(64), 
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
       ' should have SECURITY_TYPE ', '.', quote_ident(stype));
   END IF;
 
@@ -219,12 +219,12 @@ BEGIN
 END //
 
 -- procedure_security_type_is( schema, procedure, security type , description )
-DROP FUNCTION IF EXISTS function_security_type_is //
-CREATE FUNCTION function_security_type_is( sname VARCHAR(64), rname VARCHAR(64), stype VARCHAR(7), description TEXT)
+DROP FUNCTION IF EXISTS procedure_security_type_is //
+CREATE FUNCTION procedure_security_type_is( sname VARCHAR(64), rname VARCHAR(64), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname),
       ' should have Security Type ', '.', quote_ident(stype));
   END IF;
 
@@ -250,7 +250,7 @@ END //
 -- _routine_sql_data_access( schema, routine, type, description )
 DROP FUNCTION IF EXISTS _routine_sql_data_access  //
 CREATE FUNCTION _routine_sql_data_access(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
-RETURNS VARCHAR(64) 
+RETURNS VARCHAR(64)
 BEGIN
   DECLARE ret VARCHAR(64);
 
@@ -259,7 +259,7 @@ BEGIN
   WHERE `routine_schema` = sname
   AND `routine_name` = rname
   AND `routine_type` = rtype ;
-    
+
   RETURN COALESCE(ret, NULL);
 END //
 
@@ -270,7 +270,7 @@ CREATE FUNCTION function_sql_data_access_is(sname VARCHAR(64), rname VARCHAR(64)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
       ' should have SQL_DATA_ACCESS set to ', quote_ident(sda));
   END IF;
 
@@ -294,7 +294,7 @@ CREATE FUNCTION procedure_sql_data_access_is( sname VARCHAR(64), rname VARCHAR(6
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname), 
+    SET description = CONCAT('Procedure ', quote_ident(sname), '.', quote_ident(rname),
       ' should have SQL_DATA_ACCESS set to ', quote_ident(sda));
   END IF;
 
