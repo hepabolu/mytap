@@ -357,9 +357,7 @@ This function tests whether the column exists in the given table of the database
 
 This function tests if the column has the attribute 'allow null'.
 
-### `col_not_null( database, table, column, description )`
-
-This function checks if the column does NOT have the attribute 'allow null'.
+`col_not_null( database, table, column, description )` checks if the column does NOT have the attribute 'allow null'.
 
 ### `col_has_primary_key( database, table, column, description )`
 
