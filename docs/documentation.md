@@ -4,7 +4,7 @@ title: Documentation
 permalink: /documentation/
 ---
 
-# {{ page.title }} 
+# {{ page.title }}
 
 __Version: 0.06__
 
@@ -187,7 +187,7 @@ not ok 18 - sufficient mucus
 ```
 
 ### `eq( anyelement, anyelement, description )` ###
-### `isnt_eq( anyelement, anyelement, description )` ###
+### `not_eq( anyelement, anyelement, description )` ###
 
 ```sql
 SELECT tap.eq(   @this, @that, @description );
@@ -341,7 +341,7 @@ SELECT has_table(DATABASE(), 'sometable', 'I got sometable');
 This function tests whether a table exists in a database. The first
 argument is a database name, the second is a table name, and the third is the
 test description. If you want to test for a table in the current database, use
-the `DATABASE()` function to specify the current databasen name. If you omit
+the `DATABASE()` function to specify the current database name. If you omit
 the test description, it will be set to "Table ':database'.':table' should
 exist".
 
@@ -357,7 +357,7 @@ This function tests whether the column exists in the given table of the database
 
 This function tests if the column has the attribute 'allow null'.
 
-`col_isnt_null( database, table, column, description )` checks if the column does NOT have the attribut 'allow null'.
+`col_not_null( database, table, column, description )` checks if the column does NOT have the attribute 'allow null'.
 
 ### `col_has_primary_key( database, table, column, description )`
 
@@ -397,8 +397,8 @@ This function tests if the column has a default value. Note, this function does 
 
 ### `col_default_is( database, table, column, default, description )`
 
-This function tests if the column has the given default value. 
-__Note__: MySQL 5.5x does not distinguish between 'no default' and 
+This function tests if the column has the given default value.
+__Note__: MySQL 5.5x does not distinguish between 'no default' and
 'null as default' and 'empty string as default'.
 
 ### `col_extra_is( database, table, column, extra, description )`
@@ -416,6 +416,34 @@ This function tests if the function with the given name exists in the database.
 This function tests if the procedure with the given name exists in the database.
 
 `hasnt_procedure( database, procedure, description )` checks if the procedure with the given name does NOT exist in the database.
+
+### `function_data_type_is( database, function, data_type, description )`
+
+This function tests if the function with the given name returns the given data type.
+
+### `function_is_deterministic( database, function, on_or_off, description )`
+
+This function tests if the function with the given name has is_deterministic set to the value of on_or_off.
+
+### `procedure_is_deterministic( database, procedure, on_or_off, description )`
+
+This function tests if the procedure with the given name has is_deterministic set to the value of on_or_off.
+
+### `function_security_type_is( database, function, security_type, description )`
+
+This function tests if the function with the given name has the given security_type.
+
+### `procedure_security_type_is( database, procedure, security_type, description )`
+
+This function tests if the procedure with the given name has the given security_type.
+
+### `function_sql_data_access_is( database, function, sql_data_access, description )`
+
+This function tests if the function with the given name has the given SQL data access.
+
+### `procedure_sql_data_access_is( database, procedure, sql_data_access, description )`
+
+This function tests if the procedure with the given name has the given SQL data access.
 
 ### `has_view ( database, view, description )`
 
@@ -473,7 +501,7 @@ Which would produce:
 ```
 # These tests expect CHARACTER_SET_DATABASE to be en_US.UTF-8,
 # but yours is set to latin1.
-# As a result, some tests may fail. YMMV. 
+# As a result, some tests may fail. YMMV.
 ```
 
 ## Conditional Tests
@@ -846,5 +874,3 @@ But either way, *do* test your diagnostics!
 The source code for MyTAP is available on
 [GitHub](http://github.com/hepabolu/mytap/). Please feel free to fork and
 contribute!
-
-

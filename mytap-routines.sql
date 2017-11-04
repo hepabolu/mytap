@@ -76,7 +76,7 @@ END //
 
 /****************************************************************************/
 
--- FUNCTION DATA_TYPE i.e. return type 
+-- FUNCTION DATA_TYPE i.e. return type
 
 -- _function_data_type(schema, function, returns, description)
 DROP FUNCTION IF EXISTS _function_data_type  //
@@ -84,7 +84,7 @@ CREATE FUNCTION _function_data_type(sname VARCHAR(64), rname VARCHAR(64))
 RETURNS VARCHAR(64)
 BEGIN
   DECLARE ret VARCHAR(64);
-  
+
   SELECT `data_type` INTO ret
   FROM `information_schema`.`routines`
   WHERE `routine_schema` = sname
@@ -204,12 +204,12 @@ RETURNS TEXT
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
-      ' should have SECURITY_TYPE ' , quote_ident(stype));
+      ' should have Security Type ' , quote_ident(stype));
   END IF;
 
   IF stype NOT IN('INVOKER','DEFINER') THEN
     RETURN CONCAT(ok(FALSE, description),'\n',
-      diag('    Security type must be { INVOKER | DEFINER }'));
+      diag('    Security Type must be { INVOKER | DEFINER }'));
   END IF;
 
   IF NOT _has_routine(sname, rname, 'FUNCTION') THEN
