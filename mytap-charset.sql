@@ -7,7 +7,7 @@ DELIMITER //
 -- internal function to check
 -- _has_charset( charset )
 DROP FUNCTION IF EXISTS _has_charset //
-CREATE FUNCTION _has_charset(cname TEXT)
+CREATE FUNCTION _has_charset(cname VARCHAR(32))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
@@ -22,7 +22,7 @@ END //
 
 -- has_charset( charset, description )
 DROP FUNCTION IF EXISTS has_charset //
-CREATE FUNCTION has_charset (cname TEXT, description TEXT)
+CREATE FUNCTION has_charset (cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -35,7 +35,7 @@ END //
 
 -- hasnt_charset( charset_name, description )
 DROP FUNCTION IF EXISTS hasnt_charset //
-CREATE FUNCTION hasnt_charset (cname TEXT, description TEXT)
+CREATE FUNCTION hasnt_charset (cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -49,7 +49,7 @@ END //
 -- Alias for above
 -- has_character_set( charset, description )
 DROP FUNCTION IF EXISTS has_character_set //
-CREATE FUNCTION has_character_set (cname TEXT, description TEXT)
+CREATE FUNCTION has_character_set (cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   RETURN has_charset (cname, description);
@@ -58,7 +58,7 @@ END //
 
 -- hasnt_character_set( charset_name, description )
 DROP FUNCTION IF EXISTS hasnt_character_set //
-CREATE FUNCTION hasnt_character_set (cname TEXT, description TEXT)
+CREATE FUNCTION hasnt_character_set (cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   RETURN hasnt_charset(cname, description);

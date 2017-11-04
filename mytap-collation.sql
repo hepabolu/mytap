@@ -8,7 +8,7 @@ DELIMITER //
 
 -- _has_collation(collation)
 DROP FUNCTION IF EXISTS _has_collation //
-CREATE FUNCTION _has_collation(cname TEXT)
+CREATE FUNCTION _has_collation(cname VARCHAR(32))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
@@ -24,7 +24,7 @@ END //
 
 -- has_collation(collation, description)
 DROP FUNCTION IF EXISTS has_collation //
-CREATE FUNCTION has_collation(cname TEXT, description TEXT)
+CREATE FUNCTION has_collation(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -37,7 +37,7 @@ END //
 
 -- hasnt_collation( collation_name, table, description )
 DROP FUNCTION IF EXISTS hasnt_collation //
-CREATE FUNCTION hasnt_collation(cname TEXT, description TEXT)
+CREATE FUNCTION hasnt_collation(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
