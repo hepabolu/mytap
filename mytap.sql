@@ -509,7 +509,14 @@ END //
 DROP FUNCTION IF EXISTS quote_ident //
 CREATE FUNCTION quote_ident(ident TEXT) RETURNS TEXT
 BEGIN
-
+    IF ISNULL(ident) THEN  
+      RETURN 'NULL';
+    END IF;
+    
+    IF ident = '' THEN
+      RETURN '\'\'';
+    END IF;
+    
     IF LOCATE('ANSI_QUOTES', @@SQL_MODE) > 0 THEN
         IF is_reserved(ident) OR locate('"', ident) > 0 THEN
             RETURN concat('"', replace(ident, '"', '""'), '"');
@@ -522,6 +529,8 @@ BEGIN
 
     RETURN ident;
 END //
+
+
 
 -- Just do it
 -- I wish people wouldn't choose identifiers that need quoting,
@@ -579,6 +588,20 @@ BEGIN
   RETURN ident;
 END //
 
+DROP FUNCTION IF EXISTS qv //
+CREATE FUNCTION qv(val TEXT) RETURNS TEXT
+BEGIN
+    IF ISNULL(val) THEN  
+      RETURN 'NULL';
+    END IF;
+
+    -- NB this will catch number only hex eg 000000 or 009600
+    IF val REGEXP '^[[:digit:]]+$' THEN 
+      RETURN val;
+    END IF;
+     
+    RETURN CONCAT('\'', REPLACE(val, '''', '\\\''), '\'');
+END //
 
 -- check_test( test_output, pass, name, description, diag, match_diag )
 DROP FUNCTION IF EXISTS check_test //
@@ -789,14 +812,18 @@ END //
 
 DELIMITER ;
 
+source ./mytap-schemata.sql;
 source ./mytap-engine.sql;
 source ./mytap-collation.sql;
 source ./mytap-charset.sql;
 source ./mytap-user.sql;
+source ./mytap-event.sql;
 source ./mytap-table.sql;
 source ./mytap-view.sql;
 source ./mytap-column.sql;
+source ./mytap-trigger.sql;
 source ./mytap-routines.sql;
+source ./mytap-constraint.sql;
 source ./mytap-index.sql;
 
 SET GLOBAL log_bin_trust_function_creators = 0;

@@ -1,17 +1,17 @@
+-- USER
+-- ====
+
 DELIMITER //
 
 /****************************************************************************/
--- USER DEFINITION
 
--- _has_user( host, user )
 DROP FUNCTION IF EXISTS _has_user //
 CREATE FUNCTION _has_user(hname CHAR(60), uname CHAR(32))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
 
-  SELECT 1
-  INTO ret
+  SELECT 1 INTO ret
   FROM `mysql`.`user`
   WHERE `host` = hname
   AND `user` = uname;
@@ -26,20 +26,20 @@ CREATE FUNCTION has_user (hname CHAR(60), uname CHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('User \'', uname, '\'@\'', quote_ident(hname), '\' should exist' );
+    SET description = CONCAT('User \'', uname, '\'@\'', quote_ident(hname), '\' should exist');
   END IF;
 
   RETURN ok(_has_user (hname, uname), description);
 END //
 
 
--- hasnt_user( host, user, description )
+-- hasnt_user(host, user, description)
 DROP FUNCTION IF EXISTS hasnt_user //
 CREATE FUNCTION hasnt_user(hname CHAR(60), uname CHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('User \'', uname, '\'@\'', hname, ' shouldnt exist' );
+    SET description = CONCAT('User \'', uname, '\'@\'', hname, ' shouldnt exist');
   END IF;
 
   RETURN ok(NOT _has_user(hname, uname), description);
@@ -56,14 +56,14 @@ CREATE FUNCTION _user_ok(hname CHAR(60), uname CHAR(32))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
-  
+
   SELECT 1 INTO ret
   FROM `mysql`.`user`
   WHERE `host` = hname
   AND `user` = uname
-  AND UPPER(password_expired) <> 'Y'
-  AND UPPER(account_locked) <> 'Y';
-  
+  AND `password_expired` <> 'Y'
+  AND `account_locked` <> 'Y';
+
   RETURN COALESCE(ret, 0);
 END //
 
@@ -80,7 +80,7 @@ BEGIN
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-			diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
   END IF;
 
   RETURN ok(_user_ok(hname, uname), description);
@@ -99,7 +99,7 @@ BEGIN
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-			diag(CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag(CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
   END IF;
 
   RETURN ok(NOT _user_ok( hname, uname ), description);
@@ -122,7 +122,7 @@ BEGIN
   WHERE `Host` = hname
   AND `User` = uname
   AND `password_lifetime` IS NOT NULL;
-  
+
   RETURN COALESCE(ret, 0);
 END //
 
@@ -133,12 +133,12 @@ CREATE FUNCTION user_has_lifetime(hname CHAR(60), uname CHAR(32), description TE
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Password for User \'', uname, '\'@\'', hname, ' should expire' );
+    SET description = CONCAT('User \'', uname, '\'@\'', hname, ' Password should expire');
   END IF;
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-			diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
   END IF;
 
   RETURN ok(_user_has_lifetime(hname, uname), description);
@@ -151,12 +151,12 @@ CREATE FUNCTION user_hasnt_lifetime(hname CHAR(60), uname CHAR(32), description 
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Password for User \'', uname, '\'@\'', hname, '\' should not expire' );
+    SET description = CONCAT('User \'', uname, '\'@\'', hname, '\' Password should not expire');
   END IF;
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-			diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag( CONCAT('   User \'', uname, '\'@\'', hname, ' does not exist')));
   END IF;
 
   RETURN ok(NOT _user_has_lifetime(hname, uname), description);
