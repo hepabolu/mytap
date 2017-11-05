@@ -5,7 +5,7 @@ DELIMITER //
 -- internal function to check
 
 DROP FUNCTION IF EXISTS _has_routine //
-CREATE FUNCTION _has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(10))
+CREATE FUNCTION _has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS BOOLEAN 
 BEGIN
   DECLARE ret BOOLEAN;
