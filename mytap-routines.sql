@@ -4,19 +4,19 @@ DELIMITER //
 
 -- internal function to check
 
-DROP FUNCTION IF EXISTS _has_routine  //
+DROP FUNCTION IF EXISTS _has_routine //
 CREATE FUNCTION _has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(10))
 RETURNS BOOLEAN 
 BEGIN
   DECLARE ret BOOLEAN;
-
-  SELECT '1' INTO ret
+  
+  SELECT 1 INTO ret
   FROM `information_schema`.`routines`
   WHERE `routine_schema` = sname
   AND `routine_name` = rname
   AND `routine_type` = rtype;
 
-  RETURN COALESCE(ret, 0);
+  RETURN COALESCE(ret,0);
 END //
 
 
@@ -43,13 +43,14 @@ BEGIN
     SET description = concat('Function ',
       quote_ident(sname), '.', quote_ident(rname), ' should not exist');
   END IF;
+
   RETURN ok(NOT _has_routine(sname, rname, 'FUNCTION'), description);
 END //
 
 
 -- has_procedure(schema, procedure, description)
 DROP FUNCTION IF EXISTS has_procedure //
-CREATE FUNCTION has_procedure(sname VARCHAR(64), rname TEXT, description TEXT)
+CREATE FUNCTION has_procedure(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -62,7 +63,7 @@ END //
 
 -- hasnt_procedure(schema, procedure, description)
 DROP FUNCTION IF EXISTS hasnt_procedure //
-CREATE FUNCTION hasnt_procedure(sname VARCHAR(64), rname TEXT, description TEXT)
+CREATE FUNCTION hasnt_procedure(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
