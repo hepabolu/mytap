@@ -104,10 +104,18 @@ DROP FUNCTION IF EXISTS event_type_is //
 CREATE FUNCTION event_type_is(sname VARCHAR(64), ename VARCHAR(64), etype VARCHAR(9), description TEXT)
 RETURNS TEXT
 BEGIN
+  DECLARE valid ENUM('ONE TIME','RECURRING');
+  
+  DECLARE CONTINUE HANDLER FOR 1265
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag('    Event Type must be { ONE TIME | RECURRING }'));
+  
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Event Type ', qv(etype));
   END IF;
+
+  SET valid = etype;
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
