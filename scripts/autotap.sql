@@ -396,17 +396,25 @@ BEGIN
         WHERE s.`table_schema` = sname
         AND s.`table_name` = tn
         AND c.`constraint_name` IS NULL ) != 0 THEN
-      SELECT '\n-- INDEXES'; 
+      SELECT '\n-- INDEXES';
       CALL table_indexes(sname,tn);
       CALL index_properties(sname,tn);
     END IF;
 
-    IF (SELECT COUNT(*) FROM `information_schema`.`table_constraints` 
+    IF (SELECT COUNT(*) FROM `information_schema`.`table_constraints`
         WHERE `table_schema` = sname AND `table_name` = tn) != 0 THEN
-      SELECT '\n-- CONSTRAINTS'; 
+      SELECT '\n-- CONSTRAINTS';
       CALL table_constraints(sname,tn);
       CALL constraint_properties(sname,tn);
     END IF;
+
+    IF (SELECT COUNT(*) FROM `information_schema`.`partitions`
+        WHERE `table_schema` = sname AND `table_name` = tn AND `partition_name` IS NOT NULL) != 0 THEN
+      SELECT '\n-- PARTITIONS';
+      CALL table_partitions(sname,tn);
+      CALL partition_properties(sname,tn);
+    END IF;
+
 
   END LOOP;
 
@@ -683,6 +691,86 @@ BEGIN
     SELECT CONCAT("SELECT tap.trigger_order_is('", sname, "','",tname,"','", tr,"',", ao ,",'');");
     SELECT CONCAT("SELECT tap.trigger_event_is('", sname, "','",tname,"','", tr,"','", em ,"','');");
     SELECT CONCAT("SELECT tap.trigger_timing_is('", sname, "','",tname,"','", tr,"','", ta ,"','');");
+
+  END LOOP;
+END //
+
+-- TABLE LEVEL CHECKS
+-- triggers, index, column, constraints
+
+DROP PROCEDURE IF EXISTS table_partitions //
+CREATE PROCEDURE table_partitions(sname VARCHAR(64), tname VARCHAR(64))
+BEGIN
+  SET @sname = sname;
+  SET @tname = tname;
+
+  SET @parts_sql =
+    "SELECT GROUP_CONCAT(CONCAT('`',`ident`,'`')) INTO @parts
+    FROM
+      (
+        SELECT COALESCE(`subpartition_name`,`partition_name`) AS `ident`
+        FROM `information_schema`.`partitions`
+        WHERE `table_schema` = ?
+        AND `table_name` = ?
+        AND `partition_name` IS NOT NULL
+        GROUP BY `ident`
+       ) part";
+
+  PREPARE stmt FROM @parts_sql;
+  EXECUTE stmt USING @sname, @tname;
+  DEALLOCATE PREPARE stmt;
+
+  SELECT CONCAT("SELECT tap.partitions_are('", @sname, "','",@tname,"','", @parts,"','');");
+END //
+
+
+DROP PROCEDURE IF EXISTS partition_properties //
+CREATE PROCEDURE partition_properties(sname VARCHAR(64), tname VARCHAR(64))
+BEGIN
+  DECLARE pn VARCHAR(64); -- partition_name
+  DECLARE sn VARCHAR(64); -- subpartition_name
+  DECLARE pm VARCHAR(18); -- partition_method
+  DECLARE sm VARCHAR(12); -- subpartition_method
+  DECLARE pe LONGTEXT;    -- partition_expression
+  DECLARE se LONGTEXT;    -- subpartition_expression
+  DECLARE po BIGINT UNSIGNED; -- partition_ordinal_postion
+  DECLARE so BIGINT UNSIGNED; -- subpartition_ordinal_postion
+  DECLARE done INT DEFAULT FALSE;
+
+  -- Get partitions and sub-partition records
+  DECLARE `table_partitions` CURSOR FOR
+    SELECT `partition_name`, `subpartition_name`,`partition_method`,`subpartition_method`,
+           `partition_expression`,`subpartition_expression`, `partition_ordinal_position`,
+           `subpartition_ordinal_position`
+    FROM `information_schema`.`partitions`
+    WHERE `table_schema` = sname
+    AND `table_name` = tname
+    AND `partition_name` IS NOT NULL;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+  OPEN table_partitions;
+  read_loop: LOOP
+    FETCH `table_partitions` INTO pn, sn, pm, sm, pe, se, po, so;
+    IF done THEN
+      CLOSE table_partitions;
+      LEAVE read_loop;
+    END IF;
+
+    SELECT CONCAT_WS('','\n-- PARTITIONS ', tname,'.', pn, '\n');
+    CASE
+      WHEN po = 1 OR so IS NULL THEN
+      -- we don't want to print this for every subpartition
+        SELECT CONCAT("SELECT tap.has_partition('", sname, "','",tname,"',", qv(pn),",'');");
+        SELECT CONCAT("SELECT tap.partition_method_is('", sname, "','",tname,"',", qv(pn),",", qv(pm) ,",'');");
+        SELECT CONCAT("SELECT tap.partition_expression_is('", sname, "','",tname,"',", qv(pn),",", qv(pe) ,",'');");
+
+      WHEN so >= 1 THEN
+        SELECT CONCAT("SELECT tap.has_subpartition('", sname, "','",tname,"',", qv(sn),",'');");
+        SELECT CONCAT("SELECT tap.subpartition_method_is('", sname, "','",tname,"',", qv(sn),",", qv(sm) ,",'');");
+        SELECT CONCAT("SELECT tap.subpartition_expression_is('", sname, "','",tname,"',", qv(sn),",", qv(se) ,",'');");
+
+    END CASE;
 
   END LOOP;
 
