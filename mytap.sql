@@ -826,5 +826,6 @@ source ./mytap-trigger.sql;
 source ./mytap-routines.sql;
 source ./mytap-constraint.sql;
 source ./mytap-index.sql;
+source ./mytap-partition.sql;
 
 SET GLOBAL log_bin_trust_function_creators = 0;
