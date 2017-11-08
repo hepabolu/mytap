@@ -17,7 +17,8 @@ BEGIN
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part;
+  AND `partition_name` = part
+  LIMIT 1;
 
   RETURN COALESCE(ret, 0);
 END //
@@ -28,7 +29,7 @@ CREATE FUNCTION has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('partition ', quote_ident(tname), '.', quote_ident(part),
+    SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
       ' should exist');
   END IF;
 
@@ -48,7 +49,7 @@ CREATE FUNCTION hasnt_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCH
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('partition ', quote_ident(tname), '.', quote_ident(part),
+    SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
       ' should not exist');
   END IF;
 
@@ -66,7 +67,7 @@ END //
 -- SUBPARTITION
 -- _has_subpartition( schema, table, partition, sub, description )
 DROP FUNCTION IF EXISTS _has_subpartition //
-CREATE FUNCTION _has_subpartition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64))
+CREATE FUNCTION _has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
@@ -75,7 +76,6 @@ BEGIN
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part
   AND `subpartition_name` = subp;
 
   RETURN COALESCE(ret, 0);
@@ -83,41 +83,41 @@ END //
 
 -- has_partition( schema, table, partition, description )
 DROP FUNCTION IF EXISTS has_subpartition //
-CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64), description TEXT )
+CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT )
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Sub Partition ', quote_ident(tname), '.', quote_ident(part),
+    SET description = CONCAT('Subpartition ', quote_ident(tname),
       '.' , quote_ident(subp), ' should exist');
   END IF;
 
-  IF NOT _has_partition(sname, tname, part) THEN
+  IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Partition ', quote_ident(tname), '.', quote_ident(part),
+      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
-  RETURN ok(_has_subpartition(sname, tname, part, subp), description);
+  RETURN ok(_has_subpartition(sname, tname, subp), description);
 END //
 
 
 -- hasnt_subpartition( schema, table, partition, sub, description )
 DROP FUNCTION IF EXISTS hasnt_subpartition //
-CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64), description TEXT )
+CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT )
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Sub Partition ', quote_ident(tname), '.', quote_ident(part),
+    SET description = CONCAT('Subpartition ', quote_ident(tname),
        '.', quote_ident(subp), ' should not exist');
   END IF;
 
-  IF NOT _has_partition(sname, tname, part) THEN
+  IF NOT _has_table(sname, tname, part) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Partition ', quote_ident(tname), '.', quote_ident(part),
+      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
 
-    RETURN ok(NOT _has_subpartition(sname, tname, part, subp), description);
+    RETURN ok(NOT _has_subpartition(sname, tname, subp), description);
 END //
 
 
@@ -134,7 +134,8 @@ BEGIN
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part;
+  AND `partition_name` = part
+  LIMIT 1;
 
   RETURN COALESCE(ret, NULL);
 END //
@@ -159,10 +160,10 @@ END //
 
 
 /****************************************************************************/
--- SUBPARTITION EXPRESSION
+-- PARTITION EXPRESSION
 
 DROP FUNCTION IF EXISTS _subpartition_expression  //
-CREATE FUNCTION _subpartition_expression(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64))
+CREATE FUNCTION _subpartition_expression(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS LONGTEXT
 BEGIN
   DECLARE ret LONGTEXT;
@@ -171,28 +172,27 @@ BEGIN
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part
   AND `subpartition_name` = subp;
 
   RETURN COALESCE(ret, NULL);
 END //
 
 DROP FUNCTION IF EXISTS subpartition_expression_is//
-CREATE FUNCTION subpartition_expression_is(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64), expr LONGTEXT, description TEXT)
+CREATE FUNCTION subpartition_expression_is(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), expr LONGTEXT, description TEXT)
 RETURNS LONGTEXT
 BEGIN
   IF description = '' THEN
-    SET description = concat('Sub Partition ', quote_ident(tname), '.', quote_ident(part),
-      '.', quote_ident(subp), ' should have Sub Partition Expression ', qv(TRIM(expr)));
+    SET description = concat('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
+      ' should have Partition Expression ', qv(TRIM(expr)));
   END IF;
 
-  IF NOT _has_subpartition(sname, tname, part, subp) THEN
+  IF NOT _has_subpartition(sname, tname, subp) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Sub Partition ', quote_ident(tname), '.', quote_ident(part),
-        '.', quote_ident(subp), ' does not exist')));
+      diag (CONCAT('    Subpartition ', quote_ident(tname), '.', quote_ident(subp),
+        ' does not exist')));
   END IF;
 
-  RETURN eq(_subpartition_expression(sname, tname, part, subp), TRIM(expr), description);
+  RETURN eq(_subpartition_expression(sname, tname, subp), TRIM(expr), description);
 END //
 
 
@@ -209,7 +209,8 @@ DECLARE ret VARCHAR(18);
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part;
+  AND `partition_name` = part
+  LIMIT 1;
 
   RETURN COALESCE(ret, NULL);
 END //
@@ -222,10 +223,10 @@ BEGIN
   
   DECLARE EXIT HANDLER FOR 1265
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag('    Partition Method must be { RANGE | LIST | HASH | LINEAR HASH | KEY | LINEAR KEY }'));
+      diag('    Partitioning Method must be { RANGE | LIST | HASH | LINEAR HASH | KEY | LINEAR KEY }'));
 
   IF description = '' THEN
-    SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part), 
+    SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
       ' should have Partition Method ', quote_ident(pmeth));
   END IF;
 
@@ -244,7 +245,7 @@ END //
 -- SUBPARTITION METHOD
 
 DROP FUNCTION IF EXISTS _subpartition_method //
-CREATE FUNCTION _subpartition_method(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), subp VARCHAR(64))
+CREATE FUNCTION _subpartition_method(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS VARCHAR(12)
 BEGIN
 DECLARE ret VARCHAR(12);
@@ -253,36 +254,35 @@ DECLARE ret VARCHAR(12);
   FROM `information_schema`.`partitions`
   WHERE `table_schema` = sname
   AND `table_name` = tname
-  AND `partition_name` = part
   AND `subpartition_name` = subp;
 
   RETURN COALESCE(ret, NULL);
 END //
 
 DROP FUNCTION IF EXISTS subpartition_method_is//
-CREATE FUNCTION subpartition_method_is(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), smeth VARCHAR(18), description TEXT)
+CREATE FUNCTION subpartition_method_is(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), smeth VARCHAR(18), description TEXT)
 RETURNS TEXT
 BEGIN
   DECLARE valid ENUM('HASH', 'LINEAR HASH', 'KEY', 'LINEAR KEY');
   
   DECLARE EXIT HANDLER FOR 1265
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag('    Sub-partition Method must be { HASH | LINEAR HASH | KEY | LINEAR KEY }'));
+      diag('    Subpartition Method must be { HASH | LINEAR HASH | KEY | LINEAR KEY }'));
 
   IF description = '' THEN
-    SET description = CONCAT('Sub Partition ', quote_ident(tname), '.', quote_ident(part), 
-      ' should have Sub Partition Method', quote_ident(smeth));
+    SET description = CONCAT('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
+      ' should have Partitioning Method', quote_ident(smeth));
   END IF;
 
   SET valid = smeth;
 
-  IF NOT _has_subpartition(sname, tname, part, subp) THEN
+  IF NOT _has_subpartition(sname, tname, subp) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Sub Partition ', quote_ident(tname),'.', quote_ident(part), 
-      '.', quote_ident(subp), ' does not exist')));
+      diag (CONCAT('    Subpartition ', quote_ident(tname),'.', quote_ident(subp),
+        ' does not exist')));
   END IF;
 
-  RETURN eq(_subpartition_method(sname, tname, part, subp), smeth, description);
+  RETURN eq(_subpartition_method(sname, tname, subp), smeth, description);
 END //
 
 
@@ -327,7 +327,6 @@ END //
 
 /****************************************************************************/
 -- Check that the proper partitions are defined
--- ?? what about suartitions
 
 DROP FUNCTION IF EXISTS _missing_partitions //
 CREATE FUNCTION _missing_partitions(sname VARCHAR(64), tname VARCHAR(64))
@@ -342,11 +341,12 @@ BEGIN
       FROM `idents1`
       WHERE `ident` NOT IN
         (
-          SELECT `partition_name`
+          SELECT COALESCE(`subpartition_name`, `partition_name`)
           FROM `information_schema`.`partitions`
           WHERE `table_schema` = sname
           AND `table_name` = tname
         )
+       GROUP BY 1
      ) msng;
 
   RETURN COALESCE(ret, '');
@@ -358,18 +358,19 @@ RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
 
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
-  FROM 
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
+  FROM
     (
-      SELECT `partition_name` AS `ident` 
+      SELECT COALESCE(`subpartition_name`,`partition_name`) AS `ident`
       FROM `information_schema`.`partitions`
       WHERE `table_schema` = sname
       AND `table_name` = tname
-      AND `partition_name` NOT IN 
+      AND COALESCE(`subpartition_name`,`partition_name`) NOT IN 
         (
           SELECT `ident`
           FROM `idents2`
-        )
+        ) 
+      GROUP BY 1  
     ) xtra;
 
   RETURN COALESCE(ret, '');
