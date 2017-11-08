@@ -25,7 +25,7 @@ END //
 
 -- has_partition( schema, table, partition, description )
 DROP FUNCTION IF EXISTS has_partition //
-CREATE FUNCTION has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT )
+CREATE FUNCTION has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -45,7 +45,7 @@ END //
 
 -- hasnt_partition( schema, table, partition, description )
 DROP FUNCTION IF EXISTS hasnt_partition //
-CREATE FUNCTION hasnt_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT )
+CREATE FUNCTION hasnt_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -83,7 +83,7 @@ END //
 
 -- has_partition( schema, table, partition, description )
 DROP FUNCTION IF EXISTS has_subpartition //
-CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT )
+CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -103,7 +103,7 @@ END //
 
 -- hasnt_subpartition( schema, table, partition, sub, description )
 DROP FUNCTION IF EXISTS hasnt_subpartition //
-CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT )
+CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN

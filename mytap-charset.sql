@@ -22,11 +22,11 @@ END //
 
 -- has_charset( charset, description )
 DROP FUNCTION IF EXISTS has_charset //
-CREATE FUNCTION has_charset (cname VARCHAR(32), description TEXT)
+CREATE FUNCTION has_charset(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = concat('Character Set ', quote_ident(cname), ' should be available');
+    SET description = CONCAT('Character Set ', quote_ident(cname), ' should be available');
   END IF;
 
   RETURN ok(_has_charset(cname), description);
@@ -35,11 +35,11 @@ END //
 
 -- hasnt_charset( charset_name, description )
 DROP FUNCTION IF EXISTS hasnt_charset //
-CREATE FUNCTION hasnt_charset (cname VARCHAR(32), description TEXT)
+CREATE FUNCTION hasnt_charset(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = concat('Character Set ', quote_ident(cname), ' should not be available' );
+    SET description = CONCAT('Character Set ', quote_ident(cname), ' should not be available' );
   END IF;
 
   RETURN ok(NOT _has_charset(cname), description);
@@ -49,16 +49,16 @@ END //
 -- Alias for above
 -- has_character_set( charset, description )
 DROP FUNCTION IF EXISTS has_character_set //
-CREATE FUNCTION has_character_set (cname VARCHAR(32), description TEXT)
+CREATE FUNCTION has_character_set(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
-  RETURN has_charset (cname, description);
+  RETURN has_charset(cname, description);
 END //
 
 
 -- hasnt_character_set( charset_name, description )
 DROP FUNCTION IF EXISTS hasnt_character_set //
-CREATE FUNCTION hasnt_character_set (cname VARCHAR(32), description TEXT)
+CREATE FUNCTION hasnt_character_set(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   RETURN hasnt_charset(cname, description);

@@ -23,9 +23,9 @@ BEGIN
   RETURN COALESCE(ret, 0);
 END //
 
--- has_trigger( schema, table, trigger, description )
+-- has_trigger( schema, table, trigger, description)
 DROP FUNCTION IF EXISTS has_trigger //
-CREATE FUNCTION has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT )
+CREATE FUNCTION has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -43,9 +43,9 @@ BEGIN
 END //
 
 
--- has_trigger( schema, table, trigger, description )
+-- has_trigger( schema, table, trigger, description)
 DROP FUNCTION IF EXISTS hasnt_trigger //
-CREATE FUNCTION hasnt_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT )
+CREATE FUNCTION hasnt_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -249,7 +249,7 @@ RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
 
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret 
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
   FROM 
     (
       SELECT `trigger_name` AS `ident` 

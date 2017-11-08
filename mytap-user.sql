@@ -22,7 +22,7 @@ END //
 
 -- has_user( host, user, description )
 DROP FUNCTION IF EXISTS has_user //
-CREATE FUNCTION has_user (hname CHAR(60), uname CHAR(32), description TEXT)
+CREATE FUNCTION has_user(hname CHAR(60), uname CHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -89,7 +89,7 @@ END //
 
 -- user_not_ok(host, user, description )
 DROP FUNCTION IF EXISTS user_not_ok //
-CREATE FUNCTION user_not_ok (hname CHAR(60), uname CHAR(32), description TEXT)
+CREATE FUNCTION user_not_ok(hname CHAR(60), uname CHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN

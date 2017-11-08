@@ -22,7 +22,7 @@ END //
 
 -- has_table(schema, table, description)
 DROP FUNCTION IF EXISTS has_table //
-CREATE FUNCTION has_table (sname VARCHAR(64), tname VARCHAR(64), description TEXT)
+CREATE FUNCTION has_table(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -36,7 +36,7 @@ END //
 
 -- hasnt_table(schema, table, description)
 DROP FUNCTION IF EXISTS hasnt_table //
-CREATE FUNCTION hasnt_table (sname VARCHAR(64), tname VARCHAR(64), description TEXT)
+CREATE FUNCTION hasnt_table(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN

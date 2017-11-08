@@ -7,7 +7,7 @@ DELIMITER //
 
 -- has_schema( schema)
 DROP FUNCTION IF EXISTS _has_schema //
-CREATE FUNCTION _has_schema( sname VARCHAR(64))
+CREATE FUNCTION _has_schema(sname VARCHAR(64))
 RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
@@ -22,11 +22,11 @@ END //
 
 -- has_schema( schema, description )
 DROP FUNCTION IF EXISTS has_schema //
-CREATE FUNCTION has_schema( sname VARCHAR(64), description TEXT)
+CREATE FUNCTION has_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Schema ', quote_ident( sname ), ' should exist' );
+    SET description = CONCAT('Schema ', quote_ident(sname), ' should exist');
   END IF;
 
   RETURN ok(_has_schema(sname), description);
@@ -35,14 +35,14 @@ END //
 
 -- hasnt_schema( schema, description )
 DROP FUNCTION IF EXISTS hasnt_schema //
-CREATE FUNCTION hasnt_schema( sname VARCHAR(64), description TEXT)
+CREATE FUNCTION hasnt_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Schema ', quote_ident(sname), ' should not exist' );
+    SET description = CONCAT('Schema ', quote_ident(sname), ' should not exist');
   END IF;
 
-  RETURN ok( NOT _has_schema( sname), description );
+  RETURN ok(NOT _has_schema(sname), description);
 END //
 
 /****************************************************************************/
@@ -74,13 +74,13 @@ BEGIN
   END IF;
 
   IF NOT _has_schema(sname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   IF NOT _has_collation(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Collation ', quote_ident(cname), ' is not available' )));
+      diag (CONCAT('    Collation ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_schema_collation_is(sname), cname , description);
@@ -108,7 +108,7 @@ END //
 
 -- schema_charset_is( schema, charset, description )
 DROP FUNCTION IF EXISTS schema_charset_is //
-CREATE FUNCTION schema_charset_is( sname VARCHAR(64), cname VARCHAR(32), description TEXT)
+CREATE FUNCTION schema_charset_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -118,12 +118,12 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
+      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   IF NOT _has_charset(cname) THEN
-    RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Character Set ', quote_ident(cname), ' is not available' )));
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag (CONCAT('    Character Set ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_schema_charset_is(sname), cname, description);
@@ -162,7 +162,7 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS _extra_schemas //
-CREATE FUNCTION _extra_schemas() 
+CREATE FUNCTION _extra_schemas()
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
@@ -189,7 +189,7 @@ RETURNS TEXT
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
-  DECLARE missing   TEXT; 
+  DECLARE missing   TEXT;
   DECLARE extras    TEXT;
 
   IF description = '' THEN

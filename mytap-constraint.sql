@@ -128,12 +128,149 @@ BEGIN
   END IF;
 
   IF NOT _has_table(sname, tname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
   RETURN ok(NOT _has_constraint(sname, tname, 'FOREIGN KEY'), description);
+END //
+
+-- Check composition of an index is unique
+-- This is an index check rather than a column test since we can test multiple cols
+DROP FUNCTION IF EXISTS _col_is_unique //
+CREATE FUNCTION _col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT)
+RETURNS BOOLEAN
+BEGIN
+  DECLARE ret BOOLEAN;
+
+  SELECT COUNT(`indexdef`) INTO ret
+  FROM
+    (
+      SELECT `table_name`, `index_name`,
+      GROUP_CONCAT(CONCAT('`', `column_name`, '`') ORDER BY `seq_in_index`) AS `indexdef`
+      FROM `information_schema`.`statistics`
+      WHERE `table_schema` = sname
+      AND `table_name` = tname
+      AND `non_unique` = 0
+      GROUP BY `table_name`,`index_name`
+     ) indices 
+  WHERE `indexdef` = want;
+
+  RETURN IF(ret > 0 , 1, 0);
+END //
+
+-- Does the column or column list have an index that is unique (ie UNIQUE or PRIMARY),
+-- save for later an intelligent way of testing the existence of the cols in want
+-- Oh for a postgres array
+DROP FUNCTION IF EXISTS col_is_unique //
+CREATE FUNCTION col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
+RETURNS TEXT
+BEGIN
+  IF description = '' THEN
+    SET description = CONCAT('Unique Index for ', quote_ident(sname), '.', quote_ident(tname),
+      ' should exist on ', want);
+  END IF;
+
+  IF NOT _has_table(sname, tname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+        ' does not exist')));
+  END IF;
+
+  -- quote a single identifier if the user forgot
+  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
+    SET want = CONCAT('`', want, '`');
+  END IF;
+  
+  RETURN ok(_col_is_unique( sname, tname, want), description);
+END //
+
+
+-- Check cols make a PRIMARY KEY
+-- This is an index check rather than a column test since we can test multiple cols
+-- pgTAP functions index_is_clustered() and index_is_primary() on named index are not
+-- required because the PK is always clustered and it's always called 'PRIMARY'
+DROP FUNCTION IF EXISTS _col_is_pk //
+CREATE FUNCTION _col_is_pk(sname VARCHAR(64), tname VARCHAR(64), want TEXT)
+RETURNS BOOLEAN
+BEGIN
+  DECLARE ret BOOLEAN;
+
+  SELECT COUNT(`indexdef`) INTO ret
+  FROM 
+    (
+      SELECT `table_name`, `index_name`,
+      GROUP_CONCAT(CONCAT('`', `column_name`, '`') ORDER BY `seq_in_index`) AS `indexdef`
+      FROM `information_schema`.`statistics`
+      WHERE `table_schema` = sname
+      AND `table_name` = tname
+      GROUP BY `table_name`,`index_name`
+    ) indices
+  WHERE `index_name` = 'PRIMARY'
+  AND `indexdef` = want;
+
+  RETURN IF(ret <> 0 , TRUE, FALSE);
+END //
+
+-- Does the column or column list form a PK
+DROP FUNCTION IF EXISTS col_is_pk //
+CREATE FUNCTION col_is_pk(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
+RETURNS TEXT
+BEGIN
+  IF description = '' THEN
+    SET description = CONCAT('Primary Key for ', quote_ident(sname), '.', quote_ident(tname),
+      ' should exist on ', want);
+  END IF;
+
+  IF NOT _has_table( sname, tname ) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' does not exist')));
+  END IF;
+
+  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
+    SET want = CONCAT('`', want, '`'); --  quote_ident(want);
+  END IF;
+
+  RETURN ok(_col_is_pk( sname, tname, want), description);
+END //
+
+
+-- Check a unique index exists on a table - it will if there's a PK
+-- perhaps relocate to mysql-table
+DROP FUNCTION IF EXISTS _has_unique //
+CREATE FUNCTION _has_unique(sname VARCHAR(64), tname VARCHAR(64))
+RETURNS BOOLEAN
+BEGIN
+  DECLARE ret BOOLEAN;
+
+  SELECT COUNT(`table_name`) INTO ret
+  FROM `information_schema`.`statistics`
+  WHERE `table_schema` = sname
+  AND `table_name` = tname
+  AND `non_unique` = 0;
+
+  RETURN IF(ret <> 0 , TRUE, FALSE);
+END //
+
+-- Does a table have an index that is unique (ie UNIQUE or PRIMARY),
+DROP FUNCTION IF EXISTS has_unique //
+CREATE FUNCTION has_unique(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
+RETURNS TEXT
+BEGIN
+  IF description = '' THEN 
+    SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' should have a Unique Index');
+  END IF;
+
+  IF NOT _has_table(sname, tname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+        ' does not exist')));
+  END IF;
+
+  RETURN ok(_has_unique(sname, tname), description);
 END //
 
 
@@ -260,7 +397,7 @@ BEGIN
   FROM 
     (
       SELECT kc.`constraint_schema` AS `csch`,
-             kc.`table_name` AS `ctab`, 
+             kc.`table_name` AS `ctab`,
              GROUP_CONCAT(kc.`column_name` ORDER BY kc.`ordinal_position`) AS `ccol`,
              kc.`referenced_table_schema` AS `usch`,
              kc.`referenced_table_name` AS `utab`,
@@ -280,8 +417,8 @@ END //
 -- cname and uname will likly be single columns but they may not be, the index
 -- references will therefore have to be resolved before they can be compared
 DROP FUNCTION IF EXISTS fk_ok //
-CREATE FUNCTION fk_ok(csch VARCHAR(64), ctab VARCHAR(64), ccol TEXT, 
-                      usch VARCHAR(64), utab VARCHAR(64), ucol TEXT, description TEXT) 
+CREATE FUNCTION fk_ok(csch VARCHAR(64), ctab VARCHAR(64), ccol TEXT,
+                      usch VARCHAR(64), utab VARCHAR(64), ucol TEXT, description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -290,7 +427,7 @@ BEGIN
   END IF;
 
   IF NOT _has_table(csch, ctab) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n', 
+    RETURN CONCAT(ok(FALSE, description), '\n',
       diag( CONCAT('    Table ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
@@ -308,7 +445,7 @@ END //
 -- Check that the proper constraints are defined
 
 DROP FUNCTION IF EXISTS _missing_constraints //
-CREATE FUNCTION _missing_constraints(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _missing_constraints(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN 
   DECLARE ret TEXT;
@@ -331,7 +468,7 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS _extra_constraints //
-CREATE FUNCTION _extra_constraints(sname VARCHAR(64), tname VARCHAR(64)) 
+CREATE FUNCTION _extra_constraints(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
 BEGIN
   DECLARE ret TEXT;
@@ -342,7 +479,7 @@ BEGIN
       FROM `information_schema`.`table_constraints`
       WHERE `table_schema` = sname
       AND `table_name` = tname
-      AND `constraint_name` NOT IN 
+      AND `constraint_name` NOT IN
         (
           SELECT `ident`
           FROM `idents2`

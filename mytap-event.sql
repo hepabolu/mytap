@@ -65,7 +65,7 @@ END //
 
 
 DROP FUNCTION IF EXISTS hasnt_event //
-CREATE FUNCTION hasnt_event(sname VARCHAR(64), ename VARCHAR(64), description TEXT )
+CREATE FUNCTION hasnt_event(sname VARCHAR(64), ename VARCHAR(64), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
@@ -288,7 +288,7 @@ END //
 
 
 DROP FUNCTION IF EXISTS events_are //
-CREATE FUNCTION events_are(sname VARCHAR(64), want TEXT, description TEXT) 
+CREATE FUNCTION events_are(sname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ','; 

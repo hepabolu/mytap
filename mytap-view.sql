@@ -7,7 +7,7 @@ DELIMITER //
 
 DROP FUNCTION IF EXISTS _has_view //
 CREATE FUNCTION _has_view (sname VARCHAR(64), vname VARCHAR(64))
-RETURNS BOOLEAN 
+RETURNS BOOLEAN
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -126,7 +126,7 @@ END //
 
 -- view_security_type_is ( schema, view )
 DROP FUNCTION IF EXISTS view_security_type_is //
-CREATE FUNCTION view_security_type_is(sname VARCHAR(64), vname VARCHAR(64), stype VARCHAR(7), description TEXT) 
+CREATE FUNCTION view_security_type_is(sname VARCHAR(64), vname VARCHAR(64), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
 BEGIN
   IF description = '' THEN
