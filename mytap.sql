@@ -810,6 +810,14 @@ BEGIN
   RETURN word;
 END //
 
+-- upper case first character of word
+DROP FUNCTION IF EXISTS ucf //
+CREATE FUNCTION ucf(val TEXT)
+RETURNS TEXT
+BEGIN
+  RETURN CONCAT(UPPER(LEFT(val, 1)), LOWER(SUBSTRING(val, 2)));
+END //
+
 
 DELIMITER ;
 
