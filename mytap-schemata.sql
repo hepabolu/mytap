@@ -9,6 +9,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_schema //
 CREATE FUNCTION _has_schema(sname VARCHAR(64))
 RETURNS BOOLEAN
+COMMENT 'Boolean test for existence of named schema.'
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -24,6 +25,7 @@ END //
 DROP FUNCTION IF EXISTS has_schema //
 CREATE FUNCTION has_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
+COMMENT 'Confirm named schema exists.'
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname), ' should exist');
@@ -37,6 +39,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_schema //
 CREATE FUNCTION hasnt_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
+COMMENT 'Confirm named schema does not exist.'
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname), ' should not exist');
@@ -53,6 +56,7 @@ END //
 DROP FUNCTION IF EXISTS _schema_collation_is //
 CREATE FUNCTION _schema_collation_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
+COMMENT 'Internal function to get the default collation for a named schema.'
 BEGIN
   DECLARE ret VARCHAR(32);
 
@@ -68,6 +72,7 @@ END //
 DROP FUNCTION IF EXISTS schema_collation_is //
 CREATE FUNCTION schema_collation_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+COMMENT 'Confirm the default collation for a schema matches value provided.'
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname), ' should have Collation ',  qv(cname));
@@ -95,6 +100,7 @@ END //
 DROP FUNCTION IF EXISTS _schema_charset_is //
 CREATE FUNCTION _schema_charset_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
+COMMENT 'Internal fuction to return the default collation for a named schema.'
 BEGIN
   DECLARE ret VARCHAR(32);
 
@@ -110,6 +116,7 @@ END //
 DROP FUNCTION IF EXISTS schema_charset_is //
 CREATE FUNCTION schema_charset_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+COMMENT 'Confirm the default character set for a schema matches value provided.'
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname),
@@ -133,6 +140,7 @@ END //
 DROP FUNCTION IF EXISTS schema_character_set_is //
 CREATE FUNCTION schema_character_set_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+COMMENT 'Alias for schema_charset_is(sname, cname, description).'
 BEGIN
   RETURN schema_charset_is(sname, cname, description);
 END //
@@ -143,6 +151,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_schemas //
 CREATE FUNCTION _missing_schemas() 
 RETURNS TEXT
+COMMENT 'Internal function to identify schemas listed in input to schemas_are(want, description) which are not defined'
 BEGIN
   DECLARE ret TEXT;
 
@@ -164,6 +173,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_schemas //
 CREATE FUNCTION _extra_schemas()
 RETURNS TEXT
+COMMENT 'Internal function to identify defined schemas that are not list in input to schemas_are(want, description)'
 BEGIN
   DECLARE ret TEXT;
 
@@ -186,6 +196,7 @@ END //
 DROP FUNCTION IF EXISTS schemas_are //
 CREATE FUNCTION schemas_are(want TEXT, description TEXT)
 RETURNS TEXT
+COMMENT 'Test for the existence of named schemas. Identifies both missing as well as extra schemas.'
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
