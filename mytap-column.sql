@@ -7,6 +7,8 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_column  //
 CREATE FUNCTION _has_column(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -24,6 +26,8 @@ END //
 DROP FUNCTION IF EXISTS has_column //
 CREATE FUNCTION has_column(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -38,6 +42,8 @@ END //
 DROP FUNCTION IF EXISTS hasnt_column //
 CREATE FUNCTION hasnt_column(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = concat('Column ',
@@ -55,6 +61,8 @@ END //
 DROP FUNCTION IF EXISTS _col_nullable //
 CREATE FUNCTION _col_nullable(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(3)
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret VARCHAR(3);
 
@@ -72,6 +80,8 @@ END //
 DROP FUNCTION IF EXISTS col_is_null //
 CREATE FUNCTION col_is_null(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -92,6 +102,8 @@ END //
 DROP FUNCTION IF EXISTS col_not_null //
 CREATE FUNCTION col_not_null(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -115,6 +127,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_primary_key //
 CREATE FUNCTION _col_has_primary_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -132,6 +146,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_primary_key //
 CREATE FUNCTION col_has_primary_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -151,6 +167,8 @@ END //
 DROP FUNCTION IF EXISTS col_hasnt_primary_key //
 CREATE FUNCTION col_hasnt_primary_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -173,6 +191,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_index_key //
 CREATE FUNCTION _col_has_index_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -191,6 +211,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_index_key //
 CREATE FUNCTION col_has_index_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = concat('Column ',
@@ -210,6 +232,8 @@ END //
 DROP FUNCTION IF EXISTS col_hasnt_index_key //
 CREATE FUNCTION col_hasnt_index_key(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = concat('Column ',
@@ -232,6 +256,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_named_index //
 CREATE FUNCTION _col_has_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -249,6 +275,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_named_index //
 CREATE FUNCTION col_has_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+NO SQL
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
 
@@ -270,6 +298,8 @@ END //
 DROP FUNCTION IF EXISTS col_hasnt_named_index //
 CREATE FUNCTION col_hasnt_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
   IF description = '' THEN
@@ -293,6 +323,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_pos_in_named_index //
 CREATE FUNCTION _col_has_pos_in_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname VARCHAR(64), pos INT)
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -312,6 +344,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_pos_in_named_index //
 CREATE FUNCTION col_has_pos_in_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname VARCHAR(64), pos INT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
 
@@ -341,6 +375,8 @@ END //
 DROP FUNCTION IF EXISTS col_hasnt_pos_in_named_index //
 CREATE FUNCTION col_hasnt_pos_in_named_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), kname VARCHAR(64), pos INT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   SET kname := COALESCE(kname, cname); -- use the column name as index name if nothing is given
 
@@ -371,6 +407,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_type //
 CREATE FUNCTION _col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -388,6 +426,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_type //
 CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+NO SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -410,6 +450,8 @@ END //
 DROP FUNCTION IF EXISTS _col_type //
 CREATE FUNCTION _col_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS LONGTEXT
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret LONGTEXT;
 
@@ -427,6 +469,8 @@ END //
 DROP FUNCTION IF EXISTS col_type_is //
 CREATE FUNCTION col_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -453,6 +497,8 @@ END //
 DROP FUNCTION IF EXISTS _col_has_default //
 CREATE FUNCTION _col_has_default(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -469,6 +515,8 @@ END //
 DROP FUNCTION IF EXISTS col_has_default //
 CREATE FUNCTION col_has_default(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ',
@@ -487,6 +535,8 @@ END //
 DROP FUNCTION IF EXISTS col_hasnt_default //
 CREATE FUNCTION col_hasnt_default(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
    SET description = CONCAT('Column ',
@@ -508,6 +558,8 @@ END //
 DROP FUNCTION IF EXISTS _col_default//
 CREATE FUNCTION _col_default(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS LONGTEXT
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret LONGTEXT;
 
@@ -523,6 +575,8 @@ END //
 DROP FUNCTION IF EXISTS col_default_is //
 CREATE FUNCTION col_default_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cdefault LONGTEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -546,6 +600,8 @@ END //
 DROP FUNCTION IF EXISTS _col_extra_is //
 CREATE FUNCTION _col_extra_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(30)
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret VARCHAR(30);
 
@@ -561,6 +617,8 @@ END //
 DROP FUNCTION IF EXISTS col_extra_is //
 CREATE FUNCTION col_extra_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cextra VARCHAR(30), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -586,8 +644,10 @@ END //
 -- _is style test should return expected and found values on failure
 
 DROP FUNCTION IF EXISTS _col_charset //
-CREATE FUNCTION _col_charset(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(32))
+CREATE FUNCTION _col_charset(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret VARCHAR(32);
 
@@ -604,6 +664,8 @@ END //
 DROP FUNCTION IF EXISTS col_charset_is //
 CREATE FUNCTION col_charset_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cset VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -623,6 +685,8 @@ END //
 DROP FUNCTION IF EXISTS col_character_set_is //
 CREATE FUNCTION col_character_set_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), cset VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   RETURN col_charset_is(sname, tname, cname, cset, description);
 END //
@@ -633,8 +697,10 @@ END //
 -- COLUMN COLLATION
 
 DROP FUNCTION IF EXISTS _col_collation //
-CREATE FUNCTION _col_collation(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(32))
+CREATE FUNCTION _col_collation(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret VARCHAR(32);
 
@@ -651,6 +717,8 @@ END //
 DROP FUNCTION IF EXISTS col_collation_is //
 CREATE FUNCTION col_collation_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ccoll VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.',
@@ -673,6 +741,8 @@ END //
 DROP FUNCTION IF EXISTS _missing_columns //
 CREATE FUNCTION _missing_columns(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret TEXT;
 
@@ -696,6 +766,8 @@ END //
 DROP FUNCTION IF EXISTS _extra_columns //
 CREATE FUNCTION _extra_columns(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
 BEGIN
   DECLARE ret TEXT;
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
@@ -718,6 +790,8 @@ END //
 DROP FUNCTION IF EXISTS columns_are //
 CREATE FUNCTION columns_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
