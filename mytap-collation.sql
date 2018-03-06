@@ -35,7 +35,7 @@ BEGIN
 END //
 
 
--- hasnt_collation( collation_name, table, description )
+-- hasnt_collation( collation_name, description )
 DROP FUNCTION IF EXISTS hasnt_collation //
 CREATE FUNCTION hasnt_collation(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
