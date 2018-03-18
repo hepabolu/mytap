@@ -527,7 +527,7 @@ SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
 ```
 
 With `todo()`, `@how_many` specifies how many tests are expected to fail.
-pgTAP will run the tests normally, but print out special flags indicating they
+myTAP will run the tests normally, but print out special flags indicating they
 are "todo" tests. The test harness will interpret these failures as ok. Should
 any todo test pass, the harness will report it as an unexpected success. You
 then know that the thing you had todo is done and can remove the call to
