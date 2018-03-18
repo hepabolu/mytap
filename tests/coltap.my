@@ -406,7 +406,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( 'taptest', 'sometab', 'myNum', '' ),
     true,
     'col_has_index_key( sch, tab, col has index key)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -425,7 +425,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( database(), 'sometab', 'myNum', '' ),
     true,
     'col_has_index_key( current database, tab, col has index key)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -437,7 +437,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( 'taptest', 'sometab', 'name', '' ),
     false,
     'col_has_index_key( sch, tab, col without any key)',
-    'Column sometab.name should have index key',
+    'Column sometab.name should have INDEX key',
     '',
     0
 );
@@ -536,7 +536,7 @@ SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'myNum', '', '' ),
     false,
     'col_has_named_index( sch, tab, col has different index key name)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -567,7 +567,7 @@ SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'name', '', '' ),
     false,
     'col_has_named_index( sch, tab, col without any key)',
-    'Column sometab.name should have index key',
+    'Column sometab.name should have INDEX key',
     '',
     0
 );
@@ -596,7 +596,7 @@ SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'id', '', '' ),
     false,
     'col_has_named_index( sch, tab, col has primary key)',
-    'Column sometab.id should have index key',
+    'Column sometab.id should have INDEX key',
     '',
     0
 );
