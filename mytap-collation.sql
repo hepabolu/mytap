@@ -10,6 +10,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_collation //
 CREATE FUNCTION _has_collation(cname VARCHAR(32))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -26,6 +27,7 @@ END //
 DROP FUNCTION IF EXISTS has_collation //
 CREATE FUNCTION has_collation(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Collation ', quote_ident(cname), ' should be available');
@@ -39,6 +41,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_collation //
 CREATE FUNCTION hasnt_collation(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Collation ', quote_ident(cname), '.', ' should not be available');

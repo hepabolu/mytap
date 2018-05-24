@@ -8,6 +8,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _index_def //
 CREATE FUNCTION _index_def(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -31,6 +32,7 @@ END //
 DROP FUNCTION IF EXISTS index_is //
 CREATE FUNCTION index_is(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
@@ -39,7 +41,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT( ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
   END IF;
 
@@ -53,6 +55,7 @@ END //
 DROP FUNCTION IF EXISTS _is_indexed //
 CREATE FUNCTION _is_indexed(sname VARCHAR(64), tname VARCHAR(64), want TEXT)
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
     DECLARE ret BOOLEAN;
 
@@ -78,6 +81,7 @@ END //
 DROP FUNCTION IF EXISTS is_indexed //
 CREATE FUNCTION is_indexed(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN 
     SET description = CONCAT('Index for ', quote_ident(sname), '.', quote_ident(tname),
@@ -86,7 +90,7 @@ BEGIN
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
   END IF;
 
@@ -100,6 +104,7 @@ END //
 DROP FUNCTION IF EXISTS _has_index //
 CREATE FUNCTION _has_index(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -117,6 +122,7 @@ END //
 DROP FUNCTION IF EXISTS has_index //
 CREATE FUNCTION has_index(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(sname), '.', quote_ident(iname),
@@ -125,7 +131,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -136,6 +142,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_index //
 CREATE FUNCTION hasnt_index(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
@@ -144,7 +151,7 @@ BEGIN
     
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT( ok( FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -159,6 +166,7 @@ END //
 DROP FUNCTION IF EXISTS _index_type //
 CREATE FUNCTION _index_type(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))
 RETURNS VARCHAR(16)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(16);
 
@@ -176,6 +184,7 @@ END //
 DROP FUNCTION IF EXISTS index_is_type //
 CREATE FUNCTION index_is_type(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), itype VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
      SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
@@ -184,13 +193,13 @@ BEGIN
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         'does not exist' )));
   END IF;
 
   IF NOT _has_index( sname, tname, iname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Index ', quote_ident(tname), '.', quote_ident(iname), 
+      diag(CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname), 
         ' does not exist')));
   END IF;
 
@@ -201,6 +210,7 @@ END //
 DROP FUNCTION IF EXISTS _index_is_unique //
 CREATE FUNCTION _index_is_unique(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -217,6 +227,7 @@ END //
 DROP FUNCTION IF EXISTS index_is_unique //
 CREATE FUNCTION index_is_unique(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(iname), ' on ',
@@ -226,13 +237,13 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
   END IF;
 
   IF NOT _has_index( sname, tname, iname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Index ', quote_ident(sname), '.', quote_ident(iname),
+      diag(CONCAT('Index ', quote_ident(sname), '.', quote_ident(iname),
         ' does not exist')));
   END IF;
 
@@ -247,6 +258,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_indexes //
 CREATE FUNCTION _missing_indexes(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN 
   DECLARE ret TEXT;
 
@@ -275,6 +287,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_indexes //
 CREATE FUNCTION _extra_indexes(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
   -- we want only the indexes that are NOT in both tables
@@ -305,6 +318,7 @@ END //
 DROP FUNCTION IF EXISTS indexes_are //
 CREATE FUNCTION indexes_are(sname VARCHAR(64), tname VARCHAR(64),  want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ','; 
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -318,7 +332,7 @@ BEGIN
     
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
   END IF;
 

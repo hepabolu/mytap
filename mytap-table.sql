@@ -7,6 +7,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_table //
 CREATE FUNCTION _has_table(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 COMMENT 'Internal boolean test for the existence of a named table within the given schema.'
 BEGIN
   DECLARE ret BOOLEAN;
@@ -25,6 +26,7 @@ END //
 DROP FUNCTION IF EXISTS has_table //
 CREATE FUNCTION has_table(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test that a named table exists within the given schema.'
 BEGIN
   IF description = '' THEN
@@ -40,6 +42,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_table //
 CREATE FUNCTION hasnt_table(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test that a named table does not exists within the given schema.'
 BEGIN
   IF description = '' THEN
@@ -58,6 +61,7 @@ END //
 DROP FUNCTION IF EXISTS _table_engine//
 CREATE FUNCTION _table_engine(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
 COMMENT 'Internal function to return the engine type for a named table.'
 BEGIN
   DECLARE ret VARCHAR(32);
@@ -75,6 +79,7 @@ END //
 DROP FUNCTION IF EXISTS table_engine_is //
 CREATE FUNCTION table_engine_is(sname VARCHAR(64), tname VARCHAR(64), ename VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the engine for a table matches value provided.'
 BEGIN
   IF description = '' THEN
@@ -84,12 +89,12 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
   END IF;
 
   IF NOT _has_engine(ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Storare Engine ', quote_ident(ename), ' is not available')));
+      diag(CONCAT('Storare Engine ', quote_ident(ename), ' is not available')));
   END IF;
 
   RETURN eq(_table_engine(sname, tname), ename , description);
@@ -104,6 +109,7 @@ END //
 DROP FUNCTION IF EXISTS _table_collation //
 CREATE FUNCTION _table_collation(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
 COMMENT 'Internal function to return the default collation for a named table.'
 BEGIN
   DECLARE ret VARCHAR(32);
@@ -120,6 +126,7 @@ END //
 DROP FUNCTION IF EXISTS table_collation_is //
 CREATE FUNCTION table_collation_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the default collation for a table matches value provided.'
 BEGIN
   IF description = '' THEN
@@ -129,13 +136,13 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.',
+      diag(CONCAT('Table ', quote_ident(sname), '.',
         quote_ident(tname), ' does not exist')));
   END IF;
 
   IF NOT _has_collation(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Collation ', quote_ident(cname), ' is not available')));
+      diag(CONCAT('Collation ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_table_collation(sname, tname), cname, description);
@@ -152,6 +159,7 @@ END //
 DROP FUNCTION IF EXISTS _table_character_set //
 CREATE FUNCTION _table_character_set(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
 COMMENT 'Internal function to return the default character set for a named table.'
 BEGIN
   DECLARE ret VARCHAR(32);
@@ -171,6 +179,7 @@ END //
 DROP FUNCTION IF EXISTS table_character_set_is //
 CREATE FUNCTION table_character_set_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the default character set for a table matches value provided.'
 BEGIN
   IF description = '' THEN
@@ -180,13 +189,13 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
   IF NOT _has_charset(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Character Set ', quote_ident(cname), ' is not available')));
+      diag(CONCAT('Character Set ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_table_character_set(sname, tname), cname, description);
@@ -199,6 +208,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_tables //
 CREATE FUNCTION _missing_tables(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify tables that are listed in input to tables_are(schema, want, description) but are not defined'
 BEGIN
   DECLARE ret TEXT;
@@ -223,6 +233,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_tables //
 CREATE FUNCTION _extra_tables(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify defined tables that are not list in input to tables_are(schema, want, description)'
 BEGIN
   DECLARE ret TEXT;
@@ -248,6 +259,7 @@ END //
 DROP FUNCTION IF EXISTS tables_are //
 CREATE FUNCTION tables_are(sname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test for the existence of named tables. Identifies both missing as well as extra tables.'
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
@@ -260,7 +272,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   SET want = _fixCSL(want);
@@ -305,6 +317,7 @@ END //
 DROP FUNCTION IF EXISTS _table_sha1 //
 CREATE FUNCTION _table_sha1(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS CHAR(40)
+DETERMINISTIC
 BEGIN
   DECLARE ret CHAR(40);
 
@@ -371,6 +384,7 @@ END //
 DROP FUNCTION IF EXISTS table_sha1_is //
 CREATE FUNCTION table_sha1_is(sname VARCHAR(64), tname VARCHAR(64), sha1 VARCHAR(40), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -379,7 +393,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname), ' does not exist')));
   END IF;
 
   -- NB length of supplied value not of a SHA-1

@@ -8,6 +8,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_view //
 CREATE FUNCTION _has_view (sname VARCHAR(64), vname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -24,6 +25,7 @@ END //
 DROP FUNCTION IF EXISTS has_view //
 CREATE FUNCTION has_view(sname VARCHAR(64), vname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ', 
@@ -37,6 +39,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_view //
 CREATE FUNCTION hasnt_view(sname VARCHAR(64), vname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ',
@@ -51,6 +54,7 @@ END //
 DROP FUNCTION IF EXISTS _has_security //
 CREATE FUNCTION _has_security(sname VARCHAR(64), vname VARCHAR(64), vsecurity VARCHAR(9))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret boolean;
 
@@ -67,10 +71,11 @@ END //
 DROP FUNCTION IF EXISTS has_security_invoker //
 CREATE FUNCTION has_security_invoker(sname VARCHAR(64), vname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -86,15 +91,16 @@ END //
 DROP FUNCTION IF EXISTS has_security_definer //
 CREATE FUNCTION has_security_definer(sname VARCHAR(64), vname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = concat('View ',
+    SET description = CONCAT('View ',
       quote_ident(sname), '.', quote_ident(vname), ' should have security DEFINER');
   END IF;
 
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -112,6 +118,7 @@ END //
 DROP FUNCTION IF EXISTS _view_security_type //
 CREATE FUNCTION _view_security_type(sname VARCHAR(64), vname VARCHAR(64))
 RETURNS VARCHAR(7)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(7);
 
@@ -128,6 +135,7 @@ END //
 DROP FUNCTION IF EXISTS view_security_type_is //
 CREATE FUNCTION view_security_type_is(sname VARCHAR(64), vname VARCHAR(64), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
@@ -136,7 +144,7 @@ BEGIN
 
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -152,6 +160,7 @@ END //
 DROP FUNCTION IF EXISTS _view_check_option //
 CREATE FUNCTION _view_check_option(sname VARCHAR(64), vname VARCHAR(64))
 RETURNS VARCHAR(8)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(8);
 
@@ -167,6 +176,7 @@ END //
 DROP FUNCTION IF EXISTS view_check_option_is //
 CREATE FUNCTION view_check_option_is(sname VARCHAR(64), vname VARCHAR(64), copt VARCHAR(8), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
@@ -175,7 +185,7 @@ BEGIN
 
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -191,6 +201,7 @@ END //
 DROP FUNCTION IF EXISTS _view_is_updatable //
 CREATE FUNCTION _view_is_updatable(sname VARCHAR(64), vname VARCHAR(64))
 RETURNS VARCHAR(3)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(3);
 
@@ -207,6 +218,7 @@ END //
 DROP FUNCTION IF EXISTS view_is_updatable //
 CREATE FUNCTION view_is_updatable(sname VARCHAR(64), vname VARCHAR(64), updl VARCHAR(3), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
@@ -215,7 +227,7 @@ BEGIN
 
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -230,6 +242,7 @@ END //
 DROP FUNCTION IF EXISTS _view_definer //
 CREATE FUNCTION _view_definer(sname VARCHAR(64), vname VARCHAR(64))
 RETURNS VARCHAR(93)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(93);
 
@@ -244,6 +257,7 @@ END //
 DROP FUNCTION IF EXISTS view_definer_is //
 CREATE FUNCTION view_definer_is(sname VARCHAR(64), vname VARCHAR(64), dfnr VARCHAR(93), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('View ',
@@ -252,7 +266,7 @@ BEGIN
 
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    View ', quote_ident(sname), '.', quote_ident(vname),
+      diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
 
@@ -266,6 +280,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_views //
 CREATE FUNCTION _missing_views(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -289,6 +304,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_views //
 CREATE FUNCTION _extra_views(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -313,6 +329,7 @@ END //
 DROP FUNCTION IF EXISTS views_are //
 CREATE FUNCTION views_are(sname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -332,7 +349,7 @@ BEGIN
 
   IF NOT _has_schema( sname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), 'does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), 'does not exist')));
   END IF;
 
   DROP TEMPORARY TABLE IF EXISTS idents1;

@@ -10,6 +10,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_partition //
 CREATE FUNCTION _has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -27,6 +28,7 @@ END //
 DROP FUNCTION IF EXISTS has_partition //
 CREATE FUNCTION has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
@@ -35,7 +37,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -47,6 +49,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_partition //
 CREATE FUNCTION hasnt_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
@@ -55,7 +58,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
 
@@ -69,6 +72,7 @@ END //
 DROP FUNCTION IF EXISTS _has_subpartition //
 CREATE FUNCTION _has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -85,6 +89,7 @@ END //
 DROP FUNCTION IF EXISTS has_subpartition //
 CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Subpartition ', quote_ident(tname),
@@ -93,7 +98,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -105,6 +110,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_subpartition //
 CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Subpartition ', quote_ident(tname),
@@ -113,7 +119,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname, part) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
 
@@ -127,6 +133,7 @@ END //
 DROP FUNCTION IF EXISTS _partition_expression  //
 CREATE FUNCTION _partition_expression(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64))
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret LONGTEXT;
 
@@ -143,6 +150,7 @@ END //
 DROP FUNCTION IF EXISTS partition_expression_is//
 CREATE FUNCTION partition_expression_is(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), expr LONGTEXT, description TEXT)
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Partition ', quote_ident(tname), '.', quote_ident(part),
@@ -151,7 +159,7 @@ BEGIN
 
   IF NOT _has_partition(sname, tname, part) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Partition ', quote_ident(tname),'.', quote_ident(part),
+      diag(CONCAT('Partition ', quote_ident(tname),'.', quote_ident(part),
         ' does not exist')));
   END IF;
 
@@ -165,6 +173,7 @@ END //
 DROP FUNCTION IF EXISTS _subpartition_expression  //
 CREATE FUNCTION _subpartition_expression(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret LONGTEXT;
 
@@ -180,6 +189,7 @@ END //
 DROP FUNCTION IF EXISTS subpartition_expression_is//
 CREATE FUNCTION subpartition_expression_is(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), expr LONGTEXT, description TEXT)
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
@@ -188,7 +198,7 @@ BEGIN
 
   IF NOT _has_subpartition(sname, tname, subp) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Subpartition ', quote_ident(tname), '.', quote_ident(subp),
+      diag(CONCAT('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
         ' does not exist')));
   END IF;
 
@@ -202,6 +212,7 @@ END //
 DROP FUNCTION IF EXISTS _partition_method //
 CREATE FUNCTION _partition_method(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64))
 RETURNS VARCHAR(18)
+DETERMINISTIC
 BEGIN
 DECLARE ret VARCHAR(18);
 
@@ -218,12 +229,13 @@ END //
 DROP FUNCTION IF EXISTS partition_method_is//
 CREATE FUNCTION partition_method_is(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), pmeth VARCHAR(18), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE valid ENUM('RANGE', 'LIST', 'HASH', 'LINEAR HASH', 'KEY', 'LINEAR KEY');
   
   DECLARE EXIT HANDLER FOR 1265
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag('    Partitioning Method must be { RANGE | LIST | HASH | LINEAR HASH | KEY | LINEAR KEY }'));
+      diag('Partitioning Method must be { RANGE | LIST | HASH | LINEAR HASH | KEY | LINEAR KEY }'));
 
   IF description = '' THEN
     SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
@@ -234,7 +246,7 @@ BEGIN
 
   IF NOT _has_partition(sname, tname, part) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    partition ', quote_ident(tname),'.', quote_ident(part),
+      diag(CONCAT('Partition ', quote_ident(tname),'.', quote_ident(part),
         ' does not exist')));
   END IF;
 
@@ -247,6 +259,7 @@ END //
 DROP FUNCTION IF EXISTS _subpartition_method //
 CREATE FUNCTION _subpartition_method(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS VARCHAR(12)
+DETERMINISTIC
 BEGIN
 DECLARE ret VARCHAR(12);
 
@@ -262,12 +275,13 @@ END //
 DROP FUNCTION IF EXISTS subpartition_method_is//
 CREATE FUNCTION subpartition_method_is(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), smeth VARCHAR(18), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE valid ENUM('HASH', 'LINEAR HASH', 'KEY', 'LINEAR KEY');
   
   DECLARE EXIT HANDLER FOR 1265
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag('    Subpartition Method must be { HASH | LINEAR HASH | KEY | LINEAR KEY }'));
+      diag('Subpartition Method must be { HASH | LINEAR HASH | KEY | LINEAR KEY }'));
 
   IF description = '' THEN
     SET description = CONCAT('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
@@ -278,7 +292,7 @@ BEGIN
 
   IF NOT _has_subpartition(sname, tname, subp) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Subpartition ', quote_ident(tname),'.', quote_ident(subp),
+      diag(CONCAT('Subpartition ', quote_ident(tname),'.', quote_ident(subp),
         ' does not exist')));
   END IF;
 
@@ -294,6 +308,7 @@ END //
 DROP FUNCTION IF EXISTS _partition_count  //
 CREATE FUNCTION _partition_count(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS SMALLINT
+DETERMINISTIC
 BEGIN
   DECLARE ret SMALLINT;
 
@@ -309,6 +324,7 @@ END //
 DROP FUNCTION IF EXISTS partition_count_is//
 CREATE FUNCTION partition_count_is(sname VARCHAR(64), tname VARCHAR(64), cnt SMALLINT, description TEXT)
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -317,7 +333,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Table ', quote_ident(sname),'.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname),'.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -331,6 +347,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_partitions //
 CREATE FUNCTION _missing_partitions(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -355,6 +372,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_partitions //
 CREATE FUNCTION _extra_partitions(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -380,6 +398,7 @@ END //
 DROP FUNCTION IF EXISTS partitions_are //
 CREATE FUNCTION partitions_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -393,7 +412,7 @@ BEGIN
 
   IF NOT _has_table(sname,tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -435,6 +454,7 @@ END //
 DROP FUNCTION IF EXISTS _has_partitioning //
 CREATE FUNCTION _has_partitioning()
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -451,6 +471,7 @@ END //
 DROP FUNCTION IF EXISTS has_partitioning //
 CREATE FUNCTION has_partitioning(description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = 'Partitioning should be active';

@@ -9,6 +9,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_schema //
 CREATE FUNCTION _has_schema(sname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 COMMENT 'Boolean test for existence of named schema.'
 BEGIN
   DECLARE ret BOOLEAN;
@@ -25,6 +26,7 @@ END //
 DROP FUNCTION IF EXISTS has_schema //
 CREATE FUNCTION has_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm named schema exists.'
 BEGIN
   IF description = '' THEN
@@ -39,6 +41,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_schema //
 CREATE FUNCTION hasnt_schema(sname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm named schema does not exist.'
 BEGIN
   IF description = '' THEN
@@ -72,6 +75,7 @@ END //
 DROP FUNCTION IF EXISTS schema_collation_is //
 CREATE FUNCTION schema_collation_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the default collation for a schema matches value provided.'
 BEGIN
   IF description = '' THEN
@@ -80,12 +84,12 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   IF NOT _has_collation(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Collation ', quote_ident(cname), ' is not available')));
+      diag(CONCAT('Collation ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_schema_collation_is(sname), cname , description);
@@ -100,6 +104,7 @@ END //
 DROP FUNCTION IF EXISTS _schema_charset_is //
 CREATE FUNCTION _schema_charset_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
 COMMENT 'Internal fuction to return the default collation for a named schema.'
 BEGIN
   DECLARE ret VARCHAR(32);
@@ -116,6 +121,7 @@ END //
 DROP FUNCTION IF EXISTS schema_charset_is //
 CREATE FUNCTION schema_charset_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the default character set for a schema matches value provided.'
 BEGIN
   IF description = '' THEN
@@ -125,12 +131,12 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   IF NOT _has_charset(cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Character Set ', quote_ident(cname), ' is not available')));
+      diag(CONCAT('Character Set ', quote_ident(cname), ' is not available')));
   END IF;
 
   RETURN eq(_schema_charset_is(sname), cname, description);
@@ -140,6 +146,7 @@ END //
 DROP FUNCTION IF EXISTS schema_character_set_is //
 CREATE FUNCTION schema_character_set_is(sname VARCHAR(64), cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Alias for schema_charset_is(sname, cname, description).'
 BEGIN
   RETURN schema_charset_is(sname, cname, description);
@@ -151,6 +158,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_schemas //
 CREATE FUNCTION _missing_schemas() 
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify schemas listed in input to schemas_are(want, description) which are not defined'
 BEGIN
   DECLARE ret TEXT;
@@ -173,6 +181,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_schemas //
 CREATE FUNCTION _extra_schemas()
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify defined schemas that are not list in input to schemas_are(want, description)'
 BEGIN
   DECLARE ret TEXT;
@@ -196,6 +205,7 @@ END //
 DROP FUNCTION IF EXISTS schemas_are //
 CREATE FUNCTION schemas_are(want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test for the existence of named schemas. Identifies both missing as well as extra schemas.'
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';

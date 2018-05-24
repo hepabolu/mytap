@@ -6,6 +6,7 @@ DELIMITER //
 
 DROP PROCEDURE IF EXISTS global_var //
 CREATE PROCEDURE global_var(IN var VARCHAR(64), OUT val VARCHAR(1024))
+DETERMINISTIC
 BEGIN
   SET @statement = CONCAT('SELECT @@GLOBAL.', var, ' INTO @lval');
 
@@ -19,6 +20,7 @@ END //
 DROP FUNCTION IF EXISTS global_is //
 CREATE FUNCTION global_is(var VARCHAR(64), want VARCHAR(1024), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('GLOBAL variable ' , var, ' should be correctly set');

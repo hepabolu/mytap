@@ -11,6 +11,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_trigger //
 CREATE FUNCTION _has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -27,6 +28,7 @@ END //
 DROP FUNCTION IF EXISTS has_trigger //
 CREATE FUNCTION has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
@@ -35,7 +37,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -47,6 +49,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_trigger //
 CREATE FUNCTION hasnt_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
@@ -55,7 +58,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
 
@@ -70,6 +73,7 @@ END //
 DROP FUNCTION IF EXISTS _trigger_event  //
 CREATE FUNCTION _trigger_event(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))
 RETURNS VARCHAR(6)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(6);
 
@@ -85,6 +89,7 @@ END //
 DROP FUNCTION IF EXISTS trigger_event_is//
 CREATE FUNCTION trigger_event_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), evnt VARCHAR(6), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
@@ -93,7 +98,7 @@ BEGIN
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok( FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
+      diag(CONCAT('Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -108,6 +113,7 @@ END //
 DROP FUNCTION IF EXISTS _trigger_timing  //
 CREATE FUNCTION _trigger_timing(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))
 RETURNS VARCHAR(6)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(6);
 
@@ -123,6 +129,7 @@ END //
 DROP FUNCTION IF EXISTS trigger_timing_is//
 CREATE FUNCTION trigger_timing_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), timing VARCHAR(6), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
@@ -131,7 +138,7 @@ BEGIN
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
+      diag(CONCAT('Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -146,6 +153,7 @@ END //
 DROP FUNCTION IF EXISTS _trigger_order  //
 CREATE FUNCTION _trigger_order(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))
 RETURNS BIGINT
+DETERMINISTIC
 BEGIN
   DECLARE ret BIGINT;
 
@@ -161,6 +169,7 @@ END //
 DROP FUNCTION IF EXISTS trigger_order_is//
 CREATE FUNCTION trigger_order_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), seq BIGINT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
@@ -169,7 +178,7 @@ BEGIN
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
+      diag(CONCAT('Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -185,6 +194,7 @@ END //
 DROP FUNCTION IF EXISTS _trigger_is //
 CREATE FUNCTION _trigger_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))
 RETURNS LONGTEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret LONGTEXT;
 
@@ -200,6 +210,7 @@ END //
 DROP FUNCTION IF EXISTS trigger_is//
 CREATE FUNCTION trigger_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), act_state LONGTEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr), 
@@ -208,7 +219,7 @@ BEGIN
 
   IF NOT _has_trigger(sname, tname, trgr) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag (CONCAT('    Trigger ', quote_ident(tname),'.', quote_ident(trgr),
+      diag(CONCAT('Trigger ', quote_ident(tname),'.', quote_ident(trgr),
         ' does not exist')));
   END IF;
 
@@ -223,6 +234,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_triggers //
 CREATE FUNCTION _missing_triggers(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -246,6 +258,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_triggers //
 CREATE FUNCTION _extra_triggers(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -270,6 +283,7 @@ END //
 DROP FUNCTION IF EXISTS triggers_are //
 CREATE FUNCTION triggers_are(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -283,7 +297,7 @@ BEGIN
 
   IF NOT _has_table(sname,tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 

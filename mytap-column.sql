@@ -90,7 +90,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -112,7 +112,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -156,7 +156,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -177,7 +177,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -221,7 +221,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -242,7 +242,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -287,7 +287,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
 ' does not exist')));
   END IF;
 
@@ -309,7 +309,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -363,7 +363,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -387,13 +387,13 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
   IF NOT _col_has_named_index(sname, tname, cname, kname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' should have INDEX key ', quote_ident(kname))));
   END IF;
 
@@ -436,7 +436,7 @@ BEGIN
  
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag (CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -479,7 +479,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -525,7 +525,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -545,7 +545,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -585,7 +585,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -627,7 +627,7 @@ BEGIN
 
     IF NOT _has_column(sname, tname, cname) THEN
       RETURN CONCAT(ok(FALSE, description), '\n',
-        diag (CONCAT('    Column ', quote_ident(sname), '.', quote_ident(tname),
+        diag(CONCAT('Column ', quote_ident(sname), '.', quote_ident(tname),
           '.', quote_ident(cname), ' does not exist')));
     END IF;
 
@@ -674,7 +674,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -727,7 +727,7 @@ BEGIN
 
   IF NOT _has_column(sname, tname, cname)THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Column ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -805,7 +805,7 @@ BEGIN
 
   IF NOT _has_table(sname,tname) THEN
   RETURN CONCAT(ok(FALSE, description), '\n',
-    diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+    diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
       ' does not exist')));
   END IF;
 

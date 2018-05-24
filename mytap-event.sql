@@ -12,6 +12,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _scheduler //
 CREATE FUNCTION _scheduler()
 RETURNS VARCHAR(3)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(3);
     
@@ -23,6 +24,7 @@ END //
 DROP FUNCTION IF EXISTS scheduler_is //
 CREATE FUNCTION scheduler_is(want VARCHAR(3), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = 'Event scheduler process should be correctly set';
@@ -35,6 +37,7 @@ END //
 DROP FUNCTION IF EXISTS _has_event //
 CREATE FUNCTION _has_event(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -49,6 +52,7 @@ END //
 DROP FUNCTION IF EXISTS has_event //
 CREATE FUNCTION has_event(sname VARCHAR(64), ename VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -57,7 +61,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
     END IF;
 
     RETURN ok(_has_event(sname, ename), description);
@@ -67,6 +71,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_event //
 CREATE FUNCTION hasnt_event(sname VARCHAR(64), ename VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -75,7 +80,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
     END IF;
 
   RETURN ok(NOT _has_event(sname, ename), description);
@@ -89,6 +94,7 @@ END //
 DROP FUNCTION IF EXISTS _event_type //
 CREATE FUNCTION _event_type(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(9)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(9);
 
@@ -103,12 +109,13 @@ END //
 DROP FUNCTION IF EXISTS event_type_is //
 CREATE FUNCTION event_type_is(sname VARCHAR(64), ename VARCHAR(64), etype VARCHAR(9), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE valid ENUM('ONE TIME','RECURRING');
   
   DECLARE CONTINUE HANDLER FOR 1265
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag('    Event Type must be { ONE TIME | RECURRING }'));
+      diag('Event Type must be { ONE TIME | RECURRING }'));
   
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -119,7 +126,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   RETURN eq(_event_type(sname, ename), etype, description);
@@ -134,6 +141,7 @@ END //
 DROP FUNCTION IF EXISTS _event_interval_value //
 CREATE FUNCTION _event_interval_value(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(256)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(256);
 
@@ -148,6 +156,7 @@ END //
 DROP FUNCTION IF EXISTS event_interval_value_is //
 CREATE FUNCTION event_interval_value_is(sname VARCHAR(64), ename VARCHAR(64), ivalue VARCHAR(256), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -156,7 +165,7 @@ BEGIN
 
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
+      diag(CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
   END IF;
 
@@ -171,6 +180,7 @@ END //
 DROP FUNCTION IF EXISTS _event_interval_field //
 CREATE FUNCTION _event_interval_field(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(18)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(18);
 
@@ -185,6 +195,7 @@ END //
 DROP FUNCTION IF EXISTS event_interval_field_is //
 CREATE FUNCTION event_interval_field_is(sname VARCHAR(64), ename VARCHAR(64), ifield VARCHAR(18), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -193,7 +204,7 @@ BEGIN
 
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
+      diag(CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
     END IF;
 
@@ -208,6 +219,7 @@ END //
 DROP FUNCTION IF EXISTS _event_status //
 CREATE FUNCTION _event_status(sname VARCHAR(64), ename VARCHAR(64))
 RETURNS VARCHAR(18)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(18);
 
@@ -222,6 +234,7 @@ END //
 DROP FUNCTION IF EXISTS event_status_is //
 CREATE FUNCTION event_status_is(sname VARCHAR(64), ename VARCHAR(64), stat VARCHAR(18), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
@@ -230,7 +243,7 @@ BEGIN
 
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Event ', quote_ident(sname), '.', quote_ident(ename),
+      diag(CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
     END IF;
 
@@ -245,6 +258,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_events //
 CREATE FUNCTION _missing_events(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -267,6 +281,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_events //
 CREATE FUNCTION _extra_events(sname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -290,6 +305,7 @@ END //
 DROP FUNCTION IF EXISTS events_are //
 CREATE FUNCTION events_are(sname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ','; 
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -302,7 +318,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT( ok(FALSE, description), '\n',
-      diag( CONCAT('    Schema ', quote_ident(sname), ' does not exist' )));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist' )));
   END IF;
 
   SET want = _fixCSL(want);

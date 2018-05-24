@@ -12,6 +12,7 @@ SET @@SESSION.sql_mode = '' //
 DROP FUNCTION IF EXISTS _has_routine //
 CREATE FUNCTION _has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS BOOLEAN 
+DETERMINISTIC
 COMMENT 'Internal boolean test for the existence of a named routine within the given schema.'
 BEGIN
   DECLARE ret BOOLEAN;
@@ -29,6 +30,7 @@ END //
 DROP FUNCTION IF EXISTS has_routine //
 CREATE FUNCTION has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test for the existence of a named routine within a given schema.'
 BEGIN
   IF description = '' THEN
@@ -43,6 +45,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_routine //
 CREATE FUNCTION hasnt_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named routine does not exist within the given schema.'
 BEGIN
   IF description = '' THEN
@@ -57,6 +60,7 @@ END //
 DROP FUNCTION IF EXISTS has_function //
 CREATE FUNCTION has_function(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named function exists within the given schema.'
 BEGIN
   RETURN has_routine(sname, rname, 'Function', description);
@@ -65,6 +69,7 @@ END //
 DROP FUNCTION IF EXISTS has_procedure //
 CREATE FUNCTION has_procedure(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named procedure exists within the given schema.'
 BEGIN
   RETURN has_routine(sname, rname, 'Procedure', description);
@@ -74,6 +79,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_function //
 CREATE FUNCTION hasnt_function(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named function does not exist within the given schema.'
 BEGIN
   RETURN hasnt_routine(sname, rname, 'Function', description);
@@ -82,6 +88,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_procedure //
 CREATE FUNCTION hasnt_procedure(sname VARCHAR(64), rname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named procedure does not exist within the given schema.'
 BEGIN
   RETURN hasnt_routine(sname, rname, 'Procedure', description);
@@ -97,6 +104,7 @@ END //
 DROP FUNCTION IF EXISTS _function_data_type  //
 CREATE FUNCTION _function_data_type(sname VARCHAR(64), rname VARCHAR(64))
 RETURNS VARCHAR(64)
+DETERMINISTIC
 COMMENT 'Internal function to return the data type returned by a function.'
 BEGIN
   DECLARE ret VARCHAR(64);
@@ -114,6 +122,7 @@ END //
 DROP FUNCTION IF EXISTS function_data_type_is//
 CREATE FUNCTION function_data_type_is(sname VARCHAR(64), rname VARCHAR(64), dtype VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a named function returns the given data type.'
 BEGIN
   IF description = '' THEN
@@ -123,7 +132,7 @@ BEGIN
 
   IF NOT _has_routine(sname, rname, 'FUNCTION') THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Function ', quote_ident(sname),'.', quote_ident(rname),
+      diag(CONCAT('Function ', quote_ident(sname),'.', quote_ident(rname),
         ' does not exist')));
   END IF;
 
@@ -139,6 +148,7 @@ END //
 DROP FUNCTION IF EXISTS _routine_is_deterministic  //
 CREATE FUNCTION _routine_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS VARCHAR(3)
+DETERMINISTIC
 COMMENT 'Internal function to return whether a routine is deterministic.'
 BEGIN
   DECLARE ret VARCHAR(3);
@@ -156,6 +166,7 @@ END //
 DROP FUNCTION IF EXISTS routine_is_deterministic //
 CREATE FUNCTION routine_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), val VARCHAR(3), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a routine is deterministic.'
 BEGIN
   IF description = '' THEN
@@ -165,12 +176,12 @@ BEGIN
 
   IF val NOT IN('YES','NO') THEN
     RETURN CONCAT(ok(FALSE, description),'\n',
-      diag('    Is Deterministic must be { YES | NO }'));
+      diag('Is Deterministic must be { YES | NO }'));
   END IF;
 
   IF NOT _has_routine(sname, rname, rtype) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    ', rtype, ' ', quote_ident(sname), '.', quote_ident(rname),
+      diag(CONCAT(ucf(rtype), ' ', quote_ident(sname), '.', quote_ident(rname),
         ' does not exist')));
   END IF;
 
@@ -180,6 +191,7 @@ END //
 DROP FUNCTION IF EXISTS function_is_deterministic //
 CREATE FUNCTION function_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), val VARCHAR(3), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a function is deterministic.'
 BEGIN
   RETURN routine_is_deterministic(sname, rname, 'Function', val, description);
@@ -188,6 +200,7 @@ END //
 DROP FUNCTION IF EXISTS procedure_is_deterministic //
 CREATE FUNCTION procedure_is_deterministic(sname VARCHAR(64), rname VARCHAR(64), val VARCHAR(3), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a procedure is deterministic.'
 BEGIN
   RETURN routine_is_deterministic(sname, rname, 'Procedure', val, description);
@@ -204,6 +217,7 @@ END //
 DROP FUNCTION IF EXISTS _routine_security_type //
 CREATE FUNCTION _routine_security_type(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS VARCHAR(7)
+DETERMINISTIC
 COMMENT 'Internal function to return the security type of a routine.'
 BEGIN
   DECLARE ret VARCHAR(7);
@@ -222,6 +236,7 @@ END //
 DROP FUNCTION IF EXISTS routine_security_type_is //
 CREATE FUNCTION routine_security_type_is(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the security type of a routine matches the value provided.'
 BEGIN
   IF description = '' THEN
@@ -231,12 +246,12 @@ BEGIN
 
   IF stype NOT IN('INVOKER','DEFINER') THEN
     RETURN CONCAT(ok(FALSE, description),'\n',
-      diag('    Security Type must be { INVOKER | DEFINER }'));
+      diag('Security Type must be { INVOKER | DEFINER }'));
   END IF;
 
   IF NOT _has_routine(sname, rname, rtype) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    ', rtype, ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
+      diag(CONCAT(ucf(rtype), ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
   END IF;
 
   RETURN eq(_routine_security_type(sname, rname, rtype), stype, description);
@@ -246,6 +261,7 @@ END //
 DROP FUNCTION IF EXISTS function_security_type_is //
 CREATE FUNCTION function_security_type_is(sname VARCHAR(64), rname VARCHAR(64), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the security type of a function matches the value provided.'
 BEGIN
   RETURN routine_security_type_is(sname, rname, 'Function', stype, description);
@@ -254,6 +270,7 @@ END //
 DROP FUNCTION IF EXISTS procedure_security_type_is //
 CREATE FUNCTION procedure_security_type_is(sname VARCHAR(64), rname VARCHAR(64), stype VARCHAR(7), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the security type of a procedure matches the value provided.'
 BEGIN
   RETURN routine_security_type_is(sname, rname, 'Procedure', stype, description);
@@ -269,6 +286,7 @@ END //
 DROP FUNCTION IF EXISTS _routine_sql_data_access  //
 CREATE FUNCTION _routine_sql_data_access(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS VARCHAR(64)
+DETERMINISTIC
 COMMENT 'Internal function to return the SQL data access value for a named routine within the given schema.'
 BEGIN
   DECLARE ret VARCHAR(64);
@@ -287,6 +305,7 @@ END //
 DROP FUNCTION IF EXISTS routine_sql_data_access_is //
 CREATE FUNCTION routine_sql_data_access_is(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), sda VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the SQL data access value of a routine matches that provided.'
 BEGIN
   IF description = '' THEN
@@ -296,17 +315,17 @@ BEGIN
 
   IF NOT rtype IN('FUNCTION','PROCEDURE') THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag('    Routine Type must be { FUNCTION | PROCEDURE }'));
+      diag('Routine Type must be { FUNCTION | PROCEDURE }'));
   END IF;
 
   IF NOT sda IN('CONTAINS SQL','NO SQL','READS SQL DATA','MODIFIES SQL DATA') THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag('    SQL Data Access must be { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }'));
+      diag('SQL Data Access must be { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }'));
   END IF;
 
   IF NOT _has_routine(sname, rname, rtype) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    ' , rtype, ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
+      diag(CONCAT(ucf(rtype), ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
   END IF;
 
   RETURN eq(_routine_sql_data_access(sname, rname, rtype), sda, description);
@@ -315,6 +334,7 @@ END //
 DROP FUNCTION IF EXISTS function_sql_data_access_is //
 CREATE FUNCTION function_sql_data_access_is(sname VARCHAR(64), rname VARCHAR(64), sda VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the SQL data access value of a function matches that provided.'
 BEGIN
   RETURN routine_sql_data_access_is(sname, rname, 'Function', sda, description);
@@ -323,6 +343,7 @@ END //
 DROP FUNCTION IF EXISTS procedure_sql_data_access_is //
 CREATE FUNCTION procedure_sql_data_access_is(sname VARCHAR(64), rname VARCHAR(64), sda VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Confirm the SQL data access value of a procedure matches that provided.'
 BEGIN
   RETURN routine_sql_data_access_is(sname, rname, 'Procedure', sda, description);
@@ -335,6 +356,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_routines //
 CREATE FUNCTION _missing_routines(sname VARCHAR(64), rtype VARCHAR(9))
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify routines listed in input to routines_are(schema, want, description) which are not defined'
 BEGIN
   DECLARE ret TEXT;
@@ -359,6 +381,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_routines //
 CREATE FUNCTION _extra_routines(sname VARCHAR(64), rtype VARCHAR(9))
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Internal function to identify defined routines that are not listed in input to routines_are(schema, want, description)'
 BEGIN
   DECLARE ret TEXT;
@@ -384,6 +407,7 @@ END //
 DROP FUNCTION IF EXISTS routines_are //
 CREATE FUNCTION routines_are(sname VARCHAR(64), rtype VARCHAR(9), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Test for the existence of named routines. Identifies both missing as well as extra routines.'
 BEGIN
 
@@ -397,7 +421,7 @@ BEGIN
 
   IF NOT _has_schema(sname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
   SET want = _fixCSL(want);
@@ -440,6 +464,7 @@ END //
 DROP FUNCTION IF EXISTS _routine_has_sql_mode  //
 CREATE FUNCTION _routine_has_sql_mode(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), smode VARCHAR(8192))
 RETURNS BOOLEAN
+DETERMINISTIC
 COMMENT 'Internal function to return the SQL mode which will apply to a routine.'
 BEGIN
   DECLARE ret BOOLEAN;
@@ -458,6 +483,7 @@ END //
 DROP FUNCTION IF EXISTS routine_has_sql_mode //
 CREATE FUNCTION routine_has_sql_mode(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(64), smode VARCHAR(8192), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Check that a particular SQL mode will apply to a named routine within the given schema.'
 BEGIN
   DECLARE valid ENUM('REAL_AS_FLOAT','PIPES_AS_CONCAT','ANSI_QUOTES','IGNORE_SPACE',
@@ -474,7 +500,7 @@ BEGIN
 
   DECLARE EXIT HANDLER FOR 1265 -- invalid assignment to enum
     RETURN CONCAT(ok(FALSE,description), '\n',
-      diag(CONCAT('    SQL Mode ', quote_ident(smode), ' is invalid')));
+      diag(CONCAT('SQL Mode ', quote_ident(smode), ' is invalid')));
 
   IF description = '' THEN
     SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
@@ -485,7 +511,7 @@ BEGIN
 
   IF NOT _has_routine(sname, rname, 'FUNCTION') THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Function ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
+      diag(CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
   END IF;
 
   RETURN ok(_routine_has_sql_mode(sname, rname, rtype, smode), description);
@@ -502,6 +528,7 @@ END //
 DROP FUNCTION IF EXISTS _routine_sha1 //
 CREATE FUNCTION _routine_sha1(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS CHAR(40)
+DETERMINISTIC
 COMMENT 'Internal function to return a SHA1 of the routine body to check for changes over time. This should be easier to maintain than dumping the routine body into the test script.'
 BEGIN
   DECLARE ret CHAR(40);
@@ -517,6 +544,7 @@ END //
 DROP FUNCTION IF EXISTS routine_sha1_is //
 CREATE FUNCTION routine_sha1_is(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), sha1 VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 COMMENT 'Get the SHA1 value of a routine body to compare against a previous value.'
 BEGIN
   IF description = '' THEN
@@ -526,7 +554,7 @@ BEGIN
 
   IF NOT _has_routine(sname, rname, rtype) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    ', ucf(rtype), ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
+      diag(CONCAT(ucf(rtype), ' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
   END IF;
 
   -- NB length of supplied value not of a SHA-1

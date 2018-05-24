@@ -9,6 +9,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_constraint //
 CREATE FUNCTION _has_constraint(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -25,6 +26,7 @@ END //
 DROP FUNCTION IF EXISTS has_constraint //
 CREATE FUNCTION has_constraint(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
@@ -33,7 +35,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -44,6 +46,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_constraint //
 CREATE FUNCTION hasnt_constraint(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint ', quote_ident(tname),'.',quote_ident(cname),
@@ -52,7 +55,7 @@ BEGIN
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT( ok( FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -65,6 +68,7 @@ END //
 DROP FUNCTION IF EXISTS has_pk //
 CREATE FUNCTION has_pk(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -73,7 +77,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -84,6 +88,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_pk //
 CREATE FUNCTION hasnt_pk(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -92,7 +97,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -103,6 +108,7 @@ END //
 DROP FUNCTION IF EXISTS has_fk //
 CREATE FUNCTION has_fk(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -111,7 +117,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -121,6 +127,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_fk //
 CREATE FUNCTION hasnt_fk(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -129,7 +136,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('   Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -141,6 +148,7 @@ END //
 DROP FUNCTION IF EXISTS _col_is_unique //
 CREATE FUNCTION _col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT)
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -166,6 +174,7 @@ END //
 DROP FUNCTION IF EXISTS col_is_unique //
 CREATE FUNCTION col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Unique Index for ', quote_ident(sname), '.', quote_ident(tname),
@@ -174,7 +183,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -194,6 +203,7 @@ END //
 DROP FUNCTION IF EXISTS _col_is_pk //
 CREATE FUNCTION _col_is_pk(sname VARCHAR(64), tname VARCHAR(64), want TEXT)
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -217,6 +227,7 @@ END //
 DROP FUNCTION IF EXISTS col_is_pk //
 CREATE FUNCTION col_is_pk(sname VARCHAR(64), tname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Primary Key for ', quote_ident(sname), '.', quote_ident(tname),
@@ -225,7 +236,7 @@ BEGIN
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
       ' does not exist')));
   END IF;
 
@@ -242,6 +253,7 @@ END //
 DROP FUNCTION IF EXISTS _has_unique //
 CREATE FUNCTION _has_unique(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -258,6 +270,7 @@ END //
 DROP FUNCTION IF EXISTS has_unique //
 CREATE FUNCTION has_unique(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN 
     SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
@@ -266,7 +279,7 @@ BEGIN
 
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
 
@@ -281,6 +294,7 @@ END //
 DROP FUNCTION IF EXISTS _constraint_type //
 CREATE FUNCTION _constraint_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(64)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(64);
 
@@ -296,6 +310,7 @@ END //
 DROP FUNCTION IF EXISTS constraint_type_is //
 CREATE FUNCTION constraint_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
@@ -304,7 +319,7 @@ BEGIN
     
   IF NOT _has_constraint(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Constraint ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -319,6 +334,7 @@ END //
 DROP FUNCTION IF EXISTS _fk_on_delete //
 CREATE FUNCTION _fk_on_delete(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(64)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(64);
 
@@ -335,6 +351,7 @@ END //
 DROP FUNCTION IF EXISTS fk_on_delete //
 CREATE FUNCTION fk_on_delete(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), rule VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
@@ -343,7 +360,7 @@ BEGIN
 
   IF NOT _has_constraint(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Constraint ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -353,6 +370,7 @@ END //
 DROP FUNCTION IF EXISTS _fk_on_update //
 CREATE FUNCTION _fk_on_update(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS VARCHAR(64)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(64);
 
@@ -369,6 +387,7 @@ END //
 DROP FUNCTION IF EXISTS fk_on_update //
 CREATE FUNCTION fk_on_update(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), rule VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
@@ -377,7 +396,7 @@ BEGIN
 
   IF NOT _has_constraint(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Constraint ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Constraint ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -390,6 +409,7 @@ DROP FUNCTION IF EXISTS _fk_ok //
 CREATE FUNCTION _fk_ok(csch VARCHAR(64), ctab VARCHAR(64), ccol TEXT,
                        usch VARCHAR(64), utab VARCHAR(64), ucol TEXT)
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -420,6 +440,7 @@ DROP FUNCTION IF EXISTS fk_ok //
 CREATE FUNCTION fk_ok(csch VARCHAR(64), ctab VARCHAR(64), ccol TEXT,
                       usch VARCHAR(64), utab VARCHAR(64), ucol TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Constraint Foreign Key ', quote_ident(ctab), '(', quote_ident(ccol),
@@ -428,13 +449,13 @@ BEGIN
 
   IF NOT _has_table(csch, ctab) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Table ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
   IF NOT _has_table(usch, utab) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Table ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
   END IF;
 
@@ -447,6 +468,7 @@ END //
 DROP FUNCTION IF EXISTS _missing_constraints //
 CREATE FUNCTION _missing_constraints(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN 
   DECLARE ret TEXT;
 
@@ -470,6 +492,7 @@ END //
 DROP FUNCTION IF EXISTS _extra_constraints //
 CREATE FUNCTION _extra_constraints(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE ret TEXT;
 
@@ -493,6 +516,7 @@ END //
 DROP FUNCTION IF EXISTS constraints_are //
 CREATE FUNCTION constraints_are(sname VARCHAR(64), tname VARCHAR(64),  want TEXT, description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
@@ -504,7 +528,7 @@ BEGIN
 
   IF NOT _has_table( sname, tname ) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag( CONCAT('    Table ', quote_ident(sname), '.', quote_ident(tname),
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
   END IF;
 

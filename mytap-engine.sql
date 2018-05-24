@@ -9,6 +9,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_engine //
 CREATE FUNCTION _has_engine(ename VARCHAR(64))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -25,6 +26,7 @@ END //
 DROP FUNCTION IF EXISTS has_engine //
 CREATE FUNCTION has_engine(ename VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Storage Engine ', quote_ident(ename), ' should be available');
@@ -38,6 +40,7 @@ END //
 DROP FUNCTION IF EXISTS _engine_default //
 CREATE FUNCTION _engine_default()
 RETURNS VARCHAR(64)
+DETERMINISTIC
 BEGIN
   DECLARE ret VARCHAR(64);
 
@@ -54,6 +57,7 @@ END //
 DROP FUNCTION IF EXISTS engine_is_default //
 CREATE FUNCTION engine_is_default(ename VARCHAR(64), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
   SET description = CONCAT('Storage Engine ', quote_ident(ename),

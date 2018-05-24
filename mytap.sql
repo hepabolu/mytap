@@ -562,11 +562,11 @@ BEGIN
 -- but they deserve everything coming to them anyway.
 
   IF LEFT(ident,1) = '`' AND RIGHT(ident,1) = '`' THEN
-	RETURN ident;
+	  RETURN ident;
   END IF;
    
   IF LEFT(ident,1) = '"' AND RIGHT(ident,1) = '"' THEN
-	RETURN CONCAT('`', TRIM(BOTH '"' FROM ident) ,'`');
+	  RETURN CONCAT('`', TRIM(BOTH '"' FROM ident) ,'`');
   END IF;
    
   RETURN CONCAT('`', ident, '`');
@@ -579,11 +579,11 @@ BEGIN
 -- We may want to unquote it for the sake of comparison
 
   IF LEFT(ident,1) = '`' AND RIGHT(ident,1) = '`' THEN
-	RETURN TRIM(BOTH '`' FROM REPLACE(ident,'``','`'));
+	  RETURN TRIM(BOTH '`' FROM REPLACE(ident,'``','`'));
   END IF;
    
   IF LEFT(ident,1) = '"' AND RIGHT(ident,1) = '"' THEN
-	RETURN TRIM(BOTH '"' FROM REPLACE(ident,'""','"'));
+	  RETURN TRIM(BOTH '"' FROM REPLACE(ident,'""','"'));
   END IF;
    
   RETURN ident;
@@ -603,6 +603,23 @@ BEGIN
      
     RETURN CONCAT('\'', REPLACE(val, '''', '\\\''), '\'');
 END //
+
+
+DROP FUNCTION IF EXISTS dqv //
+CREATE FUNCTION dqv(val TEXT) RETURNS TEXT
+BEGIN
+    IF ISNULL(val) THEN  
+      RETURN 'NULL';
+    END IF;
+
+    -- NB this will catch number only hex eg 000000 or 009600
+    IF val REGEXP '^[[:digit:]]+$' THEN 
+      RETURN val;
+    END IF;
+     
+    RETURN CONCAT('"', REPLACE(val, '''', '\\\''), '"');
+END //
+
 
 -- check_test( test_output, pass, name, description, diag, match_diag )
 DROP FUNCTION IF EXISTS check_test //

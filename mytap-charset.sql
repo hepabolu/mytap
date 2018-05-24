@@ -9,6 +9,7 @@ DELIMITER //
 DROP FUNCTION IF EXISTS _has_charset //
 CREATE FUNCTION _has_charset(cname VARCHAR(32))
 RETURNS BOOLEAN
+DETERMINISTIC
 BEGIN
   DECLARE ret BOOLEAN;
 
@@ -24,6 +25,7 @@ END //
 DROP FUNCTION IF EXISTS has_charset //
 CREATE FUNCTION has_charset(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Character Set ', quote_ident(cname), ' should be available');
@@ -37,6 +39,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_charset //
 CREATE FUNCTION hasnt_charset(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Character Set ', quote_ident(cname), ' should not be available' );
@@ -51,6 +54,7 @@ END //
 DROP FUNCTION IF EXISTS has_character_set //
 CREATE FUNCTION has_character_set(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   RETURN has_charset(cname, description);
 END //
@@ -60,6 +64,7 @@ END //
 DROP FUNCTION IF EXISTS hasnt_character_set //
 CREATE FUNCTION hasnt_character_set(cname VARCHAR(32), description TEXT)
 RETURNS TEXT
+DETERMINISTIC
 BEGIN
   RETURN hasnt_charset(cname, description);
 END //
