@@ -687,7 +687,7 @@ BEGIN
 
     SELECT CONCAT('\n-- TRIGGER ', tname,'.', tr, '\n');
     SELECT CONCAT("SELECT tap.has_trigger('", sname, "','",tname,"','", tr,"','');");
-    SELECT CONCAT("SELECT tap.trigger_is('", sname, "','",tname,"','", tr,"','", sa ,"','');");
+    SELECT CONCAT("SELECT tap.trigger_is('", sname, "','",tname,"','", tr,"',", dqv(sa) ,",'');");
     SELECT CONCAT("SELECT tap.trigger_order_is('", sname, "','",tname,"','", tr,"',", ao ,",'');");
     SELECT CONCAT("SELECT tap.trigger_event_is('", sname, "','",tname,"','", tr,"','", em ,"','');");
     SELECT CONCAT("SELECT tap.trigger_timing_is('", sname, "','",tname,"','", tr,"','", ta ,"','');");
