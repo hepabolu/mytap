@@ -1,6 +1,15 @@
 Revision history for MyTAP
 ==========================
 
+0.07  2018-06-18
+-------------------------
+* col_has_unique_index, col_hasnt_unique_index added to test for
+  the existence or absence of a unique index.
+* tests added for the new functions.
+* syntax errors fixed in the tests for the has[nt]_function and
+  has[nt]_procedure functions.
+* runtests.sh script now has a filter option.
+
 0.06  2017-06-18
 -------------------------
 * has_table and hasnt_table moved to separate file

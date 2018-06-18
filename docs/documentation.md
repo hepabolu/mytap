@@ -371,6 +371,10 @@ This function tests if the column is part of a key, not a primary key.
 
 `col_hasnt_index_key( database, table, column, description )` checks if this column is NOT part of a key.
 
+`col_has_unique_index`( database, table, column, description )` checks if this column has a unique key other than the primary key.
+
+`col_hasnt_unique_index`( database, table, column, description )` checks if this column doesn't have a unique key other than the primary key.
+
 ### `col_has_named_index( database, table, column, keyname, description )`
 
 This function tests if the column is part of a key with a specific name.
