@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT tap.plan(321);
+SELECT tap.plan(357);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -21,7 +21,8 @@ CREATE TABLE taptest.sometab(
     plain   INT,
     enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
     KEY `WeirdIndexName` (`myNum`),
-    KEY `multiIndex` (`myNum`,`mydate`)
+    KEY `multiIndex` (`myNum`,`mydate`),
+    UNIQUE KEY `unique` (`plain`)
 );
 
 CREATE OR REPLACE VIEW taptest.myView as select myNum as viewNum, plain from taptest.sometab;
@@ -524,6 +525,135 @@ SELECT tap.check_test(
     true,
     'col_hasnt_index_key( sch, tab, col has index key)',
     'Column sometab.id should not have INDEX key',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_has_unique_index
+
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'myNum', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col has not unique index)',
+    'Column sometab.myNum should have unique INDEX',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'myNum', 'my own description' ),
+    false,
+    'col_has_unique_index( sch, tab, col has not unique index, desc)',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_unique_index( database(), 'sometab', 'plain', '' ),
+    true,
+    'col_has_unique_index( current database, tab, col has unique index key)',
+    'Column sometab.plain should have unique index',
+    '',
+    0
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'name', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col without any key)',
+    'Column sometab.name should have unique INDEX',
+    '',
+    0
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'foo', '' ),
+    false,
+    'col_has_unique_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'id', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col has primary key)',
+    'Column sometab.id should have unique INDEX',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_hasnt_unique_index
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'plain', '' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, col has unique index)',
+    'Column sometab.plain should not have unique INDEX',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'plain', 'my own description' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, col has unique index, desc)',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( database(), 'sometab', 'myNum', '' ),
+    true,
+    'col_hasnt_unique_index( current database, tab, col has non unique key)',
+    'Column sometab.myNum should not have unique INDEX',
+    '',
+    0
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'name', '' ),
+    true,
+    'col_hasnt_unique_index( sch, tab, col without any key)',
+    'Column sometab.name should not have unique INDEX',
+    '',
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'foo', '' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is exempt from 'unique keys'
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'id', '' ),
+    true,
+    'col_hasnt_unique_index( sch, tab, col has primary key)',
+    'Column sometab.id should not have unique INDEX',
     '',
     0
 );

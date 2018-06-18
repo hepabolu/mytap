@@ -217,6 +217,118 @@ END //
 
 
 /****************************************************************************/
+-- _col_has_unique_index (schema, table, column )
+
+DROP FUNCTION IF EXISTS _col_has_unique_index //
+CREATE FUNCTION _col_has_unique_index ( dbname TEXT, tname TEXT, cname TEXT )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    SELECT true into ret
+      FROM information_schema.statistics as db
+     WHERE db.table_schema = dbname
+       AND db.table_name = tname
+       AND db.column_name = cname
+       AND db.index_name <> 'PRIMARY'
+       AND db.non_unique = 0
+       limit 1; /* only use the first entry */
+    RETURN coalesce(ret, false);
+END //
+
+-- col_has_unique_index ( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_has_unique_index //
+CREATE FUNCTION col_has_unique_index ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat('Column ',
+            quote_ident(tname), '.', quote_ident(cname), ' should have unique INDEX' );
+    END IF;
+
+    RETURN ok( _col_has_unique_index(dbname, tname, cname), description );
+END //
+
+-- col_hasnt_unique_index( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_hasnt_unique_index //
+CREATE FUNCTION col_hasnt_unique_index ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat('Column ',
+            quote_ident(tname), '.', quote_ident(cname), ' should not have unique INDEX');
+    END IF;
+
+    RETURN ok( NOT _col_has_unique_index(dbname, tname, cname ), description );
+END //
+
+/****************************************************************************/
+-- _col_has_non_unique_index (schema, table, column )
+
+DROP FUNCTION IF EXISTS _col_has_non_unique_index //
+CREATE FUNCTION _col_has_non_unique_index ( dbname TEXT, tname TEXT, cname TEXT )
+RETURNS BOOLEAN
+BEGIN
+    DECLARE ret BOOLEAN;
+
+    SELECT true into ret
+      FROM information_schema.statistics as db
+     WHERE db.table_schema = dbname
+       AND db.table_name = tname
+       AND db.column_name = cname
+       AND db.index_name <> 'PRIMARY'
+       AND db.non_unique = 1
+       limit 1; /* only use the first entry */
+    RETURN coalesce(ret, false);
+END //
+
+-- col_has_non_unique_index ( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_has_non_unique_index //
+CREATE FUNCTION col_has_non_unique_index ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat('Column ',
+            quote_ident(tname), '.', quote_ident(cname), ' should have non unique INDEX' );
+    END IF;
+
+    RETURN ok( _col_has_non_unique_index(dbname, tname, cname), description );
+END //
+
+-- col_hasnt_non_unique_index( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_hasnt_non_unique_index //
+CREATE FUNCTION col_hasnt_non_unique_index ( dbname TEXT, tname TEXT, cname TEXT, description TEXT )
+RETURNS TEXT
+BEGIN
+    IF NOT _has_column( dbname, tname, cname ) THEN
+        RETURN fail(concat('Error ',
+               diag (concat('    Column ', quote_ident(dbname), '.', quote_ident(tname), '.', quote_ident(cname), ' does not exist' ))));
+    END IF;
+
+    IF description = '' THEN
+        SET description = concat('Column ',
+            quote_ident(tname), '.', quote_ident(cname), ' should not have non unique INDEX');
+    END IF;
+
+    RETURN ok( NOT _col_has_non_unique_index(dbname, tname, cname), description );
+END //
+
+/****************************************************************************/
 -- _col_has_named_index (schema, table, column )
 
 DROP FUNCTION IF EXISTS _col_has_named_index //
