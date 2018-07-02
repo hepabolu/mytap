@@ -1,5 +1,6 @@
 -- VIEWS
 -- =====
+USE tap;
 
 DELIMITER //
 
@@ -28,7 +29,7 @@ RETURNS TEXT
 DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('View ', 
+    SET description = CONCAT('View ',
       quote_ident(sname), '.', quote_ident(vname), ' should exist');
   END IF;
 
@@ -73,17 +74,17 @@ CREATE FUNCTION has_security_invoker(sname VARCHAR(64), vname VARCHAR(64), descr
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+  IF description = '' THEN
+    SET description = CONCAT('View ',
+      quote_ident(sname), '.', quote_ident(vname), ' should have security INVOKER');
+  END IF;
+
   IF NOT _has_view(sname, vname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('View ', quote_ident(sname), '.', quote_ident(vname),
         ' does not exist')));
   END IF;
-
-  IF description = '' THEN
-    SET description = concat('View ',
-      quote_ident(sname), '.', quote_ident(vname), ' should have security INVOKER');
-  END IF;
-
+  
   RETURN ok(_has_security(sname, vname, 'INVOKER'), description);
 END //
 
