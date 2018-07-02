@@ -68,7 +68,7 @@ END //
 
 /************************************************************************/
 -- SUBPARTITION
--- _has_subpartition( schema, table, partition, sub, description )
+-- _has_subpartition( schema, table, sub, description )
 DROP FUNCTION IF EXISTS _has_subpartition //
 CREATE FUNCTION _has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64))
 RETURNS BOOLEAN
@@ -85,7 +85,7 @@ BEGIN
   RETURN COALESCE(ret, 0);
 END //
 
--- has_partition( schema, table, partition, description )
+-- has_subpartition( schema, table, subpartition, description )
 DROP FUNCTION IF EXISTS has_subpartition //
 CREATE FUNCTION has_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
@@ -106,7 +106,7 @@ BEGIN
 END //
 
 
--- hasnt_subpartition( schema, table, partition, sub, description )
+-- hasnt_subpartition( schema, table, subpartition, description )
 DROP FUNCTION IF EXISTS hasnt_subpartition //
 CREATE FUNCTION hasnt_subpartition(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), description TEXT)
 RETURNS TEXT
@@ -117,13 +117,13 @@ BEGIN
        '.', quote_ident(subp), ' should not exist');
   END IF;
 
-  IF NOT _has_table(sname, tname, part) THEN
+  IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
     END IF;
 
-    RETURN ok(NOT _has_subpartition(sname, tname, subp), description);
+  RETURN ok(NOT _has_subpartition(sname, tname, subp), description);
 END //
 
 
@@ -193,7 +193,7 @@ DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = concat('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
-      ' should have Partition Expression ', qv(TRIM(expr)));
+      ' should have Subpartition Expression ', qv(TRIM(expr)));
   END IF;
 
   IF NOT _has_subpartition(sname, tname, subp) THEN
@@ -239,7 +239,7 @@ BEGIN
 
   IF description = '' THEN
     SET description = CONCAT('Partition ', quote_ident(tname), '.', quote_ident(part),
-      ' should have Partition Method ', quote_ident(pmeth));
+      ' should have Partition Method ', qv(pmeth));
   END IF;
 
   SET valid = pmeth;
@@ -285,7 +285,7 @@ BEGIN
 
   IF description = '' THEN
     SET description = CONCAT('Subpartition ', quote_ident(tname), '.', quote_ident(subp),
-      ' should have Partitioning Method', quote_ident(smeth));
+      ' should have SubPartition Method ', qv(smeth));
   END IF;
 
   SET valid = smeth;
