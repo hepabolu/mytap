@@ -42,7 +42,7 @@ RETURNS TEXT
 DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('User \'', uname, '\'@\'', hname, ' shouldnt exist');
+    SET description = CONCAT('User \'', uname, '\'@\'', hname, '\' should not exist');
   END IF;
 
   RETURN ok(NOT _has_user(hname, uname), description);
@@ -85,7 +85,7 @@ BEGIN
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag(CONCAT('User \'', uname, '\'@\'', hname, '\' does not exist')));
   END IF;
 
   RETURN ok(_user_ok(hname, uname), description);
@@ -105,7 +105,7 @@ BEGIN
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag(CONCAT('User \'', uname, '\'@\'', hname, '\' does not exist')));
   END IF;
 
   RETURN ok(NOT _user_ok( hname, uname ), description);
@@ -128,7 +128,7 @@ BEGIN
   FROM `mysql`.`user`
   WHERE `Host` = hname
   AND `User` = uname
-  AND `password_lifetime` IS NOT NULL;
+  AND `password_lifetime` IS NOT NULL AND `password_lifetime` != 0;
 
   RETURN COALESCE(ret, 0);
 END //
@@ -141,12 +141,12 @@ RETURNS TEXT
 DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('User \'', uname, '\'@\'', hname, ' Password should expire');
+    SET description = CONCAT('User \'', uname, '\'@\'', hname, '\' Password should expire');
   END IF;
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag(CONCAT('User \'', uname, '\'@\'', hname, '\' does not exist')));
   END IF;
 
   RETURN ok(_user_has_lifetime(hname, uname), description);
@@ -165,7 +165,7 @@ BEGIN
 
   IF NOT _has_user(hname, uname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('User \'', uname, '\'@\'', hname, ' does not exist')));
+      diag(CONCAT('User \'', uname, '\'@\'', hname, '\' does not exist')));
   END IF;
 
   RETURN ok(NOT _user_has_lifetime(hname, uname), description);
