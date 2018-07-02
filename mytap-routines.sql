@@ -171,7 +171,7 @@ COMMENT 'Check that a routine is deterministic.'
 BEGIN
   IF description = '' THEN
     SET description = CONCAT(rtype, ' ', quote_ident(sname), '.', quote_ident(rname),
-      ' should have Is Deterministic ', quote_ident(val));
+      ' should have IS_DETERMINISTIC ', quote_ident(val));
   END IF;
 
   IF val NOT IN('YES','NO') THEN
@@ -496,14 +496,14 @@ BEGIN
 
   DECLARE EXIT HANDLER FOR 1264
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Unrecoverable Error - Strict Mode should be disabled when importing this function')));
+      diag(CONCAT('Unrecoverable Error - Strict Mode should be disabled when importing this ', rtype)));
 
   DECLARE EXIT HANDLER FOR 1265 -- invalid assignment to enum
     RETURN CONCAT(ok(FALSE,description), '\n',
       diag(CONCAT('SQL Mode ', quote_ident(smode), ' is invalid')));
 
   IF description = '' THEN
-    SET description = CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname),
+    SET description = CONCAT(UPPER(rtype), ' ', quote_ident(sname), '.', quote_ident(rname),
       ' requires SQL Mode ', quote_ident(smode));
   END IF;
 
@@ -511,7 +511,7 @@ BEGIN
 
   IF NOT _has_routine(sname, rname, 'FUNCTION') THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Function ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
+      diag(CONCAT(UPPER(rtype),' ', quote_ident(sname), '.', quote_ident(rname), ' does not exist')));
   END IF;
 
   RETURN ok(_routine_has_sql_mode(sname, rname, rtype, smode), description);
@@ -542,7 +542,7 @@ BEGIN
 END //
 
 DROP FUNCTION IF EXISTS routine_sha1_is //
-CREATE FUNCTION routine_sha1_is(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), sha1 VARCHAR(32), description TEXT)
+CREATE FUNCTION routine_sha1_is(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), sha1 VARCHAR(40), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 COMMENT 'Get the SHA1 value of a routine body to compare against a previous value.'
