@@ -59,6 +59,7 @@ END //
 DROP FUNCTION IF EXISTS _schema_collation_is //
 CREATE FUNCTION _schema_collation_is(sname VARCHAR(64))
 RETURNS VARCHAR(32)
+DETERMINISTIC
 COMMENT 'Internal function to get the default collation for a named schema.'
 BEGIN
   DECLARE ret VARCHAR(32);
