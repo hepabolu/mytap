@@ -124,9 +124,10 @@ BEGIN
 
   SET valid = etype;
 
-  IF NOT _has_schema(sname) THEN
+  IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
+      diag(CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
+        ' does not exist')));
   END IF;
 
   RETURN eq(_event_type(sname, ename), etype, description);
@@ -197,10 +198,22 @@ CREATE FUNCTION event_interval_field_is(sname VARCHAR(64), ename VARCHAR(64), if
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+  DECLARE valid ENUM('YEAR','QUARTER','MONTH','DAY','HOUR','MINUTE ',
+              'WEEK','SECOND','YEAR_MONTH','DAY_HOUR','DAY_MINUTE',
+	      'DAY_SECOND','HOUR_MINUTE','HOUR_SECOND','MINUTE_SECOND');
+  
+  DECLARE CONTINUE HANDLER FOR 1265
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag('Event Interval must be { YEAR | QUARTER | MONTH | DAY | HOUR | MINUTE |
+              WEEK | SECOND | YEAR_MONTH | DAY_HOUR | DAY_MINUTE |
+              DAY_SECOND | HOUR_MINUTE | HOUR_SECOND | MINUTE_SECOND }'));
+  
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Interval Field ', qv(ifield));
   END IF;
+
+  SET valid = ifield;
 
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
@@ -236,18 +249,26 @@ CREATE FUNCTION event_status_is(sname VARCHAR(64), ename VARCHAR(64), stat VARCH
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+  DECLARE valid ENUM('ENABLED','DISABLED','SLAVESIDE DISABLED');
+  
+  DECLARE CONTINUE HANDLER FOR 1265
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag('Event Status must be { ENABLED | DISABLED | SLAVESIDE DISABLED }'));
+
   IF description = '' THEN
     SET description = CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
       ' should have Status ', qv(stat));
   END IF;
 
+  SET valid = stat;
+
   IF NOT _has_event(sname,ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('Event ', quote_ident(sname), '.', quote_ident(ename),
         ' does not exist')));
-    END IF;
+  END IF;
 
-    RETURN eq(_event_status(sname, ename), stat, description);
+  RETURN eq(_event_status(sname, ename), stat, description);
 END //
 
 
