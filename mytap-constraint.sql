@@ -11,7 +11,7 @@ CREATE FUNCTION _has_constraint(sname VARCHAR(64), tname VARCHAR(64), cname VARC
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
-  DECLARE ret BOOLEAN;
+  DECLARE ret INT;
 
   SELECT COUNT(*) INTO ret
   FROM `information_schema`.`table_constraints`
@@ -64,6 +64,25 @@ END //
 
 /********************************************************************************/
 
+
+DROP FUNCTION IF EXISTS _has_constraint_type //
+CREATE FUNCTION _has_constraint_type(sname VARCHAR(64), tname VARCHAR(64), ctype VARCHAR(64))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+  DECLARE ret INT;
+
+  SELECT COUNT(*) INTO ret
+  FROM `information_schema`.`table_constraints`
+  WHERE `constraint_schema` = sname
+  AND `table_name` = tname
+  AND `constraint_type` = ctype;
+
+  RETURN IF(ret > 0 , 1, 0);
+END //
+
+
+
 -- PRIMARY KEY exists
 DROP FUNCTION IF EXISTS has_pk //
 CREATE FUNCTION has_pk(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
@@ -81,7 +100,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(_has_constraint(sname, tname, 'PRIMARY KEY'), description);
+  RETURN ok(_has_constraint(sname, tname, 'PRIMARY'), description);
 END //
 
 
@@ -100,8 +119,8 @@ BEGIN
       diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
   END IF;
-
-  RETURN ok(NOT _has_constraint(sname, tname, 'PRIMARY KEY'), description);
+  -- PK is ALWAYS called PRIMARY but could have used _has_constraint_type here
+  RETURN ok(NOT _has_constraint(sname, tname, 'PRIMARY'), description);
 END //
 
 -- Loose check on the existence of an FK on the table
@@ -121,7 +140,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(_has_constraint(sname, tname, 'FOREIGN KEY'), description);
+  RETURN ok(_has_constraint_type(sname, tname, 'FOREIGN KEY'), description);
 END //
 
 DROP FUNCTION IF EXISTS hasnt_fk //
@@ -140,7 +159,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(NOT _has_constraint(sname, tname, 'FOREIGN KEY'), description);
+  RETURN ok(NOT _has_constraint_type(sname, tname, 'FOREIGN KEY'), description);
 END //
 
 -- Check composition of an index is unique
@@ -176,6 +195,11 @@ CREATE FUNCTION col_is_unique(sname VARCHAR(64), tname VARCHAR(64), want TEXT, d
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+  -- quote a single identifier if the user forgot
+  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
+    SET want = CONCAT('`', want, '`');
+  END IF;
+
   IF description = '' THEN
     SET description = CONCAT('Unique Index for ', quote_ident(sname), '.', quote_ident(tname),
       ' should exist on ', want);
@@ -185,11 +209,6 @@ BEGIN
     RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist')));
-  END IF;
-
-  -- quote a single identifier if the user forgot
-  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
-    SET want = CONCAT('`', want, '`');
   END IF;
   
   RETURN ok(_col_is_unique( sname, tname, want), description);
@@ -229,6 +248,10 @@ CREATE FUNCTION col_is_pk(sname VARCHAR(64), tname VARCHAR(64), want TEXT, descr
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
+    SET want = CONCAT('`', want, '`'); --  quote_ident(want);
+  END IF;
+
   IF description = '' THEN
     SET description = CONCAT('Primary Key for ', quote_ident(sname), '.', quote_ident(tname),
       ' should exist on ', want);
@@ -238,10 +261,6 @@ BEGIN
     RETURN CONCAT(ok(FALSE, description), '\n',
       diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
       ' does not exist')));
-  END IF;
-
-  IF NOT LOCATE(',', want) AND NOT LOCATE('`', want) THEN
-    SET want = CONCAT('`', want, '`'); --  quote_ident(want);
   END IF;
 
   RETURN ok(_col_is_pk( sname, tname, want), description);
@@ -418,16 +437,16 @@ BEGIN
     (
       SELECT kc.`constraint_schema` AS `csch`,
              kc.`table_name` AS `ctab`,
-             GROUP_CONCAT(kc.`column_name` ORDER BY kc.`ordinal_position`) AS `ccol`,
+             GROUP_CONCAT(CONCAT('`',kc.`column_name`,'`') ORDER BY kc.`ordinal_position`) AS `cols1`,
              kc.`referenced_table_schema` AS `usch`,
              kc.`referenced_table_name` AS `utab`,
-             GROUP_CONCAT(kc.`referenced_column_name` ORDER BY `position_in_unique_constraint`) AS `ucol`
+             GROUP_CONCAT(CONCAT('`',kc.`referenced_column_name`,'`') ORDER BY `position_in_unique_constraint`) AS `cols2`
       FROM `information_schema`.`key_column_usage` kc 
-      WHERE kc.`constraint_schema` = @csch AND kc.`referenced_table_schema` = @usch
-      AND kc.`table_name` = @ctab AND kc.`referenced_table_name` = @utab
-      GROUP BY `csch`,`ctab`,`usch`,`utab`
-      HAVING GROUP_CONCAT(kc.`column_name` ORDER BY kc.`ordinal_position`) =
-             GROUP_CONCAT(kc.`referenced_column_name` ORDER BY `position_in_unique_constraint`)
+      WHERE kc.`constraint_schema` = csch AND kc.`referenced_table_schema` = usch
+      AND kc.`table_name` = ctab AND kc.`referenced_table_name` = utab
+      GROUP BY 1,2,4,5
+      HAVING GROUP_CONCAT(CONCAT('`',kc.`column_name`,'`') ORDER BY kc.`ordinal_position`) = ccol
+         AND GROUP_CONCAT(CONCAT('`',kc.`referenced_column_name`,'`') ORDER BY `position_in_unique_constraint`) = ucol
     ) fkey;
 
   RETURN COALESCE(ret,0);
@@ -436,26 +455,37 @@ END //
 -- check that a foreign key points to the correct table and indexed columns key
 -- cname and uname will likly be single columns but they may not be, the index
 -- references will therefore have to be resolved before they can be compared
+
+-- ccols an ucols must be quoted for comparison!
 DROP FUNCTION IF EXISTS fk_ok //
 CREATE FUNCTION fk_ok(csch VARCHAR(64), ctab VARCHAR(64), ccol TEXT,
                       usch VARCHAR(64), utab VARCHAR(64), ucol TEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
+
+  IF NOT LOCATE(',', ccol) AND NOT LOCATE('`', ccol) THEN
+    SET ccol = CONCAT('`', ccol, '`');
+  END IF;
+
+  IF NOT LOCATE(',', ucol) AND NOT LOCATE('`', ucol) THEN
+    SET ucol = CONCAT('`', ucol, '`');
+  END IF;
+
   IF description = '' THEN
-    SET description = CONCAT('Constraint Foreign Key ', quote_ident(ctab), '(', quote_ident(ccol),
-      ') should reference ' , quote_ident(utab), '(', quote_ident(ucol), ')');
+    SET description = CONCAT('Constraint Foreign Key ', quote_ident(ctab), '(', ccol,
+      ') should reference ' , quote_ident(utab), '(', ucol, ')');
   END IF;
 
   IF NOT _has_table(csch, ctab) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Table ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Table ', quote_ident(csch), '.', quote_ident(ctab),
         ' does not exist')));
   END IF;
 
   IF NOT _has_table(usch, utab) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Table ', quote_ident(tname), '.', quote_ident(cname),
+      diag(CONCAT('Table ', quote_ident(usch), '.', quote_ident(utab),
         ' does not exist')));
   END IF;
 
