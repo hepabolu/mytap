@@ -44,7 +44,7 @@ RETURNS TEXT
 DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = concat('Collation ', quote_ident(cname), '.', ' should not be available');
+    SET description = concat('Collation ', quote_ident(cname), ' should not be available');
   END IF;
 
   RETURN ok(NOT _has_collation(cname), description);
