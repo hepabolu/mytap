@@ -36,12 +36,12 @@ DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
-      ' should be exist on ' , want);
+      ' should exist on ' , want);
   END IF;
 
-  IF NOT _has_table(sname, tname) THEN
-    RETURN CONCAT( ok(FALSE, description), '\n',
-      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+  IF NOT _has_index(sname, tname, iname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
         ' does not exist' )));
   END IF;
 
@@ -125,7 +125,7 @@ RETURNS TEXT
 DETERMINISTIC
 BEGIN
   IF description = '' THEN
-    SET description = CONCAT('Index ', quote_ident(sname), '.', quote_ident(iname),
+    SET description = CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname),
       ' should exist');
   END IF;
 
@@ -197,6 +197,8 @@ BEGIN
         'does not exist' )));
   END IF;
 
+
+  -- REM index names a 
   IF NOT _has_index( sname, tname, iname ) THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
       diag(CONCAT('Index ', quote_ident(tname), '.', quote_ident(iname), 
@@ -204,50 +206,6 @@ BEGIN
   END IF;
 
   RETURN eq(_index_type( sname, tname, iname), itype, description);
-END //
-
--- is the named index unique, irrespective of composition 
-DROP FUNCTION IF EXISTS _index_is_unique //
-CREATE FUNCTION _index_is_unique(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))
-RETURNS BOOLEAN
-DETERMINISTIC
-BEGIN
-  DECLARE ret BOOLEAN;
-
-  SELECT `non_unique` INTO ret
-  FROM `information_schema`.`statistics`
-  WHERE `table_schema` = sname
-  AND `table_name` = tname
-  AND `index_name` = iname
-  LIMIT 1; -- for multi-col index
-
-  RETURN NOT ret;
-END //
-
-DROP FUNCTION IF EXISTS index_is_unique //
-CREATE FUNCTION index_is_unique(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64), description TEXT)
-RETURNS TEXT
-DETERMINISTIC
-BEGIN
-  IF description = '' THEN
-    SET description = CONCAT('Index ', quote_ident(iname), ' on ',
-      quote_ident(sname), '.', quote_ident(tname),
-        ' should be Unique');
-  END IF;
-
-  IF NOT _has_table(sname, tname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
-        ' does not exist' )));
-  END IF;
-
-  IF NOT _has_index( sname, tname, iname ) THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Index ', quote_ident(sname), '.', quote_ident(iname),
-        ' does not exist')));
-  END IF;
-
-  RETURN ok(_index_is_unique( sname, tname, iname), description);
 END //
 
 
@@ -330,7 +288,7 @@ BEGIN
       ' should have the correct indexes');
    END IF;
     
-  IF NOT _has_table( sname, tname ) THEN
+  IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
       diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
         ' does not exist' )));
