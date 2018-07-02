@@ -8,15 +8,14 @@ DROP FUNCTION IF EXISTS _has_table //
 CREATE FUNCTION _has_table(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS BOOLEAN
 DETERMINISTIC
-COMMENT 'Internal boolean test for the existence of a named table within the given schema.'
+COMMENT 'Internal boolean test for the existence of a named table/view within the given schema.'
 BEGIN
   DECLARE ret BOOLEAN;
 
   SELECT 1 INTO ret
   FROM `information_schema`.`tables`
   WHERE `table_name` = tname
-  AND `table_schema` = sname
-  AND `table_type` = 'BASE TABLE';
+  AND `table_schema` = sname;
 
   RETURN COALESCE(ret, 0);
 END //
@@ -94,7 +93,7 @@ BEGIN
 
   IF NOT _has_engine(ename) THEN
     RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Storare Engine ', quote_ident(ename), ' is not available')));
+      diag(CONCAT('Storage Engine ', quote_ident(ename), ' is not available')));
   END IF;
 
   RETURN eq(_table_engine(sname, tname), ename , description);
