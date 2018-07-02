@@ -5,6 +5,8 @@
 
 /************************************************************************************/
 
+USE tap;
+
 DELIMITER //
 
 -- _has_trigger( schema, table, trigger, description )
@@ -45,7 +47,7 @@ BEGIN
 END //
 
 
--- has_trigger( schema, table, trigger, description)
+-- hasnt_trigger( schema, table, trigger, description)
 DROP FUNCTION IF EXISTS hasnt_trigger //
 CREATE FUNCTION hasnt_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
 RETURNS TEXT
@@ -53,7 +55,7 @@ DETERMINISTIC
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Trigger ', quote_ident(tname), '.', quote_ident(trgr),
-      ' should exist');
+      ' should not exist');
   END IF;
 
   IF NOT _has_table(sname, tname) THEN
