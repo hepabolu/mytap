@@ -34,6 +34,12 @@ BEGIN
       quote_ident(tname), '.', quote_ident(cname), ' should exist');
   END IF;
 
+  IF NOT _has_table(sname, tname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+        ' does not exist')));
+  END IF;
+
   RETURN ok(_has_column(sname, tname, cname), description);
 END //
 
@@ -50,7 +56,13 @@ BEGIN
       quote_ident(tname), '.', quote_ident(cname), ' should not exist');
   END IF;
 
-  RETURN ok(NOT _has_column(sname, tname, cname), description);
+  IF NOT _has_table(sname, tname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+        ' does not exist')));
+  END IF;
+
+RETURN ok(NOT _has_column(sname, tname, cname), description);
 END //
 
 
@@ -355,12 +367,6 @@ BEGIN
         pos, ' in Index ', quote_ident(kname));
   END IF;
 
-  IF NOT _col_has_named_index(sname, tname, cname, kname) THEN
-    RETURN CONCAT(ok(FALSE, description), '\n',
-        diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
-          ' should have Index Key ', quote_ident(kname))));
-    END IF;
-
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
       diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -382,19 +388,14 @@ BEGIN
 
   IF description = '' THEN
     SET description = CONCAT('Column ',
-      quote_ident(tname), '.', quote_ident(cname), ' should not have position ', position, ' in INDEX ', quote_ident(kname));
+      quote_ident(tname), '.', quote_ident(cname), ' should not have position ',
+        pos, ' in INDEX ', quote_ident(kname));
   END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
       diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' does not exist')));
-  END IF;
-
-  IF NOT _col_has_named_index(sname, tname, cname, kname) THEN
-    RETURN CONCAT(ok(FALSE,description), '\n',
-      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
-        ' should have INDEX key ', quote_ident(kname))));
   END IF;
 
   RETURN ok(NOT _col_has_pos_in_named_index(sname, tname, cname, kname, pos), description);
@@ -422,7 +423,38 @@ BEGIN
   RETURN COALESCE(ret, 0);
 END //
 
--- data_type
+/* data_type
+
++------------+
+| data_type  |
++------------+
+| varchar    |
+| bigint     |
+| longtext   |
+| datetime   |
+| int        |
+| tinyint    |
+| decimal    |
+| double     |
+| mediumint  |
+| text       |
+| varbinary  |
+| timestamp  |
+| char       |
+| smallint   |
+| longblob   |
+| mediumblob |
+| date       |
+| enum       |
+| time       |
+| year       |
+| set        |
+| float      |
+| mediumtext |
+| blob       |
+| geometry   |
++------------+
+*/
 DROP FUNCTION IF EXISTS col_has_type //
 CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64), description TEXT)
 RETURNS TEXT
@@ -446,9 +478,53 @@ END //
 
 /*************************************************************************************/
 
+-- data type
+DROP FUNCTION IF EXISTS _data_type //
+CREATE FUNCTION _data_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS LONGTEXT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE ret LONGTEXT;
+
+  SELECT `data_type` INTO ret
+  FROM `information_schema`.`columns`
+  WHERE `table_schema` = sname
+  AND `table_name` = tname
+  AND `column_name` = cname;
+   
+  RETURN COALESCE(ret, NULL);
+END //
+
+-- col_has_type is not available in pgTAP. The convention would have 
+-- col_type_is which would output expected and actual for failed tests
+-- Variations on a theme. This could be an alias to col_has_type but
+-- instead uses the eq function rather that the ok function. Either way,
+-- it comes top the same thing.
+DROP FUNCTION IF EXISTS col_data_type_is //
+CREATE FUNCTION col_data_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype LONGTEXT, description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+CONTAINS SQL
+BEGIN
+  IF description = '' THEN
+    SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+      ' should have Data Type ', qv(dtype));
+  END IF;
+
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description),'\n',
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+        ' does not exist')));
+  END IF;
+
+  RETURN eq(_data_type(sname, tname, cname), dtype, description);
+END //
+
+
 -- column type
-DROP FUNCTION IF EXISTS _col_type //
-CREATE FUNCTION _col_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+DROP FUNCTION IF EXISTS _column_type //
+CREATE FUNCTION _column_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS LONGTEXT
 DETERMINISTIC
 READS SQL DATA
@@ -464,10 +540,10 @@ BEGIN
   RETURN COALESCE(ret, NULL);
 END //
 
--- col_has_type is not available in pgTAP. The convention would have 
--- col_type_is which would output expected and actual for failed tests
-DROP FUNCTION IF EXISTS col_type_is //
-CREATE FUNCTION col_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT)
+-- col_column_type is not available in pgTAP. The convention would have 
+-- column_type_is which would output expected and actual for failed tests
+DROP FUNCTION IF EXISTS col_column_type_is //
+CREATE FUNCTION col_column_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 CONTAINS SQL
@@ -483,7 +559,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN eq(_col_type(sname, tname, cname), ctype, description);
+  RETURN eq(_column_type(sname, tname, cname), ctype, description);
 END //
 
 
@@ -623,15 +699,15 @@ BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' should have Extra ', quote_ident(cextra));
-    END IF;
+  END IF;
 
-    IF NOT _has_column(sname, tname, cname) THEN
-      RETURN CONCAT(ok(FALSE, description), '\n',
-        diag(CONCAT('Column ', quote_ident(sname), '.', quote_ident(tname),
-          '.', quote_ident(cname), ' does not exist')));
-    END IF;
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+       diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+         ' does not exist')));
+  END IF;
 
-    RETURN eq(_col_extra_is(sname, tname, cname), cextra, description);
+  RETURN eq(_col_extra_is(sname, tname, cname), cextra, description);
 END //
 
 
