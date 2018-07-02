@@ -790,13 +790,13 @@ DECLARE res BOOLEAN DEFAULT TRUE;
   IF extras <> '' THEN
     SET res = FALSE;
     SET msg = CONCAT('\n', CONCAT('\n'
-      '    Extra ', what, ':\n\t' , REPLACE( extras, ',', '\n\t')));
+      '    Extra ', what, ':\n       ' , REPLACE( extras, ',', '\n       ')));
   END IF;
     
   IF missing <> '' THEN
     SET res = FALSE;
     SET msg = CONCAT(msg, CONCAT('\n'
-      '    Missing ', what, ':\n\t' , REPLACE( missing, ',', '\n\t')));
+      '    Missing ', what, ':\n       ' , REPLACE( missing, ',', '\n       ')));
   END IF;
 
   RETURN CONCAT(ok(res, description), diag(msg));
