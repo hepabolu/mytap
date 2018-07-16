@@ -555,7 +555,7 @@ SELECT eq( bendSpoon(), 'bent', 'Spoon bending, how original' );
 ```
 
 With `todo()`, `@how_many` specifies how many tests are expected to fail.
-pgTAP will run the tests normally, but print out special flags indicating they
+myTAP will run the tests normally, but print out special flags indicating they
 are "todo" tests. The test harness will interpret these failures as ok. Should
 any todo test pass, the harness will report it as an unexpected success. You
 then know that the thing you had todo is done and can remove the call to
@@ -646,7 +646,7 @@ SELECT CASE WHEN mysql_version() < 501000
     ELSE ok( ExtractValue('<a><b/></a>', 'count(/a/b)'), 'ExtractValue should work')
 END;
 ```
-The revision level is in the hundres position, the minor version in the ten
+The revision level is in the hundreds position, the minor version in the ten
 thousands position, and the major version in the hundred thousands position
 and above (assuming MySQL 10 is ever released, it will be in the millions
 position).
