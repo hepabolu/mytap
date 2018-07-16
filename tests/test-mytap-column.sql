@@ -10,7 +10,7 @@ SET @mode = (SELECT @@session.sql_mode);
 SET @@session.sql_mode = 'STRICT_ALL_TABLES';
 
 
-SELECT tap.plan(204);
+SELECT tap.plan(222);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -30,7 +30,8 @@ CREATE TABLE taptest.sometab(
     plain   INT,
     enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
     KEY `WeirdIndexName` (`myNum`),
-    KEY `multiIndex` (`myNum`,`mydate`)
+    KEY `multiIndex` (`myNum`,`mydate`),
+    UNIQUE KEY (plain)
 ) ENGINE Innodb CHARACTER SET utf8 COLLATE utf8_general_ci; 
 
 CREATE OR REPLACE VIEW taptest.myView as
@@ -581,6 +582,127 @@ SELECT tap.check_test(
   0
 );
 
+/****************************************************************************/
+-- Test col_has_unique_index
+
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'myNum', ''),
+    false,
+    'col_has_unique_index() non unique index',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'myNum', 'my own description'),
+    false,
+    'col_has_unique_index() user supplied description',
+    'my own description',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'plain', ''),
+    true,
+    'col_has_unique_index() default description',
+    'Column sometab.plain should have unique INDEX',
+    null,
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'plain', ''),
+    true,
+    'col_has_unique_index() with unique index key',
+    null,
+    null,
+    0
+);
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'name', ''),
+    false,
+    'col_has_unique_index() without unique key',
+    null,
+    null,
+    0
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'foo', ''),
+    false,
+    'col_has_unique_index() diagnostic test',
+    null,
+    'Column sometab.foo does not exist',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_unique_index('taptest', 'sometab', 'id', ''),
+    false,
+    'col_has_unique_index() has primary key',
+    null,
+    null,
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_hasnt_unique_index
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index('taptest', 'sometab', 'enumcol', ''),
+    true,
+    'col_hasnt_unique_index() correct specification',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index('taptest', 'sometab', 'plain', ''),
+    false,
+    'col_hasnt_unique_index() incorrect specification',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'myNum', 'my own description' ),
+    true,
+    'col_hasnt_unique_index() description supplied',
+    'my own description',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index('taptest', 'sometab', 'myNum', ''),
+    true,
+    'col_hasnt_unique_index() default description',
+    'Column sometab.myNum should not have UNIQUE index',
+    null,
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index('taptest', 'sometab', 'foo', ''),
+    false,
+    'col_hasnt_unique_index() nonexistent column diagnostic',
+    null,
+    'Column sometab.foo does not exist',
+    0
+);
 
 
 /****************************************************************************/

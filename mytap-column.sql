@@ -304,7 +304,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(_col_has_unique_index(dbname, tname, cname), description);
+  RETURN ok(_col_has_unique_index(sname, tname, cname), description);
 END //
 
 -- col_hasnt_unique_index( schema, table, column, keyname )
@@ -341,7 +341,7 @@ BEGIN
 
   SELECT true into ret
   FROM `information_schema`.`statistics`
-  WHERE `table_schema` = dbname
+  WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname
   AND `index_name` <> 'PRIMARY'
@@ -360,7 +360,7 @@ READS SQL DATA
 BEGIN
   IF description = '' THEN
     SET description = concat('Column ',
-      quote_ident(tname), '.', quote_ident(cname), ' should have non unique INDEX' );
+      quote_ident(tname), '.', quote_ident(cname), ' should have non unique INDEX');
   END IF;
 
   IF NOT _has_column(sname, tname, cname) THEN
@@ -369,7 +369,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok( _col_has_non_unique_index(dbname, tname, cname), description );
+  RETURN ok( _col_has_non_unique_index(sname, tname, cname), description);
 END //
 
 -- col_hasnt_non_unique_index( schema, table, column, keyname )
