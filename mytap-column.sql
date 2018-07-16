@@ -263,6 +263,137 @@ END //
 
 
 /****************************************************************************/
+
+-- _col_has_unique_index (schema, table, column )
+
+DROP FUNCTION IF EXISTS _col_has_unique_index //
+CREATE FUNCTION _col_has_unique_index (sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE ret BOOLEAN;
+
+  SELECT true into ret
+  FROM `information_schema`.`statistics`
+  WHERE `table_schema` = sname
+  AND `table_name` = tname
+  AND `column_name` = cname
+  AND `index_name` <> 'PRIMARY'
+  AND `non_unique` = 0
+  limit 1; /* only use the first entry */
+
+  RETURN coalesce(ret, false);
+END //
+
+-- col_has_unique_index ( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_has_unique_index //
+CREATE FUNCTION col_has_unique_index (sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  IF description = '' THEN
+    SET description = concat('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should have unique INDEX');
+  END IF;
+
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+        ' does not exist')));
+  END IF;
+
+  RETURN ok(_col_has_unique_index(dbname, tname, cname), description);
+END //
+
+-- col_hasnt_unique_index( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_hasnt_unique_index //
+CREATE FUNCTION col_hasnt_unique_index (sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  IF description = '' THEN
+    SET description = concat('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should not have unique INDEX');
+  END IF;
+
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+        ' does not exist')));
+  END IF;
+
+  RETURN ok(NOT _col_has_unique_index(sname, tname, cname), description);
+END //
+
+/****************************************************************************/
+-- _col_has_non_unique_index (schema, table, column )
+
+DROP FUNCTION IF EXISTS _col_has_non_unique_index //
+CREATE FUNCTION _col_has_non_unique_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
+RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE ret BOOLEAN;
+
+  SELECT true into ret
+  FROM `information_schema`.`statistics`
+  WHERE `table_schema` = dbname
+  AND `table_name` = tname
+  AND `column_name` = cname
+  AND `index_name` <> 'PRIMARY'
+  AND `non_unique` = 1
+  limit 1; /* only use the first entry */
+
+  RETURN coalesce(ret, false);
+END //
+
+-- col_has_non_unique_index ( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_has_non_unique_index //
+CREATE FUNCTION col_has_non_unique_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  IF description = '' THEN
+    SET description = concat('Column ',
+      quote_ident(tname), '.', quote_ident(cname), ' should have non unique INDEX' );
+  END IF;
+
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+        ' does not exist')));
+  END IF;
+
+  RETURN ok( _col_has_non_unique_index(dbname, tname, cname), description );
+END //
+
+-- col_hasnt_non_unique_index( schema, table, column, keyname )
+DROP FUNCTION IF EXISTS col_hasnt_non_unique_index //
+CREATE FUNCTION col_hasnt_non_unique_index(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  IF description = '' THEN
+    SET description = concat('Column ',
+       quote_ident(tname), '.', quote_ident(cname), ' should not have non unique INDEX');
+  END IF;
+
+  IF NOT _has_column(sname, tname, cname) THEN
+    RETURN CONCAT(ok(FALSE,description), '\n',
+      diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
+        ' does not exist')));
+  END IF;
+
+  RETURN ok(NOT _col_has_non_unique_index(sname, tname, cname), descriptio);
+END //
+
+/****************************************************************************/
 -- _col_has_named_index (schema, table, column)
 
 DROP FUNCTION IF EXISTS _col_has_named_index //
@@ -402,11 +533,12 @@ BEGIN
 END //
 
 /****************************************************************************/
-
 -- _col_has_type (schema, table, column, type)
+-- This id the COLUMN type not the DATA type
+-- so, VARCHAR(64) rather than VARCHAR
 
 DROP FUNCTION IF EXISTS _col_has_type //
-CREATE FUNCTION _col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64))
+CREATE FUNCTION _col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64))
 RETURNS BOOLEAN
 DETERMINISTIC
 READS SQL DATA
@@ -418,7 +550,7 @@ BEGIN
   WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname
-  AND `data_type` = dtype;
+  AND `column_type` = ctype;
 
   RETURN COALESCE(ret, 0);
 END //
@@ -456,14 +588,14 @@ END //
 +------------+
 */
 DROP FUNCTION IF EXISTS col_has_type //
-CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64), description TEXT)
+CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 NO SQL
 BEGIN
   IF description = '' THEN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
-        ' should have Data Type ', qv(dtype));
+        ' should have Column Type ', qv(ctype));
     END IF;
  
   IF NOT _has_column(sname, tname, cname) THEN
@@ -472,7 +604,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(_col_has_type(sname, tname, cname, dtype), description);
+  RETURN ok(_col_has_type(sname, tname, cname, ctype), description);
 END //
 
 
@@ -769,7 +901,6 @@ END //
 
 
 /****************************************************************************/
-
 -- COLUMN COLLATION
 
 DROP FUNCTION IF EXISTS _col_collation //
@@ -915,6 +1046,5 @@ BEGIN
 
   RETURN _are('columns', extras, missing, description);
 END //
-
 
 DELIMITER ;

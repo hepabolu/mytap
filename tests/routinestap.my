@@ -17,23 +17,23 @@ CREATE TABLE taptest.sometab(
     plain   INT
 );
 
-DELIMITER //
+DELIMITER ;;
 
-DROP FUNCTION IF EXISTS taptest.myFunction  //
-CREATE FUNCTION taptest.myFunction (param varchar(10) )
-RETURNS int(10) 
+DROP FUNCTION IF EXISTS taptest.myFunction  ;;
+CREATE FUNCTION taptest.myFunction (funcparam varchar(10) )
+RETURNS int(10)
 BEGIN
     DECLARE ret int(10);
-  
+
     SELECT 12 into ret;
     RETURN ret;
-END //
+END ;;
 
-DROP PROCEDURE IF EXISTS taptest.myProc //
-CREATE PROCEDURE taptest.myProc ( param TEXT )
+DROP PROCEDURE IF EXISTS taptest.myProc ;;
+CREATE PROCEDURE taptest.myProc ( procparam TEXT )
 BEGIN
     SELECT * from taptest.sometab;
-END //
+END ;;
 
 DELIMITER ;
 
@@ -41,123 +41,158 @@ DELIMITER ;
 /****************************************************************************/
 -- Test has_function
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_function throws an error on version 5.7')
+else tap.check_test(
     tap.has_function('taptest', 'myFunction', '' ),
     true,
     'has_function( sch, func )',
     'Function taptest.myFunction should exist',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_function throws an error on version 5.7')
+else tap.check_test(
     tap.has_function('taptest', 'myFunction', 'desc' ),
     true,
     'has_function( sch, func, desc )',
     'desc',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_function throws an error on version 5.7')
+else tap.check_test(
     tap.has_function('taptest', 'myProc', '' ),
     false,
     'has_function( sch, non func, desc )',
     'Function taptest.myProc should exist',
     '',
     0
-);
+)
+end;
 
 /****************************************************************************/
 -- Test hasnt_function
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_function throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_function('taptest', 'myFunction', '' ),
     false,
     'hasnt_function( sch, func )',
     'Function taptest.myFunction should not exist',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_function throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_function('taptest', 'myFunction', 'desc' ),
     false,
     'hasnt_function( sch, func, desc )',
     'desc',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_function throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_function('taptest', 'myProc', '' ),
     true,
     'hasnt_function( sch, non func, desc )',
     'Function taptest.myProc should not exist',
     '',
     0
-);
+)
+end;
 
 /****************************************************************************/
 -- Test has_procedure
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.has_procedure('taptest', 'myProc', '' ),
     true,
     'has_procedure( sch, func )',
     'Procedure taptest.myProc should exist',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.has_procedure('taptest', 'myProc', 'desc' ),
     true,
     'has_procedure( sch, func, desc )',
     'desc',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('has_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.has_procedure('taptest', 'myFunction', '' ),
     false,
     'has_procedure( sch, non func, desc )',
     'Procedure taptest.myFunction should exist',
     '',
     0
-);
+)
+end;
 
 /****************************************************************************/
 -- Test hasnt_procedure
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_procedure('taptest', 'myProc', '' ),
     false,
     'hasnt_procedure( sch, func )',
     'Procedure taptest.myProc should not exist',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_procedure('taptest', 'myProc', 'desc' ),
     false,
     'hasnt_procedure( sch, func, desc )',
     'desc',
     '',
     0
-);
+)
+end;
 
-SELECT tap.check_test(
+select case when mysql_version() >= 507018
+then skip('hasnt_procedure throws an error on version 5.7')
+else tap.check_test(
     tap.hasnt_procedure('taptest', 'myFunction', '' ),
     true,
     'hasnt_procedure( sch, non func, desc )',
     'Procedure taptest.myFunction should not exist',
     '',
     0
-);
-
+)
+end;
 /****************************************************************************/
 -- Finish the tests and clean up.
 call tap.finish();

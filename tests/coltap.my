@@ -2,9 +2,11 @@
 
 BEGIN;
 
+
 SET SESSION sql_mode = '';
 
-SELECT tap.plan(321);
+
+SELECT tap.plan(357);
 -- SELECT * from no_plan();
 
 DROP DATABASE IF EXISTS taptest;
@@ -19,11 +21,12 @@ CREATE TABLE taptest.sometab(
     numb    FLOAT(10, 2) DEFAULT NULL,
     myNum   INT(8) DEFAULT 24,
     myat    TIMESTAMP DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,
-    mydate  DATE DEFAULT '0000-00-00',
+    mydate  DATE DEFAULT '1900-01-01',
     plain   INT,
     enumCol enum('VAL1', 'VAL2', 'VAL3') NOT NULL,
     KEY `WeirdIndexName` (`myNum`),
-    KEY `multiIndex` (`myNum`,`mydate`)
+    KEY `multiIndex` (`myNum`,`mydate`),
+    UNIQUE KEY `unique` (`plain`)
 );
 
 CREATE OR REPLACE VIEW taptest.myView as select myNum as viewNum, plain from taptest.sometab;
@@ -408,7 +411,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( 'taptest', 'sometab', 'myNum', '' ),
     true,
     'col_has_index_key( sch, tab, col has index key)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -427,7 +430,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( database(), 'sometab', 'myNum', '' ),
     true,
     'col_has_index_key( current database, tab, col has index key)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -439,7 +442,7 @@ SELECT tap.check_test(
     tap.col_has_index_key( 'taptest', 'sometab', 'name', '' ),
     false,
     'col_has_index_key( sch, tab, col without any key)',
-    'Column sometab.name should have index key',
+    'Column sometab.name should have INDEX key',
     '',
     0
 );
@@ -532,13 +535,142 @@ SELECT tap.check_test(
 
 /****************************************************************************/
 
+-- Test col_has_unique_index
+
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'myNum', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col has not unique index)',
+    'Column sometab.myNum should have unique INDEX',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'myNum', 'my own description' ),
+    false,
+    'col_has_unique_index( sch, tab, col has not unique index, desc)',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_has_unique_index( database(), 'sometab', 'plain', '' ),
+    true,
+    'col_has_unique_index( current database, tab, col has unique index key)',
+    'Column sometab.plain should have unique index',
+    '',
+    0
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'name', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col without any key)',
+    'Column sometab.name should have unique INDEX',
+    '',
+    0
+);
+
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'foo', '' ),
+    false,
+    'col_has_unique_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is correctly detected as non-index
+SELECT tap.check_test(
+    tap.col_has_unique_index( 'taptest', 'sometab', 'id', '' ),
+    false,
+    'col_has_unique_index( sch, tab, col has primary key)',
+    'Column sometab.id should have unique INDEX',
+    '',
+    0
+);
+
+/****************************************************************************/
+
+-- Test col_hasnt_unique_index
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'plain', '' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, col has unique index)',
+    'Column sometab.plain should not have unique INDEX',
+    '',
+    0
+);
+
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'plain', 'my own description' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, col has unique index, desc)',
+    'my own description',
+    '',
+    0
+);
+
+use taptest;
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( database(), 'sometab', 'myNum', '' ),
+    true,
+    'col_hasnt_unique_index( current database, tab, col has non unique key)',
+    'Column sometab.myNum should not have unique INDEX',
+    '',
+    0
+);
+use tap;
+
+
+-- Make sure failure is correct.
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'name', '' ),
+    true,
+    'col_hasnt_unique_index( sch, tab, col without any key)',
+    'Column sometab.name should not have unique INDEX',
+    '',
+    0
+);
+
+-- Make sure nonexisting column is correctly detected
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'foo', '' ),
+    false,
+    'col_hasnt_unique_index( sch, tab, non existing col )',
+    'Error #     Column taptest.sometab.foo does not exist',
+    '',
+    0
+);
+
+-- Make sure primary key is exempt from 'unique keys'
+SELECT tap.check_test(
+    tap.col_hasnt_unique_index( 'taptest', 'sometab', 'id', '' ),
+    true,
+    'col_hasnt_unique_index( sch, tab, col has primary key)',
+    'Column sometab.id should not have unique INDEX',
+    '',
+    0
+);
+
+/****************************************************************************/
+
 -- Test col_has_named_index
 
 SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'myNum', '', '' ),
     false,
     'col_has_named_index( sch, tab, col has different index key name)',
-    'Column sometab.myNum should have index key',
+    'Column sometab.myNum should have INDEX key',
     '',
     0
 );
@@ -569,7 +701,7 @@ SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'name', '', '' ),
     false,
     'col_has_named_index( sch, tab, col without any key)',
-    'Column sometab.name should have index key',
+    'Column sometab.name should have INDEX key',
     '',
     0
 );
@@ -598,7 +730,7 @@ SELECT tap.check_test(
     tap.col_has_named_index( 'taptest', 'sometab', 'id', '', '' ),
     false,
     'col_has_named_index( sch, tab, col has primary key)',
-    'Column sometab.id should have index key',
+    'Column sometab.id should have INDEX key',
     '',
     0
 );
@@ -1050,10 +1182,10 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    col_default_is( 'taptest', 'sometab', 'mydate', '0000-00-00', 'mydate should default to 0000-00-00' ),
+    col_default_is( 'taptest', 'sometab', 'mydate', '1900-01-01', 'mydate should default to 1900-01-01' ),
     true,
     'col_default_is( sch, tab, col, zero date def, desc )',
-    'mydate should default to 0000-00-00',
+    'mydate should default to 1900-01-01',
     '',
     0
 );

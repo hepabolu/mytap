@@ -703,18 +703,18 @@ SELECT tap.check_test(
 -- col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), dtype VARCHAR(64), description TEXT)
 
 SELECT tap.check_test(
-  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT', ''),
+  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT(8)', ''),
   true,
-  'col_has_type() TABLE column with correct specification INT',
+  'col_has_type() TABLE column with correct specification INT(8)',
   null,
   null,
   0
 );
 
 SELECT tap.check_test(
-  tap.col_has_type('taptest', 'myView', 'viewNum', 'INT', ''),
+  tap.col_has_type('taptest', 'myView', 'viewNum', 'INT(8)', ''),
   true,
-  'col_has_type() VIEW column with correct specification INT',
+  'col_has_type() VIEW column with correct specification INT(8)',
   null,
   null,
   0
@@ -723,7 +723,7 @@ SELECT tap.check_test(
 SELECT tap.check_test(
   tap.col_has_type('taptest', 'sometab', 'myNum', 'INTEGER', ''),
   false,
-  'col_has_type() INTEGER alias for INT column',
+  'col_has_type() INTEGER alias for INT(8) column',
   null,
   null,
   0
@@ -740,16 +740,16 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT', ''),
+  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT(8)', ''),
   true,
   'col_has_type() default description',
-  'Column sometab.myNum should have data type \'INT\'',
+  'Column sometab.myNum should have data type \'INT(8)\'',
   null,
   0
 );
 
 SELECT tap.check_test(
-  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT', 'desc'),
+  tap.col_has_type('taptest', 'sometab', 'myNum', 'INT(8)', 'desc'),
   true,
   'col_has_type() description supplied',
   'desc',
@@ -759,7 +759,7 @@ SELECT tap.check_test(
 
 
 SELECT tap.check_test(
-  tap.col_has_type('taptest', 'myView', 'myNum', 'INT', ''),
+  tap.col_has_type('taptest', 'myView', 'myNum', 'INT(8)', ''),
   false,
   'col_has_type() column not found diagnostic',
   null,
