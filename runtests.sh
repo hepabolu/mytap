@@ -1,33 +1,45 @@
 #!/bin/bash
 
-# shell script to run all tap tests
+while [[ "$#" > 0 ]]; do
+    case $1 in
+	-u|--user)
+	    SQLUSER="$2";
+	    shift
+	    ;;
+	-p|--password)
+	    SQLPASS="$2"
+	    shift
+	    ;;
+	-f|--filter)
+	    FILTER="$2"
+	    shift
+	    ;;
+	-h|--help)
+	    cat << EOF
+Usage:
+ runtest.sh [options]
 
-if (( $# < 2 )); then
-  echo ""
-  echo "$0 username password [--filter hastap|matching|eq|moretap|todotap|utils|viewtap|coltap|routinestap|triggertap]"
-  echo ""
-  exit 0
+Options:
+ -u, --user           MySQL username
+ -p, --password       MySQL password
+ -f, --filter         <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|routines|table|trigger|schemata|user|view>
+EOF
+	   exit 1 
+	   ;;
+	 *)     
+	   exit 1
+	   ;;
+    esac;
+    shift;
+done
+
+if [[ $SQLUSER != '' ]] && [[ $SQLPASS != '' ]]; then
+  MYSLOPTS="-u$SQLUSER -p$SQLPASS --disable-pager --batch --raw --skip-column-names --unbuffered"
+else
+  MYSLOPTS="--disable-pager --batch --raw --skip-column-names --unbuffered"
 fi
 
-
-MYSLOPTS="-u $USER -p$PASSW --disable-pager --batch --raw --skip-column-names --unbuffered"
-
-USER="$1"; shift
-PASSW="$1"; shift
-
-# find out if we want to filter to a specific set
-FILTER="$@"
-
-if [[ ${FILTER:0:8} = "--filter" ]]; then
-  # strip the --filter prefix
-  FILTER=${FILTER:8}
-
-  # reset to everything when the filter is empty
-  if [[ "$FILTER" == "" ]]; then
-    FILTER=0
-  fi
-else
-  # no filtering
+if [[ $FILTER == '' ]]; then
   FILTER=0
 fi
 
@@ -37,11 +49,6 @@ mysql $MYSLOPTS --execute 'source ./mytap.sql'
 if [[ $FILTER != 0 ]]; then
   echo "============= filtering ============="
   echo "$FILTER"
-fi
-
-if [[ $FILTER == 0 ]] || [[ $FILTER =~ "hastap" ]]; then
-  echo "============= hastap ============="
-  mysql $MYSLOPTS --database tap --execute 'source tests/hastap.my'
 fi
 
 if [[ $FILTER == 0 ]] || [[ $FILTER =~ "matching" ]]; then
@@ -104,7 +111,7 @@ if [[ $FILTER == 0 ]] || [[ $FILTER =~ "index" ]]; then
   mysql $MYSLOPTS --database tap --execute 'source tests/test-mytap-index.sql'
 fi
 
-if [[ $FILTER == 0 ]] || [[ $FILTER =~ "utils" ]]; then
+if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
   echo "============= partitions ============"
   mysql $MYSLOPTS --database tap --execute 'source tests/test-mytap-partition.sql'
 fi

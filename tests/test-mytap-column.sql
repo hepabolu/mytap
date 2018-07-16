@@ -743,7 +743,7 @@ SELECT tap.check_test(
   tap.col_has_type('taptest', 'sometab', 'myNum', 'INT(8)', ''),
   true,
   'col_has_type() default description',
-  'Column sometab.myNum should have data type \'INT(8)\'',
+  'Column sometab.myNum should have column type \'INT(8)\'',
   null,
   0
 );
