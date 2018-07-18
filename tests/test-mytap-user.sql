@@ -3,19 +3,65 @@ TAP Tests for user functions
 */
 
 BEGIN;
-
-SELECT tap.plan(44);
+CREATE DATABASE IF NOT EXISTS taptest;
 
 -- setup for tests
-DROP USER IF EXISTS '__tapuser__'@'localhost';
-CREATE USER '__tapuser__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'
-PASSWORD EXPIRE NEVER ACCOUNT UNLOCK;
+DELIMITER //
+DROP PROCEDURE IF EXISTS taptest.dropusers //
+CREATE PROCEDURE taptest.dropusers()
+DETERMINISTIC
+BEGIN
+  -- This procedure is only here in the event that the tests
+  -- fail due to a syntax error in which case IF EXISTS (> 5.6) will not work to tidy up
+  -- extant user records
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__tapuser__' AND host = 'localhost') > 0 THEN
+    DROP USER '__tapuser__'@'localhost';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__locked__' AND host = 'localhost') > 0 THEN
+    DROP USER '__locked__'@'localhost';
+  END IF;
+END //
 
-DROP USER IF EXISTS '__locked__'@'localhost';
-CREATE USER '__locked__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'
-PASSWORD EXPIRE INTERVAL 180 DAY ACCOUNT LOCK;
+DELIMITER ;
+
+CALL taptest.dropusers();
+DROP PROCEDURE IF EXISTS taptest.dropusers;
+
+DELIMITER //
+DROP PROCEDURE IF EXISTS taptest.createusers //
+CREATE PROCEDURE taptest.createusers()
+DETERMINISTIC
+BEGIN
+  -- This procedure allows create user syntax to accomodate changes in
+  -- CREATE USER in 5.7
+  DECLARE myver INT;
+
+  SET myver = (SELECT tap.mysql_version()); 
+  SET @sql1 = "CREATE USER '__tapuser__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'";
+  SET @sql2 = "CREATE USER '__locked__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'";
+
+  IF myver > 507000 THEN
+    SET @sql1 = CONCAT(@sql1, ' PASSWORD EXPIRE NEVER ACCOUNT UNLOCK');
+    SET @sql2 = CONCAT(@sql2, ' PASSWORD EXPIRE INTERVAL 180 DAY ACCOUNT LOCK');
+  END IF;
+
+  PREPARE stmt1 FROM @sql1;
+  EXECUTE stmt1;
+  DEALLOCATE PREPARE stmt1;
+
+  PREPARE stmt2 FROM @sql2;
+  EXECUTE stmt2;
+  DEALLOCATE PREPARE stmt2;
+
+END //
+
+DELIMITER ;
+
+CALL taptest.createusers();
+DROP PROCEDURE IF EXISTS taptest.createusers;
 
 
+SELECT tap.plan(44);
 
 /****************************************************************************/
 -- has_user(hname CHAR(60), uname CHAR(32), description TEXT)
@@ -102,199 +148,264 @@ SELECT tap.check_test(
 -- user_ok(hname CHAR(60), uname CHAR(32), description TEXT)
 -- account lock test
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+tap.check_test(
     tap.user_ok('localhost', '__tapuser__', ''),
     true,
     'user_ok() correct specification',
     null,
     null,
     0
-);
+)
+ELSE
+  tap.skip(1,'user_ok() requires MySQL version > 5.7')
+END ;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_ok('localhost', '__locked__', ''),
     false,
     'user_ok() locked user',
     null,
     null,
     0
-);
+)
+ELSE
+  tap.skip(1,'user_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_ok('localhost', '__tapuser__', ''),
     true,
     'user_ok() default description',
     'User \'__tapuser__\'@\'localhost\' should not be locked or have expired password',
     null,
     0
-);
+)
+ELSE
+  tap.skip(2,'user_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+tap.check_test(
     tap.user_ok('localhost', '__tapuser__', 'desc'),
     true,
     'user_ok() description supplied',
     'desc',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+tap.check_test(
     tap.user_ok('localhost', '__nouser__', ''),
     false,
     'user_ok() user not found diagnostic',
     null,
     'User \'__nouser__\'@\'localhost\' does not exist',
     0
-);
+)
+ELSE
+  tap.skip(2,'user_ok() requires MySQL version > 5.7')
+END;
 
 
 /****************************************************************************/
 -- user_not_ok(hname CHAR(60), uname CHAR(32), description TEXT)
 
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+tap.check_test(
     tap.user_not_ok('localhost', '__locked__', ''),
     true,
     'user_not_ok() correct specification',
     null,
     null,
     0
-);
+)
+ELSE
+  tap.skip(1,'user_not_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_not_ok('localhost', '__tapuser__', ''),
     false,
     'user_not_ok() unlocked user',
     null,
     null,
     0
-);
+)ELSE
+  tap.skip(1,'user_not_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_not_ok('localhost', '__locked__', ''),
     true,
     'user_not_ok() default description',
     'User \'__locked__\'@\'localhost\' should be locked out or have an expired password',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_not_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_not_ok('localhost', '__locked__', 'desc'),
     true,
     'user_not_ok() description supplied',
     'desc',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_not_ok() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT  CASE WHEN tap.mysql_version() > 507000 THEN
+tap.check_test(
     tap.user_not_ok('localhost', '__nouser__', ''),
     false,
     'user_not_ok() user not found diagnostic',
     null,
     'User \'__nouser__\'@\'localhost\' does not exist',
     0
-);
+)ELSE
+  tap.skip(2,'user_not_ok() requires MySQL version > 5.7')
+END;
 
 
 /****************************************************************************/
 -- user_has_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', ''),
     true,
     'user_has_lifetime() correct specification',
     null,
     null,
     0
-);
+)ELSE
+  tap.skip(1,'user_has_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_has_lifetime('localhost', '__tapuser__', ''),
     false,
     'user_has_lifetime() with no lifetime',
     null,
     null,
     0
-);
+)ELSE
+  tap.skip(1,'user_has_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', ''),
     true,
     'user_has_lifetime() default description',
     'User \'__locked__\'@\'localhost\' Password should expire',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_has_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', 'desc'),
     true,
     'user_has_lifetime() description supplied',
     'desc',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_has_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_has_lifetime('localhost', '__nouser__', ''),
     false,
     'user_has_lifetime() user not found diagnostic',
     null,
     'User \'__nouser__\'@\'localhost\' does not exist',
     0
-);
+)ELSE
+  tap.skip(2,'user_has_lifetime() requires MySQL version > 5.7')
+END;
 
 
 /****************************************************************************/
 -- user_hasnt_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
 
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__tapuser__', ''),
     true,
     'user_hasnt_lifetime() correct specification',
     null,
     null,
     0
-);
+)ELSE
+  tap.skip(1,'user_hasnt_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__locked__', ''),
     false,
     'user_hasnt_lifetime() locked user',
     null,
     null,
     0
-);
+)ELSE
+  tap.skip(1,'user_hasnt_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__tapuser__', ''),
     true,
     'user_hasnt_lifetime() default description',
     'User \'__tapuser__\'@\'localhost\' Password should not expire',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_hasnt_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__tapuser__', 'desc'),
     true,
     'user_hasnt_lifetime() description supplied',
     'desc',
     null,
     0
-);
+)ELSE
+  tap.skip(2,'user_hasnt_lifetime() requires MySQL version > 5.7')
+END;
 
-SELECT tap.check_test(
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+ tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__nouser__', ''),
     false,
     'user_hasnt_lifetime() user not found diagnostic',
     null,
     'User \'__nouser__\'@\'localhost\' does not exist',
     0
-);
+)ELSE
+  tap.skip(2,'user_hasnt_lifetime() requires MySQL version > 5.7')
+END;
 
 
 
@@ -305,4 +416,5 @@ SELECT tap.check_test(
 call tap.finish();
 DROP USER '__tapuser__'@'localhost';
 DROP USER '__locked__'@'localhost';
+DROP DATABASE taptest;
 ROLLBACK;
