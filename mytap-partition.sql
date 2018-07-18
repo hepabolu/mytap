@@ -358,7 +358,7 @@ BEGIN
       FROM `idents1`
       WHERE `ident` NOT IN
         (
-          SELECT COALESCE(`subpartition_name`, `partition_name`)
+          SELECT COALESCE(`subpartition_name` COLLATE utf8_general_ci, `partition_name` COLLATE utf8_general_ci)
           FROM `information_schema`.`partitions`
           WHERE `table_schema` = sname
           AND `table_name` = tname
@@ -383,7 +383,7 @@ BEGIN
       FROM `information_schema`.`partitions`
       WHERE `table_schema` = sname
       AND `table_name` = tname
-      AND COALESCE(`subpartition_name`,`partition_name`) NOT IN 
+      AND COALESCE(`subpartition_name` COLLATE utf8_general_ci,`partition_name` COLLATE utf8_general_ci) NOT IN 
         (
           SELECT `ident`
           FROM `idents2`
