@@ -1,11 +1,8 @@
 /*
 TAP Tests for table functions 
-
 */
 
 BEGIN;
-
-SELECT tap.plan(57);
 
 -- setup for tests
 DROP DATABASE IF EXISTS taptest;
@@ -13,6 +10,8 @@ CREATE DATABASE taptest;
 
 -- This will be rolled back. :-)
 DROP TABLE IF EXISTS taptest.sometab;
+DROP TABLE IF EXISTS taptest.othertab;
+
 CREATE TABLE taptest.sometab(
     id      INT NOT NULL PRIMARY KEY,
     name    TEXT,
@@ -22,18 +21,63 @@ CREATE TABLE taptest.sometab(
     plain   INT
 ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci;
 
-DROP TABLE IF EXISTS taptest.othertab;
-CREATE TABLE taptest.othertab(
-    id      INT NOT NULL PRIMARY KEY,
-    name    TEXT,
-    numb    FLOAT(10, 2) DEFAULT NULL,
-    myNum   INT(8) DEFAULT 24,
-    myat    TIMESTAMP DEFAULT NOW(),
-    plain   INT
-) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci;
 
+DELIMITER //
 
+DROP PROCEDURE IF EXISTS taptest.createtable //
+CREATE PROCEDURE taptest.createtable()
+DETERMINISTIC
+BEGIN
+  -- This procedure allows create table syntax to accomodate changes in
+  -- in 5.7 for virtual columns
+  DECLARE myver INT;
 
+  SET myver = (SELECT tap.mysql_version());
+
+  CASE WHEN myver > 507000 THEN -- virtual fields allowed in 5.7
+    SET @sql1 = '
+      CREATE TABLE taptest.othertab(
+      id      INT NOT NULL PRIMARY KEY,
+      name    TEXT,
+      numb    FLOAT(10, 2) DEFAULT NULL,
+      myNum   INT(8) DEFAULT 24,
+      myat    TIMESTAMP DEFAULT NOW(),
+      plain   INT,
+      virt    INT AS (plain * 3) VIRTUAL
+      ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci';
+  WHEN myver > 506000 THEN -- fractional seconds stored in 5.6
+    SET @sql1 = '
+      CREATE TABLE taptest.othertab(
+      id      INT NOT NULL PRIMARY KEY,
+      name    TEXT,
+      numb    FLOAT(10, 2) DEFAULT NULL,
+      myNum   INT(8) DEFAULT 24,
+      myat    TIMESTAMP(6),
+      plain   INT
+      ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci';
+  ELSE 
+    SET @sql1 = '
+      CREATE TABLE taptest.othertab(
+      id      INT NOT NULL PRIMARY KEY,
+      name    TEXT,
+      numb    FLOAT(10, 2) DEFAULT NULL,
+      myNum   INT(8) DEFAULT 24,
+      myat    TIMESTAMP DEFAULT NOW(),
+      plain   INT
+      ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci';
+  END CASE;
+
+  PREPARE stmt1 FROM @sql1;
+  EXECUTE stmt1;
+  DEALLOCATE PREPARE stmt1;
+END //
+
+DELIMITER ;
+
+CALL taptest.createtable();
+DROP PROCEDURE IF EXISTS taptest.createtable;
+
+SELECT tap.plan(57);
 
 /****************************************************************************/
 -- has_table(sname VARCHAR(64), tname VARCHAR(64), description TEXT)
@@ -356,27 +400,68 @@ SELECT tap.check_test(
 /****************************************************************************/
 -- table_sha1_is(sname VARCHAR(64), tname VARCHAR(64), sha1 VARCHAR(40), description TEXT)
 
+-- 5.5 version 90669b522441c2984644a96bf73b925c461d7ff9
+-- 5.6 version 4a6803e5e0972b8dd96e05c59148187904678e7f
+-- 5.7 version 9953062d687b36cfa4f1c83191708d55c7cfb976
+-- if othertab definition is changed or the _table_sha1() definition changed,
+-- rerun the tests with drop database disabled and recalculate sha1 in the database with
+-- SELECT tap._table_sha1('taptest','othertab');
 
--- if othertab definition is changed, run create table command on
--- new definition and recalculate sha1 with
--- SELECT tap._table_sha1('taptest','sometab');
-SELECT tap.check_test(
-    tap.table_sha1_is('taptest', 'sometab', 'c87b4a7e95b2110bba4a4c5c1ac451c7bec18869', ''),
-    true,
-    'table_sha1() full specification',
-    null,
-    null,
-    0
-);
+SELECT
+   CASE WHEN tap.mysql_version() < 506000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '90669b522441c2984644a96bf73b925c461d7ff9', ''),
+        true,
+        'table_sha1() full specification',
+        null,
+        null,
+      0)
+   WHEN tap.mysql_version() < 507000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '4a6803e5e0972b8dd96e05c59148187904678e7f', ''),
+        true,
+        'table_sha1() full specification',
+        null,
+        null,
+      0)
+   WHEN tap.mysql_version() >= 507000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '9953062d687b36cfa4f1c83191708d55c7cfb976', ''),
+        true,
+        'table_sha1() full specification',
+        null,
+        null,
+      0)
+END ;
 
-SELECT tap.check_test(
-    tap.table_sha1_is('taptest', 'sometab', 'c87b4a7e95', ''),
-    true,
-    'table_sha1() partial specification',
-    null,
-    null,
-    0
-);
+
+SELECT
+   CASE WHEN tap.mysql_version() < 506000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '90669b522', ''),
+        true,
+        'table_sha1() partial specification',
+        null,
+        null,
+      0)
+   WHEN tap.mysql_version() < 507000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '4a6803e5', ''),
+        true,
+        'table_sha1() partial specification',
+        null,
+        null,
+      0)
+   WHEN tap.mysql_version() >= 507000 THEN
+      tap.check_test(
+        tap.table_sha1_is('taptest', 'othertab', '9953062d', ''),
+        true,
+        'table_sha1() partial specification',
+        null,
+        null,
+      0)
+END ;
+
 
 SELECT tap.check_test(
     tap.table_sha1_is('taptest', 'sometab', '0123456789',''),
@@ -388,7 +473,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.table_sha1_is('taptest', 'nonexistent', 'c87b4a7e95b2110bba4a4c5c1ac451c7bec18869',''),
+    tap.table_sha1_is('taptest', 'nonexistent', '1111111111',''),
     false,
     'table_sha1() nonexistent table',
     null,
@@ -398,8 +483,8 @@ SELECT tap.check_test(
 
 
 SELECT tap.check_test(
-    tap.table_sha1_is('taptest', 'sometab', 'c87b4a7e95b2110bba4a4c5c1ac451c7bec18869', ''),
-    true,
+    tap.table_sha1_is('taptest', 'sometab', '1111111111', ''),
+    false,
     'table_sha1() default description',
     'Table taptest.sometab definition should match expected value',
     null,
@@ -407,9 +492,7 @@ SELECT tap.check_test(
 );
 
 
-
 /****************************************************************************/
-
 -- Finish the tests and clean up.
 
 call tap.finish();
