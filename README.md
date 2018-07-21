@@ -80,6 +80,7 @@ Authors
 
 * [David E. Wheeler](http://justatheory.com/)
 * [Hepabolu](https://github.com/hepabolu/mytap)
+* [Paul Campbell](https://github.com/animalcarpet)
 
 Credits
 -------
