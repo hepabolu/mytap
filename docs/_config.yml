@@ -7,7 +7,8 @@ google_analytics:
 header_pages:
   - index.md
   - documentation.md
-  - myprove.md
+  - tests.md
+  - utilities.md
   - integration.md
   - about.md
 

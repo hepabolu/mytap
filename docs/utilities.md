@@ -1,13 +1,18 @@
 ---
 layout: default
-title: My_prove
+title: Utilities
+permalink: /utilities/
 ---
+
+# Utilities
+
+This page contains some information on utilities that can be used with MyTAP.
 
 # Running tests with my_prove
 
 As stated on the [Documentation]({% link documentation.md %}) page it is possible to use `my_prove` to run the test harness for your tests.
 
-# Installation
+## Installation
 
 Install the perl module `TAP::Parser::SourceHandler::MyTAP` either from [CPAN](http://search.cpan.org/~dwheeler/TAP-Parser-SourceHandler-MyTAP-3.27/) or by cloning the [GitHub repository](https://github.com/theory/tap-parser-sourcehandler-mytap.git). 
 
@@ -40,11 +45,11 @@ my_prove is located in myprove/bin
 
 There is a convenience script in `scripts/install_my_prove.sh` that executes these statements.
 
-# Documentation
+## Documentation
 
 An explanation of all the commandline parameters of `my_prove` can be found on [CPAN](http://search.cpan.org/~dwheeler/TAP-Parser-SourceHandler-MyTAP-3.27/bin/my_prove).
 
-# Running tests with a shell script
+## Running tests with a shell script
 
 To run the tests with a shell script you can use the MySQL script as explained in [documentation]({% link documentation.md %}).
 It shows a line for each TAP test result. Check out the `runtests.sh`. It runs the tests of the MyTAP tests.
@@ -52,7 +57,7 @@ It shows a line for each TAP test result. Check out the `runtests.sh`. It runs t
 If you run this script the output will look like this:
 
 ```bash
-$ ./runtests.sh USER PAASWORD
+$ ./runtests.sh USER PASSWORD
 ============= updating tap =============
 ============= hastap =============
 1..30
@@ -99,7 +104,7 @@ ok 35 - hasnt_procedure( sch, non func, desc ) should have the proper descriptio
 ok 36 - hasnt_procedure( sch, non func, desc ) should have the proper diagnostics
 ```
 
-# Run tests with my_prove
+## Run tests with my_prove
 
 If you use `my_prove` to run the same tests through a TAP test harness which sums up the tests and summarized the results.
 
@@ -124,3 +129,41 @@ Result: PASS
 
 
 This gives a better overview of the tests.
+
+# AutoTAP
+
+The `scripts` directory of MyTAP contains a script `autotap.sql` that can generate MyTAP tests for a given schema.
+
+## Disclaimer
+Caution is advised since the script cannot make any attempt
+to verify the correctness of the schema at the point it is run,
+it can only generate tests that reflect the existing state.
+For this reason you should only run these routines once and
+only against a schema that is assumed to be in a known good
+state.
+
+There will be some who will say that auto-generating tests
+goes contrary to the whole idea of testing, I'm not going
+to disagree. However, the prospect of spending weeks
+retrofitting tests to an existing database is enough to put
+anyone of the task without getting any further forward than
+the same output generated in seconds by this script.
+
+There is an issue under MySQL 5.7 in STRICT MODE for 
+`information_schema.routines` which I haven't yet resolved. 
+
+If you have problems with function or procedure tests
+make sure mytap-routines.sql is 'sourced' with 
+```
+sql_mode = ''
+```
+
+ie `SET @@SESSION.sql_mode = '';`
+
+## Use
+
+```
+mysql < scripts/autotap.sql
+mysql --raw --skip-column-names --batch -e "call tap.autotap('schemaname')" > /wherever/test_schemaname.sql
+mysql --raw --skip-column-names --batch < /wherever/test_schemaname.sql
+```
