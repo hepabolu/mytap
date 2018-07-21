@@ -534,7 +534,7 @@ END //
 
 /****************************************************************************/
 -- _col_has_type (schema, table, column, type)
--- This id the COLUMN type not the DATA type
+-- This is the COLUMN type not the DATA type
 -- so, VARCHAR(64) rather than VARCHAR
 
 DROP FUNCTION IF EXISTS _col_has_type //
@@ -597,7 +597,7 @@ BEGIN
     SET description = CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
         ' should have Column Type ', qv(ctype));
     END IF;
- 
+
   IF NOT _has_column(sname, tname, cname) THEN
     RETURN CONCAT(ok(FALSE,description), '\n',
       diag(CONCAT('Column ', quote_ident(tname), '.', quote_ident(cname),
@@ -624,11 +624,11 @@ BEGIN
   WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname;
-   
+
   RETURN COALESCE(ret, NULL);
 END //
 
--- col_has_type is not available in pgTAP. The convention would have 
+-- col_has_type is not available in pgTAP. The convention would have
 -- col_type_is which would output expected and actual for failed tests
 -- Variations on a theme. This could be an alias to col_has_type but
 -- instead uses the eq function rather that the ok function. Either way,
@@ -668,11 +668,11 @@ BEGIN
   WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname;
-   
+
   RETURN COALESCE(ret, NULL);
 END //
 
--- col_column_type is not available in pgTAP. The convention would have 
+-- col_column_type is not available in pgTAP. The convention would have
 -- column_type_is which would output expected and actual for failed tests
 DROP FUNCTION IF EXISTS col_column_type_is //
 CREATE FUNCTION col_column_type_is(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT)
@@ -954,7 +954,7 @@ BEGIN
   DECLARE ret TEXT;
 
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM 
+  FROM
   (
     SELECT `ident`
     FROM `idents1`
@@ -1025,7 +1025,7 @@ BEGIN
   END IF;
 
   DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
+  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
     ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
   DROP TEMPORARY TABLE IF EXISTS idents2;
   CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)

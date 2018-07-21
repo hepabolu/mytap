@@ -38,4 +38,4 @@ DELIMITER ;
 -- call global_var('event_scheduler', @val);
 -- SELECT @val;
 
--- SELECT eq(@val,'ON','Event Sheduler Global Variable should be set correctly')
+-- SELECT eq(@val,'ON','Event Scheduler Global Variable should be set correctly')

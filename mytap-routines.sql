@@ -1,7 +1,7 @@
 DELIMITER //
 
 -- work around for STRICT MODE in 5.7
-SELECT tap.mysql_version() INTO @version // 
+SELECT tap.mysql_version() INTO @version //
 SET @mode = (SELECT @@SESSION.sql_mode) //
 SET @@SESSION.sql_mode = '' //
 
@@ -11,12 +11,12 @@ SET @@SESSION.sql_mode = '' //
 -- internal function to check
 DROP FUNCTION IF EXISTS _has_routine //
 CREATE FUNCTION _has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
-RETURNS BOOLEAN 
+RETURNS BOOLEAN
 DETERMINISTIC
 COMMENT 'Internal boolean test for the existence of a named routine within the given schema.'
 BEGIN
   DECLARE ret BOOLEAN;
-  
+
   SELECT 1 INTO ret
   FROM `information_schema`.`routines`
   WHERE `routine_schema` = sname
@@ -26,7 +26,7 @@ BEGIN
   RETURN COALESCE(ret,0);
 END //
 
--- has_function(schema, function, description)
+-- has_routine(schema, routine, type, description)
 DROP FUNCTION IF EXISTS has_routine //
 CREATE FUNCTION has_routine(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), description TEXT)
 RETURNS TEXT
@@ -99,7 +99,7 @@ END //
 
 -- FUNCTION DATA_TYPE i.e. return type
 -- NB Procedures have no data_type so only deal with Functions
- 
+
 -- _function_data_type(schema, function, returns, description)
 DROP FUNCTION IF EXISTS _function_data_type  //
 CREATE FUNCTION _function_data_type(sname VARCHAR(64), rname VARCHAR(64))
@@ -362,7 +362,7 @@ BEGIN
   DECLARE ret TEXT;
 
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM 
+  FROM
    (
       SELECT `ident`
       FROM `idents1`
@@ -385,15 +385,15 @@ DETERMINISTIC
 COMMENT 'Internal function to identify defined routines that are not listed in input to routines_are(schema, want, description)'
 BEGIN
   DECLARE ret TEXT;
-  
+
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM 
+  FROM
    (
       SELECT `routine_name` AS `ident`
       FROM `information_schema`.`routines`
       WHERE `routine_schema` = sname
       AND `routine_type` = rtype
-      AND `routine_name` NOT IN 
+      AND `routine_name` NOT IN
        (
           SELECT `ident`
           FROM `idents2`
@@ -414,7 +414,7 @@ BEGIN
   DECLARE sep       CHAR(1) DEFAULT ',';
   DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
 
-  IF description = '' THEN 
+  IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname),
       ' should have the correct ', LOWER(rtype), 's');
   END IF;
@@ -428,7 +428,7 @@ BEGIN
 
   IF want IS NULL THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
+      diag(CONCAT('Invalid character in comma separated list of expected routines\n',
                   'Identifier must not contain NUL Byte or extended characters(> U+10000)')));
   END IF;
 
@@ -442,7 +442,7 @@ BEGIN
   WHILE want != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
     SET @val = uqi(@val);
-    IF  @val <> '' THEN 
+    IF  @val <> '' THEN
       INSERT IGNORE INTO idents1 VALUE(@val);
       INSERT IGNORE INTO idents2 VALUE(@val);
     END IF;
@@ -459,7 +459,7 @@ END //
 
 -- SQL_MODE
 -- Checks to ensure appropriate sql mode is available for a function or procedure
- 
+
 -- _routine_has_sql_mode(schema, routine, mode)
 DROP FUNCTION IF EXISTS _routine_has_sql_mode  //
 CREATE FUNCTION _routine_has_sql_mode(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9), smode VARCHAR(8192))
@@ -522,9 +522,9 @@ END //
 -- ROUTINE BODY
 -- Get the SHA-1 of the routine body to compare for changes
 -- allows match against partial value to save typing
--- You can run _routine_sha1 to get the SHA-1, how much of it is used is down to 
+-- You can run _routine_sha1 to get the SHA-1, how much of it is used is down to
 -- the individual, we can probably ignore the likelihood of collisions.
- 
+
 DROP FUNCTION IF EXISTS _routine_sha1 //
 CREATE FUNCTION _routine_sha1(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(9))
 RETURNS CHAR(40)

@@ -166,7 +166,7 @@ BEGIN
   DECLARE ret VARCHAR(32);
 
   SELECT c.`character_set_name` INTO ret
-  FROM `information_schema`.`tables` AS t 
+  FROM `information_schema`.`tables` AS t
   INNER JOIN `information_schema`.`collation_character_set_applicability` AS c
     ON (t.`table_collation` = c.`collation_name`)
   WHERE t.`table_schema` = sname
@@ -240,9 +240,9 @@ BEGIN
   DECLARE ret TEXT;
 
   SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM 
+  FROM
     (
-      SELECT `table_name` AS `ident` 
+      SELECT `table_name` AS `ident`
       FROM `information_schema`.`tables`
       WHERE `table_schema` = sname
       AND `table_type` = 'BASE TABLE'
@@ -280,7 +280,7 @@ BEGIN
 
   IF want IS NULL THEN
     RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
+      diag(CONCAT('Invalid character in comma separated list of expected tables\n',
                   'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
   END IF;
 
@@ -294,7 +294,7 @@ BEGIN
   WHILE want != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
     SET @val = uqi(@val);
-    IF  @val <> '' THEN 
+    IF  @val <> '' THEN
       INSERT IGNORE INTO idents1 VALUE(@val);
       INSERT IGNORE INTO idents2 VALUE(@val);
     END IF;
@@ -309,12 +309,12 @@ END //
 
 /****************************************************************************/
 -- CHECK FOR SCHEMA CHANGES
--- Get the SHA-1 from the table definition and it's constituent schema objects 
+-- Get the SHA-1 from the table definition and it's constituent schema objects
 -- to for a simple test for changes. Excludes partitioning since the names might
 -- change over the course of time through normal DLM operations.
 -- Allows match against partial value to save typing as
 -- 8 characters will give 16^8 combinations.
- 
+
 DROP FUNCTION IF EXISTS _table_sha1 //
 CREATE FUNCTION _table_sha1(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS CHAR(40)
@@ -326,8 +326,8 @@ BEGIN
   SET ver = (SELECT tap.mysql_version());
 
   SELECT SHA1(GROUP_CONCAT(sha)) INTO ret
-  FROM 
-    (   
+  FROM
+    (
       (SELECT SHA1( -- COLUMNS
         GROUP_CONCAT(
           SHA1(
