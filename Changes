@@ -1,6 +1,13 @@
 Revision history for MyTAP
 ==========================
 
+1.0   2018-07-21
+-------------------------
+This is a massive rewrite and extension of the available tests with thanks to @animalcarpet.
+This version also has version specific tests and uses slightly different tests based
+on  the MySQL version.
+This version is tested on MySQL 5.5, 5.6 and 5.7
+
 0.07  2018-06-18
 -------------------------
 * col_has_unique_index, col_hasnt_unique_index added to test for

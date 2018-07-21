@@ -30,7 +30,7 @@ DROP FUNCTION IF EXISTS mytap_version //
 CREATE FUNCTION mytap_version()
 RETURNS VARCHAR(10)
 BEGIN
-    RETURN '0.07';
+    RETURN '1.0';
 END //
 
 DROP FUNCTION IF EXISTS mysql_version //
@@ -510,19 +510,19 @@ END //
 DROP FUNCTION IF EXISTS quote_ident //
 CREATE FUNCTION quote_ident(ident TEXT) RETURNS TEXT
 BEGIN
-    IF ISNULL(ident) THEN  
+    IF ISNULL(ident) THEN
       RETURN 'NULL';
     END IF;
-    
+
     IF ident = '' THEN
       RETURN '\'\'';
     END IF;
-    
+
     IF LOCATE('ANSI_QUOTES', @@SQL_MODE) > 0 THEN
         IF is_reserved(ident) OR locate('"', ident) > 0 THEN
             RETURN concat('"', replace(ident, '"', '""'), '"');
         END IF;
-    ELSE 
+    ELSE
         IF is_reserved(ident) OR locate('`', ident) > 0 THEN
             RETURN concat('`', replace(ident, '`', '``'), '`');
         END IF;
@@ -535,27 +535,27 @@ END //
 
 -- Just do it
 -- I wish people wouldn't choose identifiers that need quoting,
--- but they do, and often just because they can. MySQL has no 
--- array type (yet), which would make a lot of this simpler, so 
+-- but they do, and often just because they can. MySQL has no
+-- array type (yet), which would make a lot of this simpler, so
 -- we have to lay down some rules about how identifiers
 -- can be presented for tests. In the end this boils down to:
 
--- lists must have all elements quoted 
--- and 
--- there can't be any spaces between elements because they are 
--- legal characters in a quoted identifier. 
+-- lists must have all elements quoted
+-- and
+-- there can't be any spaces between elements because they are
+-- legal characters in a quoted identifier.
 
--- In addition, all identifiers need be presented in a 
+-- In addition, all identifiers need be presented in a
 -- consistent manner because the lack of function overloading means
 -- you can't have similarly named functions to deal with multi-valued
 -- identifier checks and scalar value ones. This, in turn, means
 -- that scalars that wouldn't normally need quoting need to be and
 -- that the quoting method needs to be consistent.
- 
+
 DROP FUNCTION IF EXISTS qi //
 CREATE FUNCTION qi(ident TEXT) RETURNS TEXT
 BEGIN
--- It's quoted already return it 
+-- It's quoted already return it
 -- replace ANSI quotes with backticks
 -- add backticks to everything else
 -- This won't work for people who use quotes within identifiers
@@ -564,11 +564,11 @@ BEGIN
   IF LEFT(ident,1) = '`' AND RIGHT(ident,1) = '`' THEN
 	  RETURN ident;
   END IF;
-   
+
   IF LEFT(ident,1) = '"' AND RIGHT(ident,1) = '"' THEN
 	  RETURN CONCAT('`', TRIM(BOTH '"' FROM ident) ,'`');
   END IF;
-   
+
   RETURN CONCAT('`', ident, '`');
 END //
 
@@ -581,26 +581,26 @@ BEGIN
   IF LEFT(ident,1) = '`' AND RIGHT(ident,1) = '`' THEN
 	  RETURN TRIM(BOTH '`' FROM REPLACE(ident,'``','`'));
   END IF;
-   
+
   IF LEFT(ident,1) = '"' AND RIGHT(ident,1) = '"' THEN
 	  RETURN TRIM(BOTH '"' FROM REPLACE(ident,'""','"'));
   END IF;
-   
+
   RETURN ident;
 END //
 
 DROP FUNCTION IF EXISTS qv //
 CREATE FUNCTION qv(val TEXT) RETURNS TEXT
 BEGIN
-    IF ISNULL(val) THEN  
+    IF ISNULL(val) THEN
       RETURN 'NULL';
     END IF;
 
     -- NB this will catch number only hex eg 000000 or 009600
-    IF val REGEXP '^[[:digit:]]+$' THEN 
+    IF val REGEXP '^[[:digit:]]+$' THEN
       RETURN val;
     END IF;
-     
+
     RETURN CONCAT('\'', REPLACE(val, '''', '\\\''), '\'');
 END //
 
@@ -608,15 +608,15 @@ END //
 DROP FUNCTION IF EXISTS dqv //
 CREATE FUNCTION dqv(val TEXT) RETURNS TEXT
 BEGIN
-    IF ISNULL(val) THEN  
+    IF ISNULL(val) THEN
       RETURN 'NULL';
     END IF;
 
     -- NB this will catch number only hex eg 000000 or 009600
-    IF val REGEXP '^[[:digit:]]+$' THEN 
+    IF val REGEXP '^[[:digit:]]+$' THEN
       RETURN val;
     END IF;
-     
+
     RETURN CONCAT('"', REPLACE(val, '''', '\\\''), '"');
 END //
 
@@ -759,16 +759,16 @@ BEGIN
     RETURN tap;
 END //
 
--- fix up a comma separated list of values to compare 
+-- fix up a comma separated list of values to compare
 -- against a list of db objects
 DROP FUNCTION IF EXISTS _fixCSL //
-CREATE FUNCTION _fixCSL (want TEXT)  
+CREATE FUNCTION _fixCSL (want TEXT)
 RETURNS TEXT
 BEGIN
 
 	SET want = REPLACE(want, '''','');
 	SET want = REPLACE(want, '"','');
-	SET want = REPLACE(want, '\n',''); 
+	SET want = REPLACE(want, '\n','');
 
 -- invalid characters eg NUL byte and characters > U+10000
 --   IF want REGEXP '[[.NUL.]\\u10000-\\u10FFFD]' = 1 THEN
@@ -792,7 +792,7 @@ DECLARE res BOOLEAN DEFAULT TRUE;
     SET msg = CONCAT('\n', CONCAT('\n'
       '    Extra ', what, ':\n       ' , REPLACE( extras, ',', '\n       ')));
   END IF;
-    
+
   IF missing <> '' THEN
     SET res = FALSE;
     SET msg = CONCAT(msg, CONCAT('\n'
@@ -812,10 +812,10 @@ CREATE FUNCTION _datatype(word TEXT) RETURNS TEXT
 BEGIN
 
   SET word =
-    CASE 
-      WHEN word IN ('BOOL', 'BOOLEAN') THEN 'TINYINT' 
-      WHEN word =  'INTEGER' THEN 'INT' 
-      WHEN word IN ('DEC', 'NUMERIC', 'FIXED') THEN 'DECIMAL' 
+    CASE
+      WHEN word IN ('BOOL', 'BOOLEAN') THEN 'TINYINT'
+      WHEN word =  'INTEGER' THEN 'INT'
+      WHEN word IN ('DEC', 'NUMERIC', 'FIXED') THEN 'DECIMAL'
       WHEN word IN ('DOUBLE_PRECISION') THEN 'DOUBLE'
       WHEN word = 'REAL' THEN IF (INSTR(@@GLOBAL.sql_mode, 'REAL_AS_FLOAT') > 0 , 'FLOAT' , 'DOUBLE')
       WHEN word IN ('NCHAR', 'CHARACTER', 'NATIONAL_CHARACTER') THEN 'CHAR'
