@@ -332,7 +332,7 @@ should be? Use these test functions and rest easy.
 A note on comparisons: MyTAP uses a simple equivalence test (`=`) to compare
 identifier names.
 
-2018-07-21 Update: because the number of tests available has been expanded considerably, the individual tests are moved to a different file for better overview. You can now find them under [Tests](/tests.html).
+2018-07-21 Update: because the number of tests available has been expanded considerably, the individual tests are moved to a different file for better overview. You can now find them under [Tests]({{ site.baseurl}}/tests.html).
 
 
 # No Test for the Wicked
