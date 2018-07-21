@@ -486,17 +486,17 @@ RETURNS TEXT
 DETERMINISTIC
 COMMENT 'Check that a particular SQL mode will apply to a named routine within the given schema.'
 BEGIN
+
+  -- this 5.7 list of sql_modes
+  -- should be fine as a test provide it is superset of previous modes
+  -- we're only interesed in the name rather than what it does (which does change)
   DECLARE valid ENUM('REAL_AS_FLOAT','PIPES_AS_CONCAT','ANSI_QUOTES','IGNORE_SPACE',
-    'NOT_USED','ONLY_FULL_GROUP_BY','NO_UNSIGNED_SUBTRACTION','NO_DIR_IN_CREATE',
+      'NOT_USED','ONLY_FULL_GROUP_BY','NO_UNSIGNED_SUBTRACTION','NO_DIR_IN_CREATE',
       'POSTGRESQL','ORACLE','MSSQL','DB2','MAXDB','NO_KEY_OPTIONS','NO_TABLE_OPTIONS',
       'NO_FIELD_OPTIONS','MYSQL323','MYSQL40','ANSI','NO_AUTO_VALUE_ON_ZERO','NO_BACKSLASH_ESCAPES',
       'STRICT_TRANS_TABLES','STRICT_ALL_TABLES','NO_ZERO_IN_DATE','NO_ZERO_DATE','INVALID_DATES',
       'ERROR_FOR_DIVISION_BY_ZERO','TRADITIONAL','NO_AUTO_CREATE_USER','HIGH_NOT_PRECEDENCE',
       'NO_ENGINE_SUBSTITUTION','PAD_CHAR_TO_FULL_LENGTH');
-
-  DECLARE EXIT HANDLER FOR 1264
-    RETURN CONCAT(ok(FALSE, description), '\n',
-      diag(CONCAT('Unrecoverable Error - Strict Mode should be disabled when importing this ', rtype)));
 
   DECLARE EXIT HANDLER FOR 1265 -- invalid assignment to enum
     RETURN CONCAT(ok(FALSE,description), '\n',

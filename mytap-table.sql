@@ -1,3 +1,5 @@
+USE tap;
+
 DELIMITER //
 
 /****************************************************************************/
@@ -319,6 +321,9 @@ RETURNS CHAR(40)
 DETERMINISTIC
 BEGIN
   DECLARE ret CHAR(40);
+  DECLARE ver INT;
+
+  SET ver = (SELECT tap.mysql_version());
 
   SELECT SHA1(GROUP_CONCAT(sha)) INTO ret
   FROM 
@@ -326,13 +331,12 @@ BEGIN
       (SELECT SHA1( -- COLUMNS
         GROUP_CONCAT(
           SHA1(
-            CONCAT_WS('',`table_catalog`,`table_schema`,`table_name`,`column_name`,
+	     CONCAT_WS('',`table_catalog`,`table_schema`,`table_name`,`column_name`,
               `ordinal_position`,`column_default`,`is_nullable`,`data_type`,
               `character_set_name`,`character_maximum_length`,`character_octet_length`,
-              `numeric_precision`,`numeric_scale`,`datetime_precision`,`collation_name`,
-              `column_type`,`column_key`,`extra`,`privileges`,`column_comment`,
-              `generation_expression`)
-      ))) sha
+              `numeric_precision`,`numeric_scale`,`collation_name`,
+              `column_type`,`column_key`,`extra`,`privileges`,`column_comment`)
+          ))) sha
       FROM `information_schema`.`columns`
       WHERE `table_schema` = sname
       AND `table_name` = tname
@@ -353,7 +357,7 @@ BEGIN
       (SELECT SHA1( -- INDEXES
         GROUP_CONCAT(
           SHA1(
-            CONCAT_WS('',`table_catalog`,`table_schema`,`table_name`,`index_name`,`non_unique`,
+            CONCAT_WS('',`table_catalog`,`table_schema`,`table_name`,`non_unique`,
               `index_schema`,`index_name`,`seq_in_index`,`column_name`,`collation`,`cardinality`,
               `sub_part`,`packed`,`nullable`,`index_type`,`comment`,`index_comment`)
       ))) sha

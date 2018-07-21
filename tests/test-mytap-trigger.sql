@@ -1,5 +1,5 @@
 /*
-TAP tests for column functions
+TAP tests for trigger functions
 
 */
 
@@ -43,10 +43,12 @@ FOR EACH ROW set @tmp := 1;
 DROP TRIGGER IF EXISTS `taptest`.`othertrigger`;
 
 CREATE TRIGGER `taptest`.`othertrigger`
-BEFORE INSERT ON `taptest`.`sometab`
+BEFORE UPDATE ON `taptest`.`sometab`
 FOR EACH ROW set @tmp := 1;
 
-
+-- NB
+-- Needs more than 1 trigger defined on the same event to properly test
+-- trigger_order_is()
 
 /***************************************************************************/
 -- has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), description TEXT)
@@ -252,52 +254,71 @@ SELECT tap.check_test(
 /***************************************************************************/
 -- trigger_order_is(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64), seq BIGINT, description TEXT)
 
-SELECT tap.check_test(
-  tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, ''),
-  true,
-  'trigger_order_is() with correct specification',
-  null,
-  null,
-  0
-);
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+  tap.check_test(
+    tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, ''),
+    true,
+    'trigger_order_is() with correct specification',
+    null,
+    null,
+    0
+  )
+ELSE
+  tap.skip(1,"trigger_order_is() requires MySQL version > 5.7")
+END;
 
-SELECT tap.check_test(
-  tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 2, ''),
-  false,
-  'trigger_order_is() with incorrect specification',
-  null,
-  null,
-  0
-);
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+  tap.check_test(
+    tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 2, ''),
+    false,
+    'trigger_order_is() with incorrect specification',
+    null,
+    null,
+    0
+  )
+ELSE
+  tap.skip(1,"trigger_order_is() requires MySQL version > 5.7")
+END;
 
 
-SELECT tap.check_test(
-  tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, ''),
-  true,
-  'trigger_order_is() default description',
-  'Trigger sometab.testtrigger should have Action Order 1',
-  null,
-  0
-);
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+  tap.check_test(
+    tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, ''),
+    true,
+    'trigger_order_is() default description',
+    'Trigger sometab.testtrigger should have Action Order 1',
+    null,
+    0
+  )
+ELSE
+  tap.skip(2,"trigger_order_is() requires MySQL version > 5.7")
+END;
 
-SELECT tap.check_test(
-  tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, 'desc'),
-  true,
-  'trigger_order_is() description supplied',
-  'desc',
-  null,
-  0
-);
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+  tap.check_test(
+    tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, 'desc'),
+    true,
+    'trigger_order_is() description supplied',
+    'desc',
+    null,
+    0
+  )
+ELSE
+  tap.skip(2,"trigger_order_is() tests require MySQL version > 5.7")
+END;
 
-SELECT tap.check_test(
-  tap.trigger_order_is('taptest', 'sometab', 'nonexistent', 1, ''),
-  false,
-  'trigger_order_is() nonexistent trigger diagnostic',
-  null,
-  'Trigger sometab.nonexistent does not exist',
-  0
-);
-
+SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+  tap.check_test(
+    tap.trigger_order_is('taptest', 'sometab', 'nonexistent', 1, ''),
+    false,
+    'trigger_order_is() nonexistent trigger diagnostic',
+    null,
+    'Trigger sometab.nonexistent does not exist',
+    0
+  )
+ELSE
+  tap.skip(2,"trigger_order_is() requires MySQL version > 5.7")
+END;
 
 
 /***************************************************************************/

@@ -12,7 +12,7 @@ and disgnostic message simultaneously.
 
 -- required for sql_mode test
 SET @mode = (SELECT @@session.sql_mode);
-SET @@session.sql_mode = 'STRICT_ALL_TABLES';
+SET @@session.sql_mode = 'REAL_AS_FLOAT';
 
 
 BEGIN;
@@ -732,7 +732,7 @@ SELECT tap.check_test(
 
 -- routine_has_sql_mode(sname VARCHAR(64), rname VARCHAR(64), rtype VARCHAR(64), smode VARCHAR(8192), description TEXT)
 SELECT tap.check_test(
-    tap.routine_has_sql_mode('taptest', 'intFunction', 'FUNCTION', 'STRICT_ALL_TABLES', ''),
+    tap.routine_has_sql_mode('taptest', 'intFunction', 'FUNCTION', 'REAL_AS_FLOAT', ''),
     true,
     'routine_has_sql_mode() correct specification',
     null,
