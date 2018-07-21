@@ -87,7 +87,7 @@ Even better is the scenario in which you need to test your database schema objec
     CALL tap.finish();
     ROLLBACK;
 
-And there are many more testing functions to be had. Read the [complete documentation]({{ site.baseurl}}/documentation.html) for all the good stuff.
+And there are many more testing functions to be had. Read the [complete documentation]({{ site.baseurl}} {% link /documentation.md %}) for all the good stuff.
 
 # Library Development
 

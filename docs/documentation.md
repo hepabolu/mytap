@@ -6,7 +6,7 @@ permalink: /documentation/
 
 # {{ page.title }}
 
-__Version: 0.06__
+__Version: 1.0__
 
 MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
 procedures. It includes a collection of TAP-emitting assertion functions, as
@@ -332,7 +332,7 @@ should be? Use these test functions and rest easy.
 A note on comparisons: MyTAP uses a simple equivalence test (`=`) to compare
 identifier names.
 
-2018-07-21 Update: because the number of tests available has been expanded considerably, the individual tests are moved to a different file for better overview. You can now find them under [Tests]({{ site.baseurl}}/tests.html).
+2018-07-21 Update: because the number of tests available has been expanded considerably, the individual tests are moved to a different file for better overview. You can now find them under [Tests]({{ site.baseurl}}{% tests.md %}).
 
 
 # No Test for the Wicked
