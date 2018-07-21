@@ -508,7 +508,7 @@ This functions tests for the existence of named partitions. Identifies both miss
 `want` contains a comma separated list of partitions that should be available.
 
 
-### Users
+## Users
 
 ### `has_user(host, user, description )`
 
