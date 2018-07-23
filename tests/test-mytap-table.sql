@@ -43,7 +43,8 @@ BEGIN
       myNum   INT(8) DEFAULT 24,
       myat    TIMESTAMP DEFAULT NOW(),
       plain   INT,
-      virt    INT AS (plain * 3) VIRTUAL
+      virt    INT AS (plain * 3) VIRTUAL,
+      KEY(name)
       ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci';
   WHEN myver > 506000 THEN -- fractional seconds stored in 5.6
     SET @sql1 = '
@@ -406,6 +407,9 @@ SELECT tap.check_test(
 -- if othertab definition is changed or the _table_sha1() definition changed,
 -- rerun the tests with drop database disabled and recalculate sha1 in the database with
 -- SELECT tap._table_sha1('taptest','othertab');
+
+-- may require group_concat_max_len to be increased e.g.
+-- SET SESSION group_concat_max_len = 1000000;
 
 SELECT
    CASE WHEN tap.mysql_version() < 506000 THEN
