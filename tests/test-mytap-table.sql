@@ -43,8 +43,7 @@ BEGIN
       myNum   INT(8) DEFAULT 24,
       myat    TIMESTAMP DEFAULT NOW(),
       plain   INT,
-      virt    INT AS (plain * 3) VIRTUAL,
-      KEY(name)
+      virt    INT AS (plain * 3) VIRTUAL
       ) ENGINE=INNODB, CHARACTER SET utf8, COLLATE utf8_general_ci';
   WHEN myver > 506000 THEN -- fractional seconds stored in 5.6
     SET @sql1 = '
