@@ -65,7 +65,12 @@ if [[ $FILTER == '' ]]; then
   FILTER=0
 fi
 
-MYVER=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'.' '{print $1$2}'`;
+MYVER1=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $1 * 100000 }'`;
+MYVER2=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $2 * 1000 }'`;
+MYVER3=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}'`;
+
+
+MYVER=$(($MYVER1+$MYVER2+$MYVER3));
 
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
@@ -74,18 +79,24 @@ MYVER=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'.' '{print 
 echo "============= updating tap ============="
 echo "Importing myTAP base"
 mysql $MYSQLOPTS --execute 'source ./mytap.sql'
+mysql $MYSQLOPTS --execute 'source ./mytap-global.sql';
 
-if [[ $MYVER == '56' ]]; then
+if [[ $MYVER -gt 506000 ]]; then
     echo "Importing Version 5.6 patches";
     mysql $MYSQLOPTS --execute 'source ./mytap-table-56.sql';
 fi
 
-if [[ $MYVER == '57' ]]; then
+if [[ $MYVER -gt 507000 ]]; then
     echo "Importing Version 5.7 patches";
     mysql $MYSQLOPTS --execute 'source ./mytap-table-57.sql';
 fi
 
-if [[ $MYVER == '80' ]]; then
+if [[ $MYVER -gt 507006 ]]; then
+    echo "Importing Version 5.7.6 patches";
+    mysql $MYSQLOPTS --execute 'source ./mytap-global-57.sql';
+fi
+
+if [[ $MYVER -gt 800000 ]]; then
     echo "Importing Version 8.0 patches";
     mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
 fi
