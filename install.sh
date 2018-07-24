@@ -24,6 +24,10 @@ while [[ "$#" > 0 ]]; do
 	    SQLPORT="$2"
 	    shift
 	    ;;
+	-t|--test)
+	    WITHTEST="YES"
+	    shift
+	    ;;
 	-h|--help)
 	    cat << EOF
 Usage:
@@ -34,6 +38,7 @@ Options:
  -p, --password       MySQL password
  -P, --port           MySQL port
  -h, --host           MySQL host
+ -t, --test           Run the test suite when the install is completed
 EOF
 	   exit 1 
 	   ;;
@@ -48,15 +53,18 @@ done
 MYSQLOPTS="--disable-pager --batch --raw --skip-column-names --unbuffered"
 
 if [[ $SQLUSER != '' ]] && [[ $SQLPASS != '' ]]; then
-  MYSQLOPTS="$MYSQLOPTS -u$SQLUSER -p$SQLPASS"
+    MYSQLOPTS="$MYSQLOPTS -u$SQLUSER -p$SQLPASS";
+    CMD="--user $SQLUSER --password = $SQLPASS";
 fi
 
 if [[ $SQLHOST != 'localhost' ]]; then
-  MYSQLOPTS="$MYSQLOPTS --host $SQLHOST"
+   MYSQLOPTS="$MYSQLOPTS --host $SQLHOST";
+   CMD="$CMD --host $SQLHOST";
 fi
 
 if [[ $SQLPORT != '3306' ]]; then
   MYSQLOPTS="$MYSQLOPTS --port $SQLPORT"
+  CMD="$CMD --port $SQLPORT"
 fi
 
 if [[ $FILTER == '' ]]; then
@@ -97,6 +105,12 @@ fi
 if [[ $MYVER -gt 800000 ]]; then
     echo "Importing Version 8.0 patches";
     mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
+fi
+
+if [[ $WITHTEST == 'YES' ]]; then
+    echo "Run full test suite"
+    CMD="./runtests.sh $CMD";
+    exec $CMD;
 fi
 
 echo "Finished"
