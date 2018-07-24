@@ -407,6 +407,9 @@ SELECT tap.check_test(
 -- rerun the tests with drop database disabled and recalculate sha1 in the database with
 -- SELECT tap._table_sha1('taptest','othertab');
 
+-- may require group_concat_max_len to be increased e.g.
+-- SET SESSION group_concat_max_len = 1000000;
+
 SELECT
    CASE WHEN tap.mysql_version() < 506000 THEN
       tap.check_test(
