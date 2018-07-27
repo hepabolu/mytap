@@ -5,6 +5,9 @@
 
 SQLHOST=localhost;
 SQLPORT=3306;
+NOTESTS=0
+NOINSTALL=0
+FILTER=0
 
 while [[ "$#" > 0 ]]; do
     case $1 in
@@ -24,9 +27,16 @@ while [[ "$#" > 0 ]]; do
 	    SQLPORT="$2"
 	    shift
 	    ;;
-	-t|--test)
-	    WITHTEST="YES"
+	-f|--filter)
+	    NOFILTER=0
+	    FILTER="$2"
 	    shift
+	    ;;
+	-t|--no-tests)
+	    NOTESTS=1
+	    ;;
+	-i|--no-install)
+	    NOINSTALL=1
 	    ;;
 	-h|--help)
 	    cat << EOF
@@ -38,7 +48,9 @@ Options:
  -p, --password       MySQL password
  -P, --port           MySQL port
  -h, --host           MySQL host
- -t, --test           Run the test suite when the install is completed
+ -t, --no-tests       Don't run the test suite when the install is completed
+ -i, --no-install     Don't perform the installation, i.e. just run the test suite
+ -f, --filter         Perform the action on one class of objects
 EOF
 	   exit 1 
 	   ;;
@@ -67,10 +79,6 @@ if [[ $SQLPORT != '3306' ]]; then
   CMD="$CMD --port $SQLPORT"
 fi
 
-if [[ $FILTER == '' ]]; then
-  FILTER=0
-fi
-
 MYVER1=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $1 * 100000 }'`;
 MYVER2=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $2 * 1000 }'`;
 MYVER3=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}'`;
@@ -82,35 +90,137 @@ MYVER=$(($MYVER1 + $MYVER2 + $MYVER3));
 # you can't use a wildcard with the source command so all version specific files need
 # to be separately listed
 
-echo "============= installing myTAP ============="
-echo "Importing myTAP base"
-mysql $MYSQLOPTS --execute 'source ./mytap.sql';
-mysql $MYSQLOPTS --execute 'source ./mytap-global.sql';
 
-if [[ $MYVER -gt 506000 ]]; then
-    echo "Importing Version 5.6 patches";
-    mysql $MYSQLOPTS --execute 'source ./mytap-table-56.sql';
+if [[ $NOINSTALL -eq 0 ]]; then
+    echo "============= installing myTAP ============="
+    echo "Importing myTAP base"
+    mysql $MYSQLOPTS --execute 'source ./mytap.sql';
+
+    if [[ $MYVER -gt 506000 ]]; then
+       echo "Importing Version 5.6 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-56.sql';
+    fi
+
+    if [[ $MYVER -gt 507000 ]]; then
+       echo "Importing Version 5.7 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-57.sql';
+    fi
+
+    if [[ $MYVER -gt 507006 ]]; then
+       echo "Importing Version 5.7.6 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-global-57.sql';
+    fi
+
+    if [[ $MYVER -gt 800000 ]]; then
+       echo "Importing Version 8.0 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
+    fi
 fi
 
-if [[ $MYVER -gt 507000 ]]; then
-    echo "Importing Version 5.7 patches";
-    mysql $MYSQLOPTS --execute 'source ./mytap-table-57.sql';
-fi
+if [[ $NOTESTS -eq 0 ]]; then
+   if [[ $FILTER != 0 ]]; then
+      echo "Running test suite with filter: $FILTER";
+   else
+      echo "Running Full test suite, this will take a couple of minutes to complete."
+   fi
 
-if [[ $MYVER -gt 507006 ]]; then
-    echo "Importing Version 5.7.6 patches";
-    mysql $MYSQLOPTS --execute 'source ./mytap-global-57.sql';
-fi
+   sleep 2;
 
-if [[ $MYVER -gt 800000 ]]; then
-    echo "Importing Version 8.0 patches";
-    mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
-fi
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "matching" ]]; then
+      echo "============= matching ============="
+      mysql $MYSQLOPTS --database tap --execute 'source tests/matching.my'
+   fi
 
-if [[ $WITHTEST == 'YES' ]]; then
-    echo "Run full test suite"
-    CMD="./runtests.sh $CMD";
-    exec $CMD;
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "eq" ]]; then
+      echo "============= eq ============="
+      mysql $MYSQLOPTS --database tap --execute 'source tests/eq.my'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "moretap" ]]; then
+      echo "============= moretap ============="
+      mysql $MYSQLOPTS --database tap --execute 'source tests/moretap.my'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "todotap" ]]; then
+      echo "============= todotap ============="
+      mysql $MYSQLOPTS --database tap --execute 'source tests/todotap.my'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "utils" ]]; then
+      echo "============= utils ============="
+      mysql $MYSQLOPTS --database tap --execute 'source tests/utils.my'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "charset" ]]; then
+      echo "============= character sets ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-charset.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "collation" ]]; then
+      echo "============= collations ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-collation.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "column" ]]; then
+      echo "============= columns ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-column.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "constraint" ]]; then
+      echo "============= constraints ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-constraint.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "engine" ]]; then
+      echo "============= engines ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-engine.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "event" ]]; then
+      echo "============= events ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-event.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "index" ]]; then
+      echo "============= indexes ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-index.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
+      echo "============= partitions ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "routines" ]]; then
+      echo "============= routines ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-routines.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "schemata" ]]; then
+      echo "============= schemas ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-schemata.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "table" ]]; then
+      echo "============= tables ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-table.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "trigger" ]]; then
+      echo "============= triggers ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-trigger.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "user" ]]; then
+      echo "============= users ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-user.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "view" ]]; then
+      echo "============= views ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-view.sql'
+   fi
+
 fi
 
 echo "Finished"
