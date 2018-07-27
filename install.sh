@@ -50,7 +50,7 @@ Options:
  -h, --host           MySQL host
  -t, --no-tests       Don't run the test suite when the install is completed
  -i, --no-install     Don't perform the installation, i.e. just run the test suite
- -f, --filter         Perform the action on one class of objects
+ -f, --filter         Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|routines|table|trigger|schemata|user|view>
 EOF
 	   exit 1 
 	   ;;
