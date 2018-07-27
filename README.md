@@ -8,11 +8,9 @@ well as the ability to integrate with other TAP-emitting test frameworks.
 Installation
 ============
 
-To install MyTAP to a MySQL server, just run the install script from the mytap directory:
+To install MyTAP into a MySQL database, just run `mytap.sql`:
 
-    # ./install.sh
-    
-    This assumes local server access with client credentials in ~/.my.cnf.
+    mysql -u root < mytap.sql
 
     The installer will create a database called `tap` with 2 tables, import the base package and any version specific patches. When installation has completed, the test suite will run automatically. Any errors at this point should be raised as issues because it will likely indicate a change in the MySQL `information_schema` or a bug in a MySQL release against which myTAP has not been tested.
 
