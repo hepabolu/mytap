@@ -12,15 +12,22 @@ To install MyTAP into a MySQL database, just run `mytap.sql`:
 
     mysql -u root < mytap.sql
 
-    The installer will create a database called `tap` with 2 tables, import the base package and any version specific patches. When installation has completed, the test suite will run automatically. Any errors at this point should be raised as issues because it will likely indicate a change in the MySQL `information_schema` or a bug in a MySQL release against which myTAP has not been tested.
+The installer will create a database called `tap` with 2 tables, import the
+base package and any version specific patches. When installation has completed,
+the test suite will run automatically. Any errors at this point should be
+raised as issues because it will likely indicate a change in the MySQL
+`information_schema` or a bug in a MySQL release against which myTAP has not
+been tested.
 
-    For installations on remote servers, non-standard port numbers, or where client credentials are not stored, provide the appropriate short or long-form switches for the required parameters. e.g. 
+For installations on remote servers, non-standard port numbers, or where client
+credentials are not stored, provide the appropriate short or long-form switches
+for the required parameters. e.g. 
     
     # ./install.sh --port 3310
     # ./install.sh --user root --password rootpassword 2>/dev/null
     # ./install.sh -h 127.0.0.1 -P 3310 --u root --p rootpassword 2>/dev/null
 
-    The installer can be run to skip the tests entirely
+The installer can be run to skip the tests entirely
 
     # ./install.sh --no-tests
 
@@ -28,11 +35,12 @@ To install MyTAP into a MySQL database, just run `mytap.sql`:
 
     # ./install.sh --filter table
 
-    Finally, it is also possible to run the installer in test-only mode (useful for developers) with
+Finally, it is also possible to run the installer in test-only mode (useful for
+developers) with
 
     # ./install.sh --no-install
 
-    Short-form versions of all of these switches exist, for full details
+Short-form versions of all of these switches exist, for full details
 
     # ./install.sh --help
 
