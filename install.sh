@@ -96,19 +96,19 @@ if [[ $NOINSTALL -eq 0 ]]; then
     echo "Importing myTAP base"
     mysql $MYSQLOPTS --execute 'source ./mytap.sql';
 
-    if [[ $MYVER -gte 506004 ]]; then
+    if [[ $MYVER -ge 506004 ]]; then
        echo "Importing Version 5.6.4 patches";
        mysql $MYSQLOPTS --execute 'source ./mytap-table-564.sql';
     fi
 
-    if [[ $MYVER -gte 507006 ]]; then
+    if [[ $MYVER -ge 507006 ]]; then
        echo "Importing Version 5.7.6 patches";
        mysql $MYSQLOPTS --execute 'source ./mytap-table-576.sql';
        mysql $MYSQLOPTS --execute 'source ./mytap-global-576.sql';
        mysql $MYSQLOPTS --execute 'source ./mytap-user-576.sql';
     fi
 
-    if [[ $MYVER -gte 800011 ]]; then
+    if [[ $MYVER -ge 800011 ]]; then
        echo "Importing Version 8.0.11 patches";
        mysql $MYSQLOPTS --execute 'source ./mytap-table-8011.sql';
     fi
