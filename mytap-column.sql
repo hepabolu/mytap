@@ -538,7 +538,7 @@ END //
 -- so, VARCHAR(64) rather than VARCHAR
 
 DROP FUNCTION IF EXISTS _col_has_type //
-CREATE FUNCTION _col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64))
+CREATE FUNCTION _col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT)
 RETURNS BOOLEAN
 DETERMINISTIC
 READS SQL DATA
@@ -555,40 +555,11 @@ BEGIN
   RETURN COALESCE(ret, 0);
 END //
 
-/* data_type
-
-+------------+
-| data_type  |
-+------------+
-| varchar    |
-| bigint     |
-| longtext   |
-| datetime   |
-| int        |
-| tinyint    |
-| decimal    |
-| double     |
-| mediumint  |
-| text       |
-| varbinary  |
-| timestamp  |
-| char       |
-| smallint   |
-| longblob   |
-| mediumblob |
-| date       |
-| enum       |
-| time       |
-| year       |
-| set        |
-| float      |
-| mediumtext |
-| blob       |
-| geometry   |
-+------------+
+/*
+ column_type is a mysql extension which includes the full definition of a column
 */
 DROP FUNCTION IF EXISTS col_has_type //
-CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype VARCHAR(64), description TEXT)
+CREATE FUNCTION col_has_type(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64), ctype LONGTEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 NO SQL
