@@ -283,7 +283,7 @@ ELSE
 END;
 
 
-SELECT CASE WHEN tap.mysql_version() > 507000 THEN
+SELECT CASE WHEN tap.mysql_version() >= 507002 THEN
   tap.check_test(
     tap.trigger_order_is('taptest', 'sometab', 'testtrigger', 1, ''),
     true,
@@ -309,7 +309,7 @@ ELSE
   tap.skip(2,"trigger_order_is() tests require MySQL version >= 5.7.2")
 END;
 
-SELECT CASE WHEN tap.mysql_version() > 507002 THEN
+SELECT CASE WHEN tap.mysql_version() >= 507002 THEN
   tap.check_test(
     tap.trigger_order_is('taptest', 'sometab', 'nonexistent', 1, ''),
     false,
@@ -319,7 +319,7 @@ SELECT CASE WHEN tap.mysql_version() > 507002 THEN
     0
   )
 ELSE
-  tap.skip(2,"trigger_order_is() requires MySQL version > 5.7.2")
+  tap.skip(2,"trigger_order_is() requires MySQL version >= 5.7.2")
 END;
 
 
