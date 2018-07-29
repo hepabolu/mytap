@@ -401,8 +401,8 @@ SELECT tap.check_test(
 -- table_sha1_is(sname VARCHAR(64), tname VARCHAR(64), sha1 VARCHAR(40), description TEXT)
 
 -- 5.5 version 90669b522441c2984644a96bf73b925c461d7ff9
--- 5.6 version 4a6803e5e0972b8dd96e05c59148187904678e7f
--- 5.7 version 9953062d687b36cfa4f1c83191708d55c7cfb976
+-- 5.6.4 version 4a6803e5e0972b8dd96e05c59148187904678e7f
+-- 5.7.6 version 9953062d687b36cfa4f1c83191708d55c7cfb976
 -- if othertab definition is changed or the _table_sha1() definition changed,
 -- rerun the tests with drop database disabled and recalculate sha1 in the database with
 -- SELECT tap._table_sha1('taptest','othertab');
@@ -410,8 +410,11 @@ SELECT tap.check_test(
 -- may require group_concat_max_len to be increased e.g.
 -- SET SESSION group_concat_max_len = 1000000;
 
+-- NB
+-- 8.0.11 version adds columns.srs_id so this will have to change again
+
 SELECT
-   CASE WHEN tap.mysql_version() < 506000 THEN
+   CASE WHEN tap.mysql_version() < 506004 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '90669b522441c2984644a96bf73b925c461d7ff9', ''),
         true,
@@ -419,7 +422,7 @@ SELECT
         null,
         null,
       0)
-   WHEN tap.mysql_version() < 507000 THEN
+   WHEN tap.mysql_version() < 507006 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '4a6803e5e0972b8dd96e05c59148187904678e7f', ''),
         true,
@@ -427,7 +430,7 @@ SELECT
         null,
         null,
       0)
-   WHEN tap.mysql_version() >= 507000 THEN
+   WHEN tap.mysql_version() >= 507006 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '9953062d687b36cfa4f1c83191708d55c7cfb976', ''),
         true,
@@ -439,7 +442,7 @@ END ;
 
 
 SELECT
-   CASE WHEN tap.mysql_version() < 506000 THEN
+   CASE WHEN tap.mysql_version() < 506004 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '90669b522', ''),
         true,
@@ -447,7 +450,7 @@ SELECT
         null,
         null,
       0)
-   WHEN tap.mysql_version() < 507000 THEN
+   WHEN tap.mysql_version() < 507006 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '4a6803e5', ''),
         true,
@@ -455,7 +458,7 @@ SELECT
         null,
         null,
       0)
-   WHEN tap.mysql_version() >= 507000 THEN
+   WHEN tap.mysql_version() >= 507006 THEN
       tap.check_test(
         tap.table_sha1_is('taptest', 'othertab', '9953062d', ''),
         true,
