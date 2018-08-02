@@ -2,10 +2,12 @@
 -- ===========
 -- PRIMARY KEY, FOREIGN KEY and UNIQUE constraints
 
--- Simple check on existence of named constraint without being concerned for its
--- composition
+USE tap;
+
 DELIMITER //
 
+-- Simple check on existence of named constraint without being concerned for its
+-- composition
 DROP FUNCTION IF EXISTS _has_constraint //
 CREATE FUNCTION _has_constraint(sname VARCHAR(64), tname VARCHAR(64), cname VARCHAR(64))
 RETURNS BOOLEAN

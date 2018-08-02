@@ -1,10 +1,11 @@
-/************************************************************************************/
 -- 5.7.6 and upwards
 USE tap;
--- Check the state of GLOBAL variables
 
 DELIMITER //
 
+
+/************************************************************************************/
+-- Check the state of GLOBAL variables
 DROP FUNCTION IF EXISTS _global_var //
 CREATE FUNCTION _global_var(var VARCHAR(64))
 RETURNS VARCHAR(1024)

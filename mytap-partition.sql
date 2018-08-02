@@ -2,10 +2,12 @@
 -- ==========
 
 -- Table level tests on partitioning
-/************************************************************************************/
+
+USE tap;
 
 DELIMITER //
 
+/************************************************************************************/
 -- _has_partition( schema, table, partition, description )
 DROP FUNCTION IF EXISTS _has_partition //
 CREATE FUNCTION _has_partition(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64))

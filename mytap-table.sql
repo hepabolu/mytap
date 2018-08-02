@@ -1,3 +1,6 @@
+-- TABLE
+-- =====
+
 USE tap;
 
 DELIMITER //
