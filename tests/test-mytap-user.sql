@@ -61,7 +61,7 @@ CALL taptest.createusers();
 DROP PROCEDURE IF EXISTS taptest.createusers;
 
 
-SELECT tap.plan(44);
+SELECT tap.plan(58);
 
 /****************************************************************************/
 -- has_user(hname CHAR(60), uname CHAR(32), description TEXT)
