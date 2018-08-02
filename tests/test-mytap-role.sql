@@ -31,7 +31,7 @@ DELIMITER ;
 
 CALL taptest.dropusers();
 
-CREATE USER '__tapuser__'@'localhost'";
+CREATE USER '__tapuser__'@'localhost';
 
 
 -- only dyn sql will allow use of v8 sysntax in earler versions
@@ -43,8 +43,8 @@ DETERMINISTIC
 BEGIN
 
   IF (SELECT tap.mysql_version()) >= 800011 THEN
-    SET @sql1 = 'CREATE ROLE ''__taprole__''@''localhost''';
-    SET @sql2 = 'CREATE ROLE __nohost__';
+    SET @sql1 = 'CREATE USER ''__taprole__''@''localhost''';
+    SET @sql2 = 'CREATE USER __nohost__';
     SET @sql3 = 'GRANT ''__taprole__''@''localhost'', __nohost__ TO ''__tapuser__''@''localhost''';
     SET @sql4 = 'SET DEFAULT ROLE __nohost__ TO ''__tapuser__''@''localhost''';
 
@@ -73,7 +73,7 @@ CALL taptest.createroles();
 DROP PROCEDURE IF EXISTS taptest.createroles;
 
 
-SELECT tap.plan(44);
+SELECT tap.plan(33);
 
 /****************************************************************************/
 -- has_role(uname CHAR(97), description TEXT)
@@ -94,7 +94,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.has_role('__nohost__', ''),
       true,
       'has_role() extant role no host specified',
@@ -107,7 +107,7 @@ END ;
 
 
 SELECT CASE WHEN tap.mysql_version() >= 800011 THEN
-  tap.check test(
+  tap.check_test(
     tap.has_role('''__taprole__''@''localhost''', ''),
     true,
     'has_role() extant role single quote escaped',
@@ -121,7 +121,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.has_role('__tapuser__@localhost', ''),
       false,
       'has_role() nonexistent role',
@@ -135,7 +135,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.has_role('__nouser__@localhost', ''),
       false,
       'has_role() nonexistent account diagnostic',
@@ -143,17 +143,17 @@ SELECT
       'Role __nouser__@localhost is not defined',
       0)
   WHEN tap.mysql_version() < 800011 THEN
-    tap.skip(1,'Requires MySQL version >= 8.0.11')
+    tap.skip(2,'Requires MySQL version >= 8.0.11')
 END ;
 
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.has_role('__taprole__@localhost', ''),
       true,
       'has_role() default description',
-      'Role __taprole__@localhost should exist',
+      'Role __taprole__@localhost should be active',
       null,
       0)
   WHEN tap.mysql_version() < 800011 THEN
@@ -163,7 +163,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.has_role('__taprole__@localhost', 'desc'),
       true,
       'has_role() description supplied',
@@ -180,7 +180,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.hasnt_role('__tapuser__@localhost', ''),
       true,
       'hasnt_role() on user account',
@@ -194,7 +194,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.hasnt_role('__taprole__@localhost', ''),
       false,
       'hasnt_role() extant role',
@@ -207,13 +207,13 @@ END ;
 
 
 SELECT CASE WHEN tap.mysql_version() >= 800011 THEN
-  tap.check test(
+  tap.check_test(
     tap.hasnt_role('__tapuser__@localhost', ''),
     true,
     'hasnt_role() default description',
     'Role __tapuser__@localhost should not be active',
     null,
-      0)
+    0)
   WHEN tap.mysql_version() < 800011 THEN
     tap.skip(2,'Requires MySQL version >= 8.0.11')
 END ;
@@ -221,7 +221,7 @@ END ;
 
 SELECT 
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.hasnt_role('__taprole__@localhost', 'desc'),
       false,
       'hasnt_role() description supplied',
@@ -229,7 +229,7 @@ SELECT
       null,
       0)
   WHEN tap.mysql_version() < 800011 THEN
-    tap.skip(1,'Requires MySQL version >= 8.0.11')
+    tap.skip(2,'Requires MySQL version >= 8.0.11')
 END ;
 
 
@@ -265,7 +265,7 @@ END ;
 
 
 SELECT CASE WHEN tap.mysql_version() >= 800011 THEN
-  tap.check test(
+  tap.check_test(
     tap.role_is_default('''__nohost__''@''%''', ''),
     true,
     'role_is_default() extant default role single quote escaped',
@@ -279,7 +279,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_is_default('__taprole__@localhost', ''),
       false,
       'role_is_default() non default role',
@@ -293,7 +293,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_is_default('__tapuse__@localhost', ''),
       false,
       'role_is_default() non role user account',
@@ -307,7 +307,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_is_default('__nouser__@localhost', ''),
       false,
       'role_is_default() nonexistent account diagnostic',
@@ -321,7 +321,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_is_default('__taprole__@localhost', ''),
       false,
       'role_is_default() default description',
@@ -335,7 +335,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_is_default('__nohost__', 'desc'),
       true,
       'role_is_default() description supplied',
@@ -352,7 +352,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_isnt_default('__tapuser__@localhost', ''),
       true,
       'role_isnt_default() on user account',
@@ -366,7 +366,7 @@ END ;
 
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_isnt_default('__taprole__@localhost', ''),
       true,
       'role_isnt_default() extant role',
@@ -379,7 +379,7 @@ END ;
 
 
 SELECT CASE WHEN tap.mysql_version() >= 800011 THEN
-  tap.check test(
+  tap.check_test(
     tap.role_isnt_default('__nohost__', ''),
     false,
     'role_isnt_default() default description',
@@ -393,7 +393,7 @@ END ;
 
 SELECT 
   CASE WHEN tap.mysql_version() >= 800011 THEN
-    tap.check test(
+    tap.check_test(
       tap.role_isnt_default('__taprole__@localhost', 'desc'),
       true,
       'role_isnt_default() description supplied',
@@ -401,7 +401,7 @@ SELECT
       null,
       0)
   WHEN tap.mysql_version() < 800011 THEN
-    tap.skip(1,'Requires MySQL version >= 8.0.11')
+    tap.skip(2,'Requires MySQL version >= 8.0.11')
 END ;
 
 
@@ -410,7 +410,7 @@ END ;
 -- Finish the tests and clean up.
 
 call tap.finish();
-CALL taptest.dropusers();
+-- CALL taptest.dropusers();
 DROP PROCEDURE IF EXISTS taptest.dropusers;
 DROP DATABASE taptest;
 ROLLBACK;
