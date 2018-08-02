@@ -1,6 +1,8 @@
 -- USER
 -- ====
 
+USE tap;
+
 DELIMITER //
 
 /****************************************************************************/
@@ -82,7 +84,7 @@ BEGIN
     SET description = CONCAT('User ', uname, ' should exist');
   END IF;
 
-  RETURN ok(_has_user_at_host(uname), description);
+  RETURN ok(_has_user_at_host(@uname), description);
 END //
 
 
@@ -101,7 +103,7 @@ BEGIN
     SET description = CONCAT('User ', uname, ' should not exist');
   END IF;
 
-  RETURN ok(NOT _has_user_at_host(uname), description);
+  RETURN ok(NOT _has_user_at_host(@uname), description);
 END //
 
 
