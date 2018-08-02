@@ -95,6 +95,21 @@ if [[ $NOINSTALL -eq 0 ]]; then
     echo "============= installing myTAP ============="
     echo "Importing myTAP base"
     mysql $MYSQLOPTS --execute 'source ./mytap.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-schemata.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-engine.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-collation.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-charset.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-timezone.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-user.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-event.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-table.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-view.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-column.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-trigger.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-routines.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-constraint.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-index.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-partition.sql';
 
     if [[ $MYVER -gt 506000 ]]; then
        echo "Importing Version 5.6 patches";
@@ -114,6 +129,7 @@ if [[ $NOINSTALL -eq 0 ]]; then
     if [[ $MYVER -gt 800000 ]]; then
        echo "Importing Version 8.0 patches";
        mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-role.sql';
     fi
 fi
 
