@@ -106,6 +106,7 @@ if [[ $NOINSTALL -eq 0 ]]; then
     mysql $MYSQLOPTS --execute 'source ./mytap-view.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-column.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-trigger.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-role.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-routines.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-constraint.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-index.sql';
@@ -125,7 +126,7 @@ if [[ $NOINSTALL -eq 0 ]]; then
 
     if [[ $MYVER -ge 800011 ]]; then
        echo "Importing Version 8.0.11 patches";
-       mysql $MYSQLOPTS --execute 'source ./mytap-role.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-role-8011.sql';
        mysql $MYSQLOPTS --execute 'source ./mytap-table-8011.sql';
     fi
 fi
@@ -205,7 +206,7 @@ if [[ $NOTESTS -eq 0 ]]; then
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "role" ]]; then
-      echo "============= routines ============"
+      echo "============= role ============"
       mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-role.sql'
    fi
 
