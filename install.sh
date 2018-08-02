@@ -50,7 +50,7 @@ Options:
  -h, --host           MySQL host
  -t, --no-tests       Don't run the test suite when the install is completed
  -i, --no-install     Don't perform the installation, i.e. just run the test suite
- -f, --filter         Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|routines|table|trigger|schemata|user|view>
+ -f, --filter         Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|role|routines|table|trigger|schemata|user|view>
 EOF
 	   exit 1 
 	   ;;
@@ -111,25 +111,22 @@ if [[ $NOINSTALL -eq 0 ]]; then
     mysql $MYSQLOPTS --execute 'source ./mytap-index.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-partition.sql';
 
-    if [[ $MYVER -gt 506000 ]]; then
-       echo "Importing Version 5.6 patches";
-       mysql $MYSQLOPTS --execute 'source ./mytap-table-56.sql';
+    if [[ $MYVER -ge 506004 ]]; then
+       echo "Importing Version 5.6.4 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-564.sql';
     fi
 
-    if [[ $MYVER -gt 507000 ]]; then
-       echo "Importing Version 5.7 patches";
-       mysql $MYSQLOPTS --execute 'source ./mytap-table-57.sql';
-    fi
-
-    if [[ $MYVER -gt 507006 ]]; then
+    if [[ $MYVER -ge 507006 ]]; then
        echo "Importing Version 5.7.6 patches";
-       mysql $MYSQLOPTS --execute 'source ./mytap-global-57.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-576.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-global-576.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-user-576.sql';
     fi
 
-    if [[ $MYVER -gt 800000 ]]; then
-       echo "Importing Version 8.0 patches";
-       mysql $MYSQLOPTS --execute 'source ./mytap-table-80.sql';
+    if [[ $MYVER -ge 800011 ]]; then
+       echo "Importing Version 8.0.11 patches";
        mysql $MYSQLOPTS --execute 'source ./mytap-role.sql';
+       mysql $MYSQLOPTS --execute 'source ./mytap-table-8011.sql';
     fi
 fi
 
@@ -205,6 +202,11 @@ if [[ $NOTESTS -eq 0 ]]; then
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
       echo "============= partitions ============"
       mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "role" ]]; then
+      echo "============= routines ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-role.sql'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "routines" ]]; then
