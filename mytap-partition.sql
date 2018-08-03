@@ -450,6 +450,11 @@ END //
 
 /*****************************************************************************/
 
+-- Version 8.0.11 does not have generic partitioning, it is now
+-- included in the individual engines
+-- This test is therefore redundant since the test for INNODB
+-- will satify the test
+
 -- partitioning enabled
 DROP FUNCTION IF EXISTS _has_partitioning //
 CREATE FUNCTION _has_partitioning()
@@ -477,7 +482,12 @@ BEGIN
     SET description = 'Partitioning should be active';
   END IF;
 
-  RETURN ok(_has_partitioning(), description);
+  IF tap.mysql_version() >= 800011 THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag('Partitioning support is part of specific ENGINE post 8.0.11'));
+  END IF;
+
+RETURN ok(_has_partitioning(), description);
 END //
 
 

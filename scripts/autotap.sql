@@ -604,8 +604,8 @@ BEGIN
     IF nu = 1 THEN
       SELECT CONCAT("SELECT tap.col_is_null('", sname, "','",tname,"','", cn,"','');"); 
     END IF;
-    SELECT CONCAT("SELECT tap.col_has_type('", sname, "','",tname,"','", cn,"',", qv(dt), ",'');");
-    SELECT CONCAT("SELECT tap.col_column_type_is('", sname, "','",tname,"','", cn, "',", qv(ct), ",'');");
+    SELECT CONCAT("SELECT tap.col_has_type('", sname, "','",tname,"','", cn,"',", qv(ct), ",'');");
+    SELECT CONCAT("SELECT tap.col_data_type_is('", sname, "','",tname,"','", cn, "',", qv(dt), ",'');");
     SELECT CONCAT("SELECT tap.col_extra_is('", sname, "','",tname,"','", cn,"',", qv(ex), ",'');");
     SELECT CONCAT("SELECT tap.col_default_is('", sname, "','",tname,"','", cn,"',", qv(cd), ",'');");
     SELECT CONCAT("SELECT tap.col_charset_is('", sname, "','",tname,"','", cn,"',", qv(cs), ",'');");

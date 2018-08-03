@@ -260,43 +260,82 @@ SELECT tap.check_test(
 
 /****************************************************************************/
 -- partition_expression_is(sname VARCHAR(64), tname VARCHAR(64), part VARCHAR(64), expr LONGTEXT, description TEXT)
+-- Subtle change in the way the value is stored in 8.0.11
+-- previously the expression was stored as written in the create statement
+-- post 8.0.11 the column name gets escaped with backticks whether they were included
+-- in the create statement or not
 
-SELECT tap.check_test(
-    tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(purchased)' ,''),
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(purchased)' ,''),
     true,
     'partition_expression_is() correct specification',
     null,
     null,
-    0
-);
+    0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(`purchased`)' ,''),
+    true,
+    'partition_expression_is() correct specification',
+    null,
+    null,
+    0)
+END;
 
-SELECT tap.check_test(
-    tap.partition_expression_is('taptest', 't3', 'p0', 'MONTH(purchased)', ''),
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+     tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'MONTH(purchased)', ''),
     false,
     'partition_expression_is() incorrect specification',
     null,
     null,
-    0
-);
+    0)
+  WHEN tap.mysql_version() >= 800011 THEN
+     tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'MONTH(`purchased`)', ''),
+    false,
+    'partition_expression_is() incorrect specification',
+    null,
+    null,
+    0)
+END;
 
-SELECT tap.check_test(
-    tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(purchased)', ''),
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(purchased)', ''),
     true,
     'partition_expression_is() default description',
     'Partition t3.p0 should have partition expression \'YEAR(purchased)\'',
     null,
-    0
-);
+    0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(`purchased`)', ''),
+    true,
+    'partition_expression_is() default description',
+    'Partition t3.p0 should have partition expression \'YEAR(`purchased`)\'',
+    null,
+    0)
+END;
 
-SELECT tap.check_test(
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(
     tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(purchased)', 'desc'),
     true,
     'partition_expression_is() description supplied',
     'desc',
     null,
-    0
-);
+    0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(
+    tap.partition_expression_is('taptest', 't3', 'p0', 'YEAR(`purchased`)', 'desc'),
+    true,
+    'partition_expression_is() description supplied',
+    'desc',
+    null,
+    0)
+END;
 
+-- no case needed here as diag triggered
 SELECT tap.check_test(
     tap.partition_expression_is('taptest', 't3', 'nonexistent', 'YEAR(purchased)', ''),
     false,
@@ -307,21 +346,29 @@ SELECT tap.check_test(
 );
 
 
-
 /****************************************************************************/
 -- subpartition_expression_is(sname VARCHAR(64), tname VARCHAR(64), subp VARCHAR(64), expr LONGTEXT, description TEXT)
 
-SELECT tap.check_test(
-    tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)' ,''),
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)' ,''),
     true,
     'subpartition_expression_is() correct specification',
     null,
     null,
-    0
-);
+    0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(`purchased`)' ,''),
+    true,
+    'subpartition_expression_is() correct specification',
+    null,
+    null,
+    0)
+END ;
 
-SELECT tap.check_test(
-    tap.subpartition_expression_is('taptest', 't3', 's0', 'YEAR(purchased)', ''),
+-- expected to fail doesn't need case
+SELECT
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'YEAR(purchased)', ''),
     false,
     'subpartition_expression_is() incorrect specification',
     null,
@@ -329,24 +376,41 @@ SELECT tap.check_test(
     0
 );
 
-SELECT tap.check_test(
-    tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)', ''),
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)', ''),
     true,
     'subpartition_expression_is() default description',
     'Subpartition t3.s0 should have subpartition expression \'TO_DAYS(purchased)\'',
     null,
-    0
-);
-
-SELECT tap.check_test(
-    tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)', 'desc'),
+    0)
+ WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(`purchased`)', ''),
     true,
-    'subpartition_expression_is() description supplied',
-    'desc',
+    'subpartition_expression_is() default description',
+    'Subpartition t3.s0 should have subpartition expression \'TO_DAYS(`purchased`)\'',
     null,
-    0
-);
+    0)
+END;
 
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(purchased)', 'desc'),
+      true,
+      'subpartition_expression_is() description supplied',
+      'desc',
+      null,
+      0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.check_test(tap.subpartition_expression_is('taptest', 't3', 's0', 'TO_DAYS(`purchased`)', 'desc'),
+      true,
+      'subpartition_expression_is() description supplied',
+      'desc',
+      null,
+      0)
+END;
+
+-- case not required diagnostic
 SELECT tap.check_test(
     tap.subpartition_expression_is('taptest', 't3', 'nonexistent', 'TO_DAYS(purchased)', ''),
     false,
@@ -355,7 +419,6 @@ SELECT tap.check_test(
     'Subpartition t3.nonexistent does not exist',
     0
 );
-
 
 
 /****************************************************************************/
@@ -597,38 +660,49 @@ SELECT tap.check_test(
 );
 
 
+
+
 /****************************************************************************/
 -- has_partitioning(description TEXT)
 -- assume this will run if the others did
+-- Version 8.0.11 removes generic partitioning so skip tests
+-- which would otherwise fail because function is removed 
 
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.has_partitioning(''),
+      true,
+      'has partitioning() returns true',
+      null,
+      null,
+    0)
+ WHEN tap.mysql_version() >= 800011 THEN
+    tap.skip(1,'Generic Partitioning removed in MySQL version 8.0.11')
+END ;
 
-SELECT tap.check_test(
-    tap.has_partitioning(''),
-    true,
-    'has partitioning() returns true',
-    null,
-    null,
-    0
-);
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.has_partitioning(''),
+      true,
+      'has partitioning() default description',
+      'Partitioning should be active',
+      null,
+      0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.skip(2,'Generic Partitioning removed in MySQL version 8.0.11')
+END;
 
-SELECT tap.check_test(
-    tap.has_partitioning(''),
-    true,
-    'has partitioning() default description',
-    'Partitioning should be active',
-    null,
-    0
-);
-
-SELECT tap.check_test(
-    tap.has_partitioning('desc'),
-    true,
-    'has partitioning() description supplied',
-    'desc',
-    null,
-    0
-);
-
+SELECT
+  CASE WHEN tap.mysql_version() < 800011 THEN
+    tap.check_test(tap.has_partitioning('desc'),
+      true,
+      'has partitioning() description supplied',
+      'desc',
+      null,
+      0)
+  WHEN tap.mysql_version() >= 800011 THEN
+    tap.skip(2,'Generic Partitioning removed in MySQL version 8.0.11')
+END;
 
 /****************************************************************************/
 
