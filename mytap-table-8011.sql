@@ -1,5 +1,3 @@
-USE tap;
-
 -- 8.0.11 version file
 -- Added srs_id to columns
 
@@ -11,6 +9,7 @@ USE tap;
 -- Allows match against partial value to save typing as
 -- 8 characters will give 16^8 combinations.
 
+USE tap;
 
 DELIMITER //
 

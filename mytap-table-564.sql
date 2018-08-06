@@ -1,7 +1,9 @@
-USE tap;
-
 -- 5.6.4 version file
 -- Added datetime_precision
+
+USE tap;
+
+DELIMITER //
 
 /****************************************************************************/
 -- CHECK FOR SCHEMA CHANGES
@@ -10,8 +12,6 @@ USE tap;
 -- change over the course of time through normal DLM operations.
 -- Allows match against partial value to save typing as
 -- 8 characters will give 16^8 combinations.
-
-DELIMITER //
 
 DROP FUNCTION IF EXISTS _table_sha1 //
 CREATE FUNCTION _table_sha1(sname VARCHAR(64), tname VARCHAR(64))

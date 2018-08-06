@@ -3,12 +3,11 @@
 
 -- Table level checks
 
-/************************************************************************************/
-
 USE tap;
 
 DELIMITER //
 
+/************************************************************************************/
 -- _has_trigger( schema, table, trigger, description )
 DROP FUNCTION IF EXISTS _has_trigger //
 CREATE FUNCTION _has_trigger(sname VARCHAR(64), tname VARCHAR(64), trgr VARCHAR(64))

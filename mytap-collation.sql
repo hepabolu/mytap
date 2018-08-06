@@ -1,6 +1,7 @@
 -- COLLATION
 -- =========
 
+USE tap;
 
 DELIMITER //
 

@@ -1,9 +1,11 @@
 -- INDEX check functions
+-- =====================
+
+USE tap;
 
 DELIMITER //
 
 /**************************************************************************/
-
 -- Check constituent parts of an index covers partial index 
 DROP FUNCTION IF EXISTS _index_def //
 CREATE FUNCTION _index_def(sname VARCHAR(64), tname VARCHAR(64), iname VARCHAR(64))

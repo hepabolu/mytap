@@ -1,3 +1,8 @@
+-- ROUTINES
+-- ========
+
+USE tap;
+
 DELIMITER //
 
 -- work around for STRICT MODE in 5.7

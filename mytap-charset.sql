@@ -1,8 +1,10 @@
+-- CHARACTER SET DEFINITIONS
+
+USE tap;
+
 DELIMITER //
 
 /****************************************************************************/
--- CHARACTER SET DEFINITIONS
-
 
 -- internal function to check
 -- _has_charset( charset )

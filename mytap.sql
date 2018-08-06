@@ -838,20 +838,4 @@ END //
 
 DELIMITER ;
 
-source ./mytap-schemata.sql;
-source ./mytap-engine.sql;
-source ./mytap-collation.sql;
-source ./mytap-charset.sql;
-source ./mytap-timezone.sql;
-source ./mytap-user.sql;
-source ./mytap-event.sql;
-source ./mytap-table.sql;
-source ./mytap-view.sql;
-source ./mytap-column.sql;
-source ./mytap-trigger.sql;
-source ./mytap-routines.sql;
-source ./mytap-constraint.sql;
-source ./mytap-index.sql;
-source ./mytap-partition.sql;
-
 SET GLOBAL log_bin_trust_function_creators = 0;
