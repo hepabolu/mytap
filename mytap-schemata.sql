@@ -1,10 +1,12 @@
 -- SCHEMA
 -- ======
 
+
+USE tap;
+
 DELIMITER //
 
 /****************************************************************************/
-
 -- has_schema( schema)
 DROP FUNCTION IF EXISTS _has_schema //
 CREATE FUNCTION _has_schema(sname VARCHAR(64))

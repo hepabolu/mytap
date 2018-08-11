@@ -1521,7 +1521,7 @@ SELECT tap.check_test(
 
 -- Finish the tests and clean up.
 call tap.finish();
--- DROP DATABASE IF EXISTS taptest;
+DROP DATABASE IF EXISTS taptest;
 ROLLBACK;
 
 

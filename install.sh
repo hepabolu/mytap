@@ -3,8 +3,9 @@
 # Installation script for MyTAP
 
 
-SQLHOST=localhost;
+SQLHOST='localhost';
 SQLPORT=3306;
+SQLSOCK=''
 NOTESTS=0
 NOINSTALL=0
 FILTER=0
@@ -27,6 +28,10 @@ while [[ "$#" > 0 ]]; do
 	    SQLPORT="$2"
 	    shift
 	    ;;
+	-S|--socket)
+	    SQLSOCK="$2"
+	    shift
+	    ;;
 	-f|--filter)
 	    NOFILTER=0
 	    FILTER="$2"
@@ -44,13 +49,14 @@ Usage:
  install.sh [options]
 
 Options:
- -u, --user           MySQL username
- -p, --password       MySQL password
- -P, --port           MySQL port
- -h, --host           MySQL host
- -t, --no-tests       Don't run the test suite when the install is completed
- -i, --no-install     Don't perform the installation, i.e. just run the test suite
- -f, --filter         Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|routines|table|trigger|schemata|user|view>
+ -u, --user string      MySQL username
+ -p, --password string  MySQL password
+ -h, --host name or IP  MySQL host
+ -P, --port name        MySQL port
+ -S, --socket filename  MySQL host
+ -t, --no-tests         Don't run the test suite when the install is completed
+ -i, --no-install       Don't perform the installation, i.e. just run the test suite
+ -f, --filter string    Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|role|routines|table|trigger|schemata|user|view>
 EOF
 	   exit 1 
 	   ;;
@@ -66,17 +72,18 @@ MYSQLOPTS="--disable-pager --batch --raw --skip-column-names --unbuffered"
 
 if [[ $SQLUSER != '' ]] && [[ $SQLPASS != '' ]]; then
     MYSQLOPTS="$MYSQLOPTS -u$SQLUSER -p$SQLPASS";
-    CMD="--user $SQLUSER --password = $SQLPASS";
+fi
+
+if [[ $SQLSOCK != '' ]]; then
+   MYSQLOPTS="$MYSQLOPTS --socket=$SQLSOCK";
 fi
 
 if [[ $SQLHOST != 'localhost' ]]; then
-   MYSQLOPTS="$MYSQLOPTS --host $SQLHOST";
-   CMD="$CMD --host $SQLHOST";
+   MYSQLOPTS="$MYSQLOPTS --host=$SQLHOST";
 fi
 
 if [[ $SQLPORT != '3306' ]]; then
-  MYSQLOPTS="$MYSQLOPTS --port $SQLPORT"
-  CMD="$CMD --port $SQLPORT"
+  MYSQLOPTS="$MYSQLOPTS --port=$SQLPORT"
 fi
 
 MYVER1=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $1 * 100000 }'`;
@@ -84,7 +91,7 @@ MYVER2=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print
 MYVER3=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}'`;
 
 
-MYVER=$(($MYVER1 + $MYVER2 + $MYVER3));
+MYVER=$(("$MYVER1" + "$MYVER2" + "$MYVER3"));
 
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
@@ -95,6 +102,22 @@ if [[ $NOINSTALL -eq 0 ]]; then
     echo "============= installing myTAP ============="
     echo "Importing myTAP base"
     mysql $MYSQLOPTS --execute 'source ./mytap.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-schemata.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-engine.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-collation.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-charset.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-timezone.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-user.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-event.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-table.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-view.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-column.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-trigger.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-role.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-routines.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-constraint.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-index.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-partition.sql';
 
     if [[ $MYVER -ge 506004 ]]; then
        echo "Importing Version 5.6.4 patches";
@@ -110,6 +133,7 @@ if [[ $NOINSTALL -eq 0 ]]; then
 
     if [[ $MYVER -ge 800011 ]]; then
        echo "Importing Version 8.0.11 patches";
+       mysql $MYSQLOPTS --execute 'source ./mytap-role-8011.sql';
        mysql $MYSQLOPTS --execute 'source ./mytap-table-8011.sql';
     fi
 fi
@@ -186,6 +210,11 @@ if [[ $NOTESTS -eq 0 ]]; then
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
       echo "============= partitions ============"
       mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.sql'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "role" ]]; then
+      echo "============= role ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-role.sql'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "routines" ]]; then

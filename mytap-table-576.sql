@@ -1,5 +1,3 @@
-USE tap;
-
 -- 5.7.6 version file
 -- Added generation_expression to information_schema.columns
 
@@ -12,6 +10,7 @@ USE tap;
 -- Allows match against partial value to save typing as
 -- 8 characters will give 16^8 combinations.
 
+USE tap;
 
 DELIMITER //
 
