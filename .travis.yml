@@ -1,11 +1,27 @@
+sudo: required
 services:
-  - mysql
-sudo: true
+  - docker
+
+matrix:
+  include:
+    - env:
+        - DB=mysql:5.5
+    - env:
+        - DB=mysql:5.6
+    - env:
+        - DB=mysql:5.7
+    - env:
+        - DB=mysql:8.0
+
 before_script:
-  - bash .travis.install-mysql.sh
-env:
-  - MYVERSION=5.5
-  - MYVERSION=5.6
-  - MYVERSION=5.7
-  - MYVERSION=8.0
+  - ./.travis.install-mysql.sh
+  - export COVERALLS_PARALLEL=true
+
 script: bash ./install.sh
+  - if [ ! -z "${DB}" ];
+    then docker logs mysqld;
+    fi
+
+after_success:
+  - coveralls
+
