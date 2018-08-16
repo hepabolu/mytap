@@ -61,7 +61,7 @@ CALL taptest.createusers();
 DROP PROCEDURE IF EXISTS taptest.createusers;
 
 
-SELECT tap.plan(58);
+SELECT tap.plan(59);
 
 /****************************************************************************/
 -- has_user(hname CHAR(60), uname CHAR(32), description TEXT)
@@ -147,9 +147,18 @@ SELECT tap.check_test(
 -- has_user_at_host(uname CHAR(97), description TEXT)
 
 SELECT tap.check_test(
-    tap.has_user_at_host('__tapuser__@localhost', ''),
+    tap.has_user_at_host("'__tapuser__@localhost'", ''),
     true,
-    'has_user_at_host() extant user',
+    'has_user_at_host() extant user no quoting',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.has_user_at_host("'__tapuser__'@'localhost'", ''),
+    true,
+    'has_user_at_host() extant user single-quote escaped',
     null,
     null,
     0
@@ -165,9 +174,9 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_user_at_host('''__tapuser__''@''localhost''', ''),
+    tap.has_user_at_host('"__tapuser__"@"localhost"', ''),
     true,
-    'has_user_at_host() extant user single-quote escaped',
+    'has_user_at_host() extant user double-quote escaped',
     null,
     null,
     0
@@ -183,16 +192,16 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.has_user_at_host('__tapuser__@localhost', ''),
+    tap.has_user_at_host("'__tapuser__'@'localhost'", ''),
     true,
     'has_user_at_host() default description',
-    'User __tapuser__@localhost should exist',
+    'User \'__tapuser__\'@\'localhost\' should exist',
     null,
     0
 );
 
 SELECT tap.check_test(
-    tap.has_user_at_host('__tapuser__@localhost', 'desc'),
+    tap.has_user_at_host("'__tapuser__'@'localhost'", 'desc'),
     true,
     'has_user_at_host() description supplied',
     'desc',
@@ -205,7 +214,7 @@ SELECT tap.check_test(
 -- hasnt_user_at_host(uname CHAR(97), description TEXT)
 
 SELECT tap.check_test(
-    tap.hasnt_user_at_host('__nouser__@localhost', ''),
+    tap.hasnt_user_at_host("'__nouser__'@'localhost'", ''),
     true,
     'hasnt_user_at_host() nonexistent user',
     null,
@@ -214,7 +223,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_user_at_host('__tapuser__@localhost', ''),
+    tap.hasnt_user_at_host("'__tapuser__'@'localhost'", ''),
     false,
     'hasnt_user_at_host() extant user',
     null,
@@ -223,16 +232,16 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.hasnt_user_at_host('__nouser__@localhost', ''),
+    tap.hasnt_user_at_host("'__nouser__'@'localhost'", ''),
     true,
     'hasnt_user_at_host() default description',
-    'User __nouser__@localhost should not exist',
+    'User \'__nouser__\'@\'localhost\' should not exist',
     null,
     0
 );
 
 SELECT tap.check_test(
-    tap.hasnt_user_at_host('__tapuser__@localhost', 'desc'),
+    tap.hasnt_user_at_host("'__tapuser__'@'localhost'", 'desc'),
     false,
     'hasnt_user_at_host() description supplied',
     'desc',
@@ -511,7 +520,7 @@ END;
 -- Finish the tests and clean up.
 
 call tap.finish();
-DROP USER '__tapuser__'@'localhost';
+/*DROP USER '__tapuser__'@'localhost';
 DROP USER '__locked__'@'localhost';
 DROP DATABASE taptest;
-ROLLBACK;
+*/ROLLBACK;
