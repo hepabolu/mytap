@@ -14,7 +14,7 @@ command: --default-authentication-plugin=mysql_native_password
     sleep 10
 
     mysql() {
-        docker exec mysqld mysql "${@}"
+        docker exec mysqld mysql --default-authentication-plugin=mysql_native_password "${@}"
     }
     while :
     do
@@ -29,9 +29,6 @@ command: --default-authentication-plugin=mysql_native_password
 
     mysql -e 'select VERSION()'
 
-    if [ $DB == 'mysql:8.0' ]; then
-	mysql -h 127.0.0.1 -P3306 -uroot -e "SET @@GLOBAL.default_authentication_plugin='mysql_native_password'"    
-    fi
 else
     cat ~/.my.cnf
 
