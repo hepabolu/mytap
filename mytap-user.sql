@@ -82,7 +82,7 @@ BEGIN
   SET @uname = REPLACE(@uname, '"','''');
   SET @uname = REPLACE(@uname, '`','''');
 
-  IF @name REGEXP '@' = 0 THEN
+  IF @uname REGEXP '@' = 0 THEN
     SET @uname = CONCAT(@uname, '@\'%\'');
   END IF;
 
@@ -152,6 +152,53 @@ BEGIN
   END IF;
 
   RETURN ok(NOT _has_user_at_host(@uname), description);
+END //
+
+
+/****************************************************************************/
+
+-- function prototypes for features in 5.7.6
+
+-- user_ok(host, user, description )
+DROP FUNCTION IF EXISTS user_ok //
+CREATE FUNCTION user_ok(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+DROP FUNCTION IF EXISTS user_not_ok //
+CREATE FUNCTION user_not_ok(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+/****************************************************************************/
+
+-- PASSWORD LIFETIME
+
+-- user_has_lifetime( host, user, description )
+DROP FUNCTION IF EXISTS user_has_lifetime//
+CREATE FUNCTION user_has_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+-- user_hasnt_lifetime( host, user, description )
+DROP FUNCTION IF EXISTS user_hasnt_lifetime //
+CREATE FUNCTION user_hasnt_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
 END //
 
 

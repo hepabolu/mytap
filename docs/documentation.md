@@ -14,14 +14,16 @@ well as the ability to integrate with other TAP-emitting test frameworks.
 
 # Installation
 
-To install MyTAP into a MySQL database, just run `mytap.sql`:
+To install MyTAP into a MySQL database, just run `install.sh`:
 
 ```bash
-mysql -u root < mytap.sql
+./install.sh [-? -h -u -p -P -S -i -t -f filter]
 ```
 
-This will install all of the assertion functions, as well as a cache table,
-into a database named "tap".
+Switches allow control of the user, password, host, port, and socket for the server instance. The -i and -t switches
+allow the installer to run in install-only or test-only mode. The -f switch allows filtering of the block of tests
+that sould be run. This will install all of the assertion functions suitable for the MySQL server version, as well
+as a cache table, into a database named "tap".
 
 # MyTAP Test Scripts
 

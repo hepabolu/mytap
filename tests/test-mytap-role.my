@@ -83,13 +83,14 @@ SELECT
     tap.check_test(
       tap.has_role('__taprole__@localhost', ''),
       true,
-      'has_role() extant role not escaped',
+      'has_role() extant role (not escaped)',
       null,
       null,
       0)
-  WHEN tap.mysql_version() < 800011 THEN
+  ELSE
+/*  WHEN tap.mysql_version() < 800011 THEN */
     tap.skip(1,'Requires MySQL version >= 8.0.11')
-END ;
+  END ;
 
 
 SELECT
@@ -97,7 +98,7 @@ SELECT
     tap.check_test(
       tap.has_role('__nohost__', ''),
       true,
-      'has_role() extant role no host specified',
+      'has_role() extant role (no host)',
       null,
       null,
       0)
@@ -181,7 +182,7 @@ END ;
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
     tap.check_test(
-      tap.hasnt_role('__tapuser__@localhost', ''),
+      tap.hasnt_role("'__tapuser__'@'localhost'", ''),
       true,
       'hasnt_role() on user account',
       null,
@@ -195,7 +196,7 @@ END ;
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
     tap.check_test(
-      tap.hasnt_role('__taprole__@localhost', ''),
+      tap.hasnt_role("'__taprole__'@'localhost'", ''),
       false,
       'hasnt_role() extant role',
       null,
@@ -239,7 +240,7 @@ END ;
 SELECT
   CASE WHEN tap.mysql_version() >= 800011 THEN
     tap.check_test(
-      tap.role_is_default('__nohost__@%', ''),
+      tap.role_is_default("'__nohost__'@'%'", ''),
       true,
       'role_is_default() extant default role not escaped',
       null,
