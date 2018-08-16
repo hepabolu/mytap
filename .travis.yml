@@ -18,9 +18,6 @@ before_script:
   - export COVERALLS_PARALLEL=true
 
 script: bash ./install.sh
-  - if [ ! -z "${DB}" ];
-    then docker logs mysqld;
-    fi
 
 after_success:
   - coveralls
