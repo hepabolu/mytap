@@ -17,7 +17,7 @@ before_script:
   - ./.travis.install-mysql.sh
   - export COVERALLS_PARALLEL=true
 
-script: bash ./install.sh
+script: bash ./install.sh -h 127.0.0.1 -P 3306 -u root
 
 after_success:
   - coveralls
