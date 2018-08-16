@@ -43,7 +43,7 @@ while [[ "$#" > 0 ]]; do
 	-i|--no-install)
 	    NOINSTALL=1
 	    ;;
-	-h|--help)
+	-?|--help)
 	    cat << EOF
 Usage:
  install.sh [options]
@@ -91,7 +91,7 @@ MYVER2=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print
 MYVER3=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}'`;
 
 
-MYVER=$(("$MYVER1" + "$MYVER2" + "$MYVER3"));
+MYVER=$(($MYVER1+$MYVER2+$MYVER3));
 
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
