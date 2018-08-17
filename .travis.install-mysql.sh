@@ -10,11 +10,11 @@ if [ ! -z "${DB}" ]; then
     sudo service mysql stop
 
     docker pull ${DB}
-    docker run -it --name=mysqld -d -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 ${DB}
+    docker run -it --name=mysqld -d -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 mysqld --default-authentication-plugin=mysql_native_password ${DB}
     sleep 10
 
     mysql() {
-        docker exec mysqld mysql "${@}"
+        docker exec mysqld --default-authentication-plugin=mysql_native_password mysql "${@}"
     }
     while :
     do
