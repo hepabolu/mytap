@@ -40,8 +40,8 @@ if [ ! -z "${DB}" ]; then
     mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
     mysql -u root -e "ALTER USER 'mysql.sys'@'localhost' IDENTIFIED WITH mysql_native_password";
     mysql -u root -e "ALTER USER 'mysql.session'@'localhost' IDENTIFIED WITH mysql_native_password";
-    mysql -u root -e "ALTER USER 'mysql.infoschema'@'localhost' IDENTIFIED WITH mysql_native_password";
-    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%'; FLUSH PRIVILEGES"
+    mysql -u root -e "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user != 'mysql.infoschema'";
+    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%';"
     mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
 else
     cat ~/.my.cnf
