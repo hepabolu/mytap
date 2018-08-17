@@ -28,11 +28,10 @@ if [ ! -z "${DB}" ]; then
     done
 
     mysql -e 'select VERSION()'
-    mysql -e "UPDATE mysql.user set plugin = 'mysql_native_password' where user='root'"
+    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%';"
     mysql -e 'SELECT user, host, plugin FROM mysql.user'
 else
     cat ~/.my.cnf
 
     mysql -e 'select VERSION()'
-    mysql -e 'SELECT user, host, plugin FROM mysql.user'
 fi

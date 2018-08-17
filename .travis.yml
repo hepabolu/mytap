@@ -2,8 +2,6 @@ sudo: required
 services:
   - docker
 
-command: --default-authentication-plugin=mysql_native_password
-
 matrix:
   include:
     - env:
@@ -18,6 +16,6 @@ matrix:
 before_script:
   - ./.travis.install-mysql.sh
 
-script: bash ./install.sh -h 127.0.0.1 -P 3306 -u root
+script: bash ./install.sh -h 127.0.0.1 -P 3306 -u mytap
 
 
