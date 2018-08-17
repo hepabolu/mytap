@@ -2,6 +2,8 @@ sudo: required
 services:
   - docker
 
+command: --default-authentication-plugin=mysql_native_password
+
 matrix:
   include:
     - env:
