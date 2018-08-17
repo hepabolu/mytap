@@ -28,6 +28,15 @@ if [ ! -z "${DB}" ]; then
     done
 
     mysql -e 'select VERSION()'
+
+    if [ $DB == 'mysql:8.0' ]; then
+	docker cp mysqld:/var/lib/mysql/public_key.pem "${HOME}"
+	docker cp mysqld:/var/lib/mysql/ca.pem "${HOME}"
+	docker cp mysqld:/var/lib/mysql/server-cert.pem "${HOME}"
+	docker cp mysqld:/var/lib/mysql/client-key.pem "${HOME}"
+	docker cp mysqld:/var/lib/mysql/client-cert.pem "${HOME}"
+    fi
+    mysql -u root -e "UPDATE mysql.user SET plugin = 'mysql_native_password';"
     mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%';"
     mysql -e 'SELECT user, host, plugin FROM mysql.user'
 else
