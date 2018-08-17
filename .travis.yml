@@ -19,6 +19,5 @@ before_script:
   - ./.travis.install-mysql.sh
 
 script:
-  - bash ./install.sh -h 127.0.0.1 -u root -p
   - bash ./install.sh -h 127.0.0.1 -u mytap
   

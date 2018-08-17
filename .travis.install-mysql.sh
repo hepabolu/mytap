@@ -36,14 +36,8 @@ if [ ! -z "${DB}" ]; then
 	docker cp mysqld:/var/lib/mysql/client-key.pem "${HOME}"
 	docker cp mysqld:/var/lib/mysql/client-cert.pem "${HOME}"
     fi
-    # The following are all included in an attempt to get v8.0 access to work
-    # by using mysql_native_password, it still refuses to work with
-    # ERROR 2059 (HY000): Authentication plugin 'caching_sha2_password' cannot be loaded: /usr/lib/mysql/plugin/caching_sha2_password.so:
-    # cannot open shared object file: No such file or directory
-    # No matter they don't hinder operation for any other version
-    # so I'm leaving them in
-    mysql -u root -e "UPDATE mysql.user SET plugin = 'mysql_native_password'; FLUSH PRIVILEGES;"
-    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%';"
+
+    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%'; FLUSH PRIVILEGES"
     mysql -e 'SELECT user, host, plugin FROM mysql.user'
 else
     cat ~/.my.cnf
