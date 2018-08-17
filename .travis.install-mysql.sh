@@ -29,18 +29,20 @@ if [ ! -z "${DB}" ]; then
 
     mysql -e 'select VERSION()'
 
-    if [ $DB == 'mysql:8.0' ]; then
-	docker cp mysqld:/var/lib/mysql/public_key.pem "${HOME}"
-	docker cp mysqld:/var/lib/mysql/ca.pem "${HOME}"
-	docker cp mysqld:/var/lib/mysql/server-cert.pem "${HOME}"
-	docker cp mysqld:/var/lib/mysql/client-key.pem "${HOME}"
-	docker cp mysqld:/var/lib/mysql/client-cert.pem "${HOME}"
-    fi
+#   if [ $DB == 'mysql:8.0' ]; then
+#	docker cp mysqld:/var/lib/mysql/public_key.pem "${HOME}"
+#	docker cp mysqld:/var/lib/mysql/ca.pem "${HOME}"
+#	docker cp mysqld:/var/lib/mysql/server-cert.pem "${HOME}"
+#	docker cp mysqld:/var/lib/mysql/client-key.pem "${HOME}"
+#	docker cp mysqld:/var/lib/mysql/client-cert.pem "${HOME}"
+#    fi
 
-    mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
-    mysql -u root -e "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user != 'mysql.infoschema'";
-    mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%'; FLUSH PRIVILEGES;"
-    mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
+    if [ $DB == 'mysql:8.0' ]; then
+      mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
+      mysql -u root -e "UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user != 'mysql.infoschema'";
+      mysql -u root -e "CREATE USER 'mytap'@'%' IDENTIFIED WITH mysql_native_password; GRANT ALL on *.* TO 'mytap'@'%'; FLUSH PRIVILEGES;"
+      mysql -e 'SELECT user, host, plugin, authentication_string, password_expired, password_lifetime, account_locked FROM mysql.user'
+    fi
 else
     cat ~/.my.cnf
 
