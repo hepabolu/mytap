@@ -28,7 +28,7 @@ if [ ! -z "${DB}" ]; then
     done
 
     mysql -e 'select VERSION()'
-    mysql -e "UPDATE mysql.user set plugin = 'mysql_native_password' where user='root' and host='%'"
+    mysql -e "UPDATE mysql.user set plugin = 'mysql_native_password' where user='root'"
     mysql -e 'SELECT user, host, plugin FROM mysql.user'
 else
     cat ~/.my.cnf
