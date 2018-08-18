@@ -55,8 +55,8 @@ BEGIN
   DEALLOCATE PREPARE stmt2;
 
   IF myver > 800011 THEN
-    SET @sql3 = CONCAT(@sql1, 'CREATE ROLE __taprole__');
-    SET @sql4 = CONCAT(@sql2, 'GRANT __taprole__ TO __tapuser__');
+    SET @sql3 = CONCAT(@sql1, '; CREATE ROLE __taprole__');
+    SET @sql4 = CONCAT(@sql2, '; GRANT __taprole__ TO __tapuser__');
 
     PREPARE stmt3 FROM @sql3;
     EXECUTE stmt3;
