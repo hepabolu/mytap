@@ -17,8 +17,8 @@ matrix:
 
 before_script:
   - bash ./.travis.install-mysql.sh
-  - bash sudo ./scripts/install_my_prove.sh
+  - sudo ./scripts/install_my_prove.sh
 
 script:
   - bash ./install.sh -h 127.0.0.1 -u mytap
-  - bash my_prove -v -h 127.0.0.1 -u mytap tests/*.my 
+  - my_prove -v -h 127.0.0.1 -u mytap tests/*.my 
