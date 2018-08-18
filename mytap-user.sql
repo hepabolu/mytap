@@ -82,7 +82,7 @@ BEGIN
   SET @uname = REPLACE(@uname, '"','''');
   SET @uname = REPLACE(@uname, '`','''');
 
-  IF @name REGEXP '@' = 0 THEN
+  IF @uname REGEXP '@' = 0 THEN
     SET @uname = CONCAT(@uname, '@\'%\'');
   END IF;
 
