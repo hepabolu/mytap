@@ -16,9 +16,9 @@ matrix:
         - DB=mysql:8.0
 
 before_script:
-  - ./.travis.install-mysql.sh
-  - ./scripts/install_my_prove.sh
+  - bash ./.travis.install-mysql.sh
+  - bash sudo ./scripts/install_my_prove.sh
 
 script:
   - bash ./install.sh -h 127.0.0.1 -u mytap
-  - bash sudo my_prove -v -h 127.0.0.1 -u mytap tests/*.my 
+  - bash my_prove -v -h 127.0.0.1 -u mytap tests/*.my 
