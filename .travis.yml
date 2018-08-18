@@ -21,4 +21,4 @@ before_script:
 
 script:
   - bash ./install.sh -h 127.0.0.1 -u mytap -t
-  - my_prove -v -u mytap tests/*.my 
+  - my_prove -v -u root -h 127.0.0.1 tests/*.my 
