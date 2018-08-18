@@ -20,5 +20,5 @@ before_script:
   - bash ./scripts/semi_install_my_prove.sh
 
 script:
-  - bash ./install.sh -h 127.0.0.1 -u mytap
+  - bash ./install.sh -h 127.0.0.1 -u mytap -t
   - my_prove -v -u mytap tests/*.my 
