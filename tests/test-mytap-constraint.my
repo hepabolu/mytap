@@ -9,6 +9,7 @@ SELECT tap.plan(127);
 -- setup for tests
 DROP DATABASE IF EXISTS taptest;
 CREATE DATABASE taptest;
+USE taptest; 
 
 -- This will be rolled back. :-)
 
