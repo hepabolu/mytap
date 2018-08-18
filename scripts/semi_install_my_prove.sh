@@ -9,10 +9,11 @@ perl Build.PL
 
 # If necessary install dependencies
 ./Build installdeps
--- ./Build manifest
+./Build manifest
 
--- ./Build
--- ./Build test
--- ./Build install
+./Build
+./Build test
+sudo ./Build install
 
 # my_prove is located in myprove/bin
+
