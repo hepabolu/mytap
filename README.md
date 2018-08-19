@@ -1,4 +1,8 @@
-![build status](https://travis-ci.org/hepabolu/mytap.svg?branch=master)
+![MySQL 5.5](https://img.shields.io/badge/MySQL%205.5-tested-orange.svg) 
+![MySQL 5.6](https://img.shields.io/badge/MySQL%205.6-tested-orange.svg) 
+![MySQL 5.7](https://img.shields.io/badge/MySQL%205.7-tested-orange.svg) 
+![MySQL 8.0](https://img.shields.io/badge/MySQL%208.0-tested-orange.svg) 
+![build status](https://travis-ci.org/hepabolu/mytap.svg?branch=master) 
 
 MyTAP 1.0
 ==========
