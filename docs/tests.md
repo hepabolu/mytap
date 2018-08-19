@@ -512,19 +512,31 @@ This functions tests for the existence of named partitions. Identifies both miss
 
 ### `has_user(host, user, description )`
 
-This function checks if `user`@`host` exists.
+This function checks if 'user'@'host' exists.
 
 `hasnt_user(host, user, description )`
 
-This function checks if `user`@`host` does not exist.
+This function checks if 'user'@'host' does not exist.
+
+
+### `has_user_at_host("'user'@'host'", description )`
+
+As has_user but takes a single argument for the user and host. The user and host must be separately quoted and can
+use any of the legal quoting styles, i.e. single, double or backtick. In addition, if the user and host names are
+valid unquoted identifiers (do not contain special characters) they can be left unquoted.
+
+`hasnt_user_at_host("'user'@'host'", description )`
+
+This function checks if 'user'@'host' does not exist.
+
 
 ### `user_ok(host, user, description )`
 
-This function checks if `user`@`host` is not disabled.
+This function checks if 'user'@'host' is not disabled.
 
 `user_not_ok(host, user, description )`
 
-This function checks if `user`@`host` is disabled.
+This function checks if 'user'@'host' is disabled.
 
 ### `user_has_lifetime(host, user, description )`
 

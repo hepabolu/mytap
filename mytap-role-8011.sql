@@ -16,6 +16,12 @@ DELIMITER //
 -- case they get a default @% added or the long-form user@host (since it's
 -- defined as a user and can be a user.
 
+-- NB We test against a normalized single-quoted user with default hostname if one
+-- is not supplied (@rname), we mirror the entered parameter string (rname) in all
+-- messages, this way the user shouldn't be confused by the output not reflecting
+-- their input.
+
+
 DROP FUNCTION IF EXISTS _has_role //
 CREATE FUNCTION _has_role(rname CHAR(93))
 RETURNS BOOLEAN
@@ -25,7 +31,7 @@ BEGIN
 
   SELECT COUNT(*) INTO ret
   FROM `mysql`.`role_edges`
-  WHERE CONCAT(from_user, '@', from_host) = rname;
+  WHERE CONCAT('''', `from_user`, '''@''', from_host, '''') = rname;
 
   RETURN IF(ret > 0, 1, 0);
 END //
@@ -38,14 +44,7 @@ CREATE FUNCTION has_role(rname CHAR(97), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-  -- normalize for comparison
-  SET @rname = rname;
-  SET @rname = REPLACE(@rname,'`','');
-  SET @rname = REPLACE(@rname,'''','');
-
-  IF @rname REGEXP '@' = 0 THEN
-    SET @rname = CONCAT(@rname, '@%');
-  END IF;
+  SET @rname = _format_user(rname);
 
   IF description = '' THEN
     SET description = CONCAT('Role ', rname, ' should be active');
@@ -65,21 +64,13 @@ CREATE FUNCTION hasnt_role(rname CHAR(97), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-  -- normalize for comparison
-  SET @rname = rname;
-  SET @rname = REPLACE(@rname,'`','');
-  SET @rname = REPLACE(@rname,'''','');
-
-  IF @rname REGEXP '@' = 0 THEN
-    SET @rname = CONCAT(@rname, '@%');
-  END IF;
+  SET @rname = _format_user(rname);
 
   IF description = '' THEN
     SET description = CONCAT('Role ', rname, ' should not be active');
   END IF;
 
   -- NB no diagnostic required here
-
   RETURN ok(NOT _has_role(@rname), description);
 END //
 
@@ -97,11 +88,10 @@ BEGIN
 
   SELECT COUNT(*) INTO ret
   FROM `mysql`.`default_roles`
-  WHERE CONCAT(`default_role_user`, '@', `default_role_host`) = rname;
+  WHERE CONCAT('''', `default_role_user`, '''@''', `default_role_host`, '''') = rname;
 
   RETURN IF(ret > 0, 1, 0);
 END //
-
 
 
 -- role_is_default(userdef, description)
@@ -110,14 +100,7 @@ CREATE FUNCTION role_is_default(rname CHAR(97), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-  -- normalize for comparison
-  SET @rname = rname;
-  SET @rname = REPLACE(@rname,'`','');
-  SET @rname = REPLACE(@rname,'''','');
-
-  IF @rname REGEXP '@' = 0 THEN
-    SET @rname = CONCAT(@rname, '@%');
-  END IF;
+  SET @rname = _format_user(rname);
 
   IF description = '' THEN
     SET description = CONCAT('Role ', rname, ' should be a DEFAULT role');
@@ -137,24 +120,15 @@ CREATE FUNCTION role_isnt_default(rname CHAR(97), description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-  -- normalize for comparison
-  SET @rname = rname;
-  SET @rname = REPLACE(@rname,'`','');
-  SET @rname = REPLACE(@rname,'''','');
-
-  IF @rname REGEXP '@' = 0 THEN
-    SET @rname = CONCAT(@rname, '@%');
-  END IF;
+  SET @rname = _format_user(rname);
 
   IF description = '' THEN
     SET description = CONCAT('Role ', rname, ' should not be a DEFAULT role');
   END IF;
 
   -- also here, no diagnostic necessary
-
   RETURN ok(NOT _role_is_default(@rname), description);
 END //
-
 
 
 /********************************************************************/
