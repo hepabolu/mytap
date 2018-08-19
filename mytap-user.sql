@@ -157,4 +157,51 @@ END //
 
 /****************************************************************************/
 
+-- function prototypes for features in 5.7.6
+
+-- user_ok(host, user, description )
+DROP FUNCTION IF EXISTS user_ok //
+CREATE FUNCTION user_ok(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+DROP FUNCTION IF EXISTS user_not_ok //
+CREATE FUNCTION user_not_ok(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+/****************************************************************************/
+
+-- PASSWORD LIFETIME
+
+-- user_has_lifetime( host, user, description )
+DROP FUNCTION IF EXISTS user_has_lifetime//
+CREATE FUNCTION user_has_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+-- user_hasnt_lifetime( host, user, description )
+DROP FUNCTION IF EXISTS user_hasnt_lifetime //
+CREATE FUNCTION user_hasnt_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  RETURN 'Requires MySQL version >= 5.7.6';
+END //
+
+
+/****************************************************************************/
+
 DELIMITER ;

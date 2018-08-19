@@ -2,7 +2,6 @@
 
 # Installation script for MyTAP
 
-
 SQLHOST='localhost';
 SQLPORT=3306;
 SQLSOCK=''
@@ -43,7 +42,7 @@ while [[ "$#" > 0 ]]; do
 	-i|--no-install)
 	    NOINSTALL=1
 	    ;;
-	-h|--help)
+	-?|--help)
 	    cat << EOF
 Usage:
  install.sh [options]
@@ -91,7 +90,7 @@ MYVER2=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print
 MYVER3=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}'`;
 
 
-MYVER=$(("$MYVER1" + "$MYVER2" + "$MYVER3"));
+MYVER=$(($MYVER1+$MYVER2+$MYVER3));
 
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
@@ -174,77 +173,77 @@ if [[ $NOTESTS -eq 0 ]]; then
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "charset" ]]; then
       echo "============= character sets ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-charset.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-charset.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "collation" ]]; then
       echo "============= collations ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-collation.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-collation.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "column" ]]; then
       echo "============= columns ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-column.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-column.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "constraint" ]]; then
       echo "============= constraints ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-constraint.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-constraint.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "engine" ]]; then
       echo "============= engines ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-engine.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-engine.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "event" ]]; then
       echo "============= events ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-event.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-event.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "index" ]]; then
       echo "============= indexes ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-index.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-index.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
       echo "============= partitions ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "role" ]]; then
       echo "============= role ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-role.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-role.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "routines" ]]; then
       echo "============= routines ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-routines.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-routines.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "schemata" ]]; then
       echo "============= schemas ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-schemata.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-schemata.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "table" ]]; then
       echo "============= tables ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-table.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-table.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "trigger" ]]; then
       echo "============= triggers ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-trigger.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-trigger.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "user" ]]; then
       echo "============= users ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-user.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-user.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "view" ]]; then
       echo "============= views ============"
-      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-view.sql'
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-view.my'
    fi
 
 fi
