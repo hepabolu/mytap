@@ -127,4 +127,6 @@ Copyright and License
 Copyright (c) 2010 David E. Wheeler, Helma van der Linden. Some rights reserved.
 
 The full license is available in a separate LICENSE file.
+[![Build Status](https://travis-ci.org/animalcarpet/mytap.svg?branch=master)](https://travis-ci.org/animalcarpet/mytap)
+
 
