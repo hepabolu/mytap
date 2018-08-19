@@ -1,3 +1,5 @@
+![build status](https://travis-ci.org/hepabolu/mytap)
+
 MyTAP 1.0
 ==========
 
