@@ -1,4 +1,4 @@
-![build status](https://travis-ci.org/hepabolu/mytap)
+![build status](https://travis-ci.org/hepabolu/mytap.svg?branch=master)
 
 MyTAP 1.0
 ==========
