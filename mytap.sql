@@ -854,7 +854,7 @@ BEGIN
 
   DROP TEMPORARY TABLE IF EXISTS `want`;
   CREATE TEMPORARY TABLE `tap`.`want` (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+    ENGINE MEMORY CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
   WHILE want != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
@@ -878,7 +878,7 @@ BEGIN
 
   DROP TEMPORARY TABLE IF EXISTS `have`;
   CREATE TEMPORARY TABLE `tap`.`have` (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+    ENGINE MEMORY CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
   WHILE have != '' > 0 DO
     SET @val = TRIM(SUBSTRING_INDEX(have, sep, 1));
