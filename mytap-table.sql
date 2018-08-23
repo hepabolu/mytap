@@ -209,65 +209,16 @@ END //
 /*******************************************************************/
 -- Check that the proper tables are defined
 
-DROP FUNCTION IF EXISTS _missing_tables //
-CREATE FUNCTION _missing_tables(sname VARCHAR(64))
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify tables that are listed in input to tables_are(schema, want, description) but are not defined'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM
-    (
-      SELECT `ident`
-      FROM `idents1`
-      WHERE `ident` NOT IN
-        (
-          SELECT `table_name`
-          FROM `information_schema`.`tables`
-          WHERE `table_schema` = sname
-          AND `table_type` = 'BASE TABLE'
-      )
-   ) msng;
-
-  RETURN COALESCE(ret, '');
-END //
-
-DROP FUNCTION IF EXISTS _extra_tables //
-CREATE FUNCTION _extra_tables(sname VARCHAR(64))
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify defined tables that are not list in input to tables_are(schema, want, description)'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM
-    (
-      SELECT `table_name` AS `ident`
-      FROM `information_schema`.`tables`
-      WHERE `table_schema` = sname
-      AND `table_type` = 'BASE TABLE'
-      AND `table_name` NOT IN
-        (
-          SELECT `ident`
-          FROM `idents2`
-        )
-  ) xtra;
-
-  RETURN COALESCE(ret, '');
-END //
-
-
 DROP FUNCTION IF EXISTS tables_are //
 CREATE FUNCTION tables_are(sname VARCHAR(64), want TEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
-COMMENT 'Test for the existence of named tables. Identifies both missing as well as extra tables.'
 BEGIN
-  DECLARE sep       CHAR(1) DEFAULT ',';
-  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
+  SET @want = want;
+  SET @have = (SELECT GROUP_CONCAT('`',table_name,'`')
+               FROM `information_schema`.`tables`
+	       WHERE `table_schema` = sname
+	       AND `table_type` = 'BASE TABLE');
 
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname),
@@ -279,36 +230,15 @@ BEGIN
       diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
-  SET want = _fixCSL(want);
+  CALL _populate_want(@want);
+  CALL _populate_have(@have);
 
-  IF want IS NULL THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected tables\n',
-                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
-  END IF;
-
-  DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-  DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-
-  WHILE want != '' > 0 DO
-    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-    SET @val = uqi(@val);
-    IF  @val <> '' THEN
-      INSERT IGNORE INTO idents1 VALUE(@val);
-      INSERT IGNORE INTO idents2 VALUE(@val);
-    END IF;
-    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-  END WHILE;
-
-  SET @missing = _missing_tables(sname);
-  SET @extras  = _extra_tables(sname);
+  SET @missing = (SELECT _missing(@have)); 
+  SET @extras  = (SELECT _extra(@want));
 
   RETURN _are('tables', @extras, @missing, description);
 END //
+
 
 /****************************************************************************/
 -- CHECK FOR SCHEMA CHANGES

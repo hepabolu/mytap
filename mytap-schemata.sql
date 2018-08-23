@@ -157,103 +157,26 @@ END //
 
 /****************************************************************/
 
--- Listing schemas
-DROP FUNCTION IF EXISTS _missing_schemas //
-CREATE FUNCTION _missing_schemas() 
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify schemas listed in input to schemas_are(want, description) which are not defined'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret
-  FROM
-    (
-      SELECT `ident`
-      FROM `idents1`
-      WHERE `ident` NOT IN
-        (
-          SELECT `schema_name`
-          FROM `information_schema`.`schemata`
-        )
-    ) msng;
-
-  RETURN COALESCE(ret, '');
-END //
-
-DROP FUNCTION IF EXISTS _extra_schemas //
-CREATE FUNCTION _extra_schemas()
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify defined schemas that are not list in input to schemas_are(want, description)'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret
-  FROM 
-    (
-      SELECT `schema_name` AS `ident` 
-      FROM `information_schema`.`schemata`
-      WHERE `schema_name` NOT IN 
-        (
-          SELECT `ident`
-          FROM `idents2`
-        )
-    ) xtra;
-
-  RETURN COALESCE(ret, '');
-END //
-
-
 DROP FUNCTION IF EXISTS schemas_are //
 CREATE FUNCTION schemas_are(want TEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
-COMMENT 'Test for the existence of named schemas. Identifies both missing as well as extra schemas.'
 BEGIN
-  DECLARE sep       CHAR(1) DEFAULT ',';
-  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
-  DECLARE missing   TEXT;
-  DECLARE extras    TEXT;
-
+  SET @want = want;
+  SET @have = (SELECT GROUP_CONCAT('`', `schema_name` ,'`')
+               FROM `information_schema`.`schemata`);
+	  
   IF description = '' THEN
     SET description = 'The correct Schemas should be defined';
   END IF;
 
-  SET want = _fixCSL(want);
+  CALL _populate_want(@want);
+  CALL _populate_have(@have);
 
-  IF want IS NULL THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
-                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
-  END IF;
+  SET @missing = (SELECT _missing(@have)); 
+  SET @extras  = (SELECT _extra(@want));
 
-  IF want IS NULL THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n', want)));
-  END IF;
-
-  DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-  DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-
-  WHILE want != '' > 0 DO
-    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-    SET @val = uqi(@val);
-    IF  @val <> '' THEN 
-      INSERT IGNORE INTO idents1 VALUE(@val);
-      INSERT IGNORE INTO idents2 VALUE(@val);
-    END IF;
-    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-  END WHILE;
-
-  SET missing = _missing_schemas();
-  SET extras  = _extra_schemas();
-
-  RETURN _are('schemas', extras, missing, description);
+  RETURN _are('schemas', @extras, @missing, description);
 END //
 
 

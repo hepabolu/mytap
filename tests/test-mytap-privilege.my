@@ -15,7 +15,6 @@ CREATE USER '__schema__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__table__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__column__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__routine__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
-CREATE USER '__proxy__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 
 -- GRANT USAGE ON *.* TO '__usage_priv__'@'%';
 GRANT FILE, SELECT ON *.* TO '__global__'@'%';

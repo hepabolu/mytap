@@ -534,9 +534,9 @@ SELECT tap.check_test(
     null,
     '# 
     Extra views:
-       definerview
+       `definerview`
     Missing views:
-       nonexistent',
+       `nonexistent`',
     0
 );
 

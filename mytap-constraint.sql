@@ -496,7 +496,7 @@ END //
 
 /*******************************************************************/
 -- Check that the proper constraints are defined
-
+/*
 DROP FUNCTION IF EXISTS _missing_constraints //
 CREATE FUNCTION _missing_constraints(sname VARCHAR(64), tname VARCHAR(64))
 RETURNS TEXT
@@ -594,6 +594,40 @@ BEGIN
         
   RETURN _are('constraints', @extras, @missing, description);
 END //
+
+*/
+
+DROP FUNCTION IF EXISTS constraints_are //
+CREATE FUNCTION constraints_are(sname VARCHAR(64), tname VARCHAR(64),  want TEXT, description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  SET @want = want;
+  SET @have = (SELECT GROUP_CONCAT('`', `constraint_name`,'`')
+               FROM `information_schema`.`table_constraints`
+               WHERE `table_schema` = sname
+               AND `table_name` = tname);
+
+  IF description = '' THEN
+    SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+      ' should have the correct Constraints');
+  END IF;
+
+  IF NOT _has_table( sname, tname ) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+        ' does not exist' )));
+  END IF;
+
+  CALL _populate_want(@want);
+  CALL _populate_have(@have);
+
+  SET @missing = (SELECT _missing(@have)); 
+  SET @extras  = (SELECT _extra(@want));
+
+  RETURN _are('constraints', @extras, @missing, description);
+END //
+
 
 
 DELIMITER ;
