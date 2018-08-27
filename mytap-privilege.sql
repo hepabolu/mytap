@@ -908,38 +908,37 @@ DETERMINISTIC
 BEGIN
   DECLARE rtn INT;
 
-  SELECT SUM(priv) INTO rtn
-  FROM
-  (
-    SELECT COUNT(DISTINCT `table_name`) AS priv -- MUST have this (returns odd)
+  SELECT COUNT(DISTINCT `table_name`) INTO rtn
+  FROM `information_schema`.`table_privileges`
+  WHERE `grantee` = gtee
+  AND `table_schema` = sname
+  AND `table_name` = tname
+  AND NOT EXISTS (
+    SELECT *
     FROM `information_schema`.`table_privileges`
     WHERE `grantee` = gtee
-    AND `table_schema` = sname
-    AND `table_name` = tname
-    AND NOT EXISTS (
-      SELECT *
-      FROM `information_schema`.`table_privileges`
-      WHERE `grantee` = gtee
-      AND `table_name` != tname
-    )
-  UNION ALL                                     -- but none of these (returns even)
-    SELECT 2 AS priv
+    AND `table_name` != tname
+  )
+  AND NOT EXISTS (
+    SELECT *
     FROM `information_schema`.`user_privileges`
     WHERE `grantee` = gtee
     AND _table_privs(`privilege_type`) > 0 
-  UNION ALL
-    SELECT 2 AS priv
+  )
+  AND NOT EXISTS (
+    SELECT *
     FROM `information_schema`.`schema_privileges`
     WHERE `grantee` = gtee
     AND _table_privs(`privilege_type`) > 0
-  UNION ALL
-    SELECT 2 AS priv
+  )
+  AND NOT EXISTS (
+    SELECT *
     FROM `information_schema`.`column_privileges`
     WHERE `grantee` = gtee
     AND `table_name` != tname
-  ) a;
+  );
   
-  RETURN IF(rtn % 2, 1, 0); 
+  RETURN rtn; 
 END //
 
 

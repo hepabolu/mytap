@@ -4,7 +4,7 @@ TAP Tests for database privileges
 
 BEGIN;
 
-SELECT tap.plan(179);
+SELECT tap.plan(208);
 
 CREATE DATABASE IF NOT EXISTS taptest;
 CREATE DATABASE IF NOT EXISTS secondary;
@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS taptest.priv_table(a INT, b INT);
 DROP PROCEDURE IF EXISTS taptest.priv_routine;
 CREATE PROCEDURE taptest.priv_routine() SELECT 1;
 
-/*
 DROP USER __usage__;
 DROP USER __global__;
 DROP USER __schema__;
@@ -20,6 +19,7 @@ DROP USER __table__;
 DROP USER __column__;
 DROP USER __routine__;
 DROP USER __double__;
+DROP USER __rollup__;
 
 CREATE USER '__usage__'@'%' IDENTIFIED BY 'dfgkdhgfjka'; -- no grant required
 CREATE USER '__global__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
@@ -28,11 +28,10 @@ CREATE USER '__table__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__column__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__routine__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__double__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
-*/
+CREATE USER '__rollup__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 
--- GRANT USAGE ON *.* TO '__usage_priv__'@'%';
 GRANT FILE, SELECT ON *.* TO '__global__'@'%';
-GRANT FILE,CREATE ON *.* TO '__schema__'@'%';
+GRANT FILE ON *.* TO '__schema__'@'%';
 GRANT SELECT, INSERT, ALTER ON taptest.* TO '__schema__'@'%';
 GRANT SELECT, UPDATE ON taptest.priv_table TO '__table__'@'%';
 GRANT SELECT(a) ON taptest.priv_table TO '__column__'@'%';
@@ -40,7 +39,7 @@ GRANT SELECT(a) ON taptest.priv_table TO '__column__'@'%';
 GRANT EXECUTE ON PROCEDURE taptest.priv_routine TO '__routine__'@'%' WITH GRANT OPTION; 
 GRANT SELECT, INSERT, ALTER ON taptest.* TO '__double__'@'%';
 GRANT SELECT, INSERT, ALTER ON secondary.* TO '__double__'@'%';
-
+GRANT SELECT, EXECUTE ON *.* TO '__rollup__'@'%';
 
 /****************************************************************************/
 -- has_privilege(gtee VARCHAR(81), ptype VARCHAR(64), description TEXT)
@@ -268,6 +267,17 @@ SELECT tap.check_test(
     0
 );
 
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.has_schema_privilege('taptest','__rollup__@%', 'SELECT', ''),
+    true,
+    'has_schema_privilege() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
+
 SELECT tap.check_test(
     tap.has_schema_privilege('taptest', '__schema__@%', 'DROP', ''),
     false,
@@ -401,6 +411,19 @@ SELECT tap.check_test(
     0
 );
 
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.has_table_privilege('taptest', 'priv_table', '__rollup__@%', 'SELECT', ''),
+    true,
+    'has_table_privilege() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
+
+
+
 SELECT tap.check_test(
     tap.has_table_privilege('taptest', 'priv_table', '__table__@%', 'DELETE', ''),
     false,
@@ -533,6 +556,17 @@ SELECT tap.check_test(
     null,
     0
 );
+
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.has_column_privilege('taptest', 'priv_table', 'a', '__rollup__@%', 'SELECT', ''),
+    true,
+    'has_column_privilege() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
 
 SELECT tap.check_test(
     tap.has_column_privilege('taptest', 'priv_table', 'b', '__column__@%', 'SELECT', ''),
@@ -750,11 +784,12 @@ SELECT tap.check_test(
 
 
 /****************************************************************************/
+
 -- schema_privileges_are(sname VARCHAR(64), gtee VARCHAR(81), ptypes TEXT, description TEXT)
 -- NB CREATE and FILE privs at the global level for this account but only CREATE is a schema level priv.
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__', '`CREATE`,`SELECT`,`INSERT`,`ALTER`', ''),
+    tap.schema_privileges_are('taptest', '__schema__', '`SELECT`,`INSERT`,`ALTER`', ''),
     true,
     'schema_privileges_are() correct specification',
     null,
@@ -762,8 +797,19 @@ SELECT tap.check_test(
     0
 );
 
+SET @rollup=1;
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__', 'CREATE,SELECT,INSERT,ALTER', ''),
+    tap.schema_privileges_are('taptest', '__rollup__@%', 'SELECT,EXECUTE', ''),
+    true,
+    'schema_privileges_are() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
+
+SELECT tap.check_test(
+    tap.schema_privileges_are('taptest', '__schema__', 'SELECT,INSERT,ALTER', ''),
     true,
     'schema_privileges_are() correct specification no backticks',
     null,
@@ -772,7 +818,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__', '`FILE`,`CREATE`,`SELECT`,`INSERT`,`ALTER`', ''),
+    tap.schema_privileges_are('taptest', '__schema__', '`FILE`,`SELECT`,`INSERT`,`ALTER`', ''),
     false,
     'schema_privileges_are() incorrect specification non-schema level global priv included',
     null,
@@ -782,9 +828,9 @@ SELECT tap.check_test(
 
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__@%', '`CREATE`,`SELECT`,`INSERT`,`ALTER`,`DELETE`', ''),
+    tap.schema_privileges_are('taptest', '__schema__@%', '`FILE`,`SELECT`,`INSERT`,`ALTER`,`DELETE`', ''),
     false,
-    'schema_privileges_are() incorrect specification with schema level priv',
+    'schema_privileges_are() incorrect specification incl. schema level priv',
     null,
     null,
     0
@@ -797,7 +843,7 @@ SELECT tap.check_test(
 -- Also, this account has file privilege which is a GLOBAL and not a schema privilege
 -- so it shouldn't be picked up
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__@%', '`CREATE`,`SELECT`,`INSERT`,`DELETE`', ''),
+    tap.schema_privileges_are('taptest', '__schema__@%', '`SELECT`,`INSERT`,`DELETE`', ''),
     false,
     'schema_privileges_are() diagnostic',
     null,
@@ -810,7 +856,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__@%',  '`CREATE`,`SELECT`,`INSERT`,`ALTER`', ''),
+    tap.schema_privileges_are('taptest', '__schema__@%',  '`SELECT`,`INSERT`,`ALTER`', ''),
     true,
     'schema_privileges_are() default description',
     'Account __schema__@% should have the correct schema privileges',
@@ -819,7 +865,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('idonotexist', '__schema__@%', 'CREATE,SELECT,INSERT,ALTER', ''),
+    tap.schema_privileges_are('idonotexist', '__schema__@%', 'SELECT,INSERT,ALTER', ''),
     false,
     'schema_privileges_are() invalid schema diagnostic',
     null,
@@ -828,7 +874,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__idonotexist__@%', 'CREATE,SELECT,INSERT,ALTER', ''),
+    tap.schema_privileges_are('taptest', '__idonotexist__@%', 'SELECT,INSERT,ALTER', ''),
     false,
     'schema_privileges_are() invalid user diagnostic',
     null,
@@ -838,7 +884,7 @@ SELECT tap.check_test(
 
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__@%',  '`CREATE`,`SELECT`,`INSERT`,`ALTER`', 'desc'),
+    tap.schema_privileges_are('taptest', '__schema__@%',  '`SELECT`,`INSERT`,`ALTER`', 'desc'),
     true,
     'schema_privileges_are() description supplied',
     'desc',
@@ -847,7 +893,7 @@ SELECT tap.check_test(
 );
 
 SELECT tap.check_test(
-    tap.schema_privileges_are('taptest', '__schema__@%',  '`CREATE`,`SELECT`,`INSERT`,`ALTER`', ''),
+    tap.schema_privileges_are('taptest', '__schema__@%',  '`SELECT`,`INSERT`,`ALTER`', ''),
     true,
     'schema_privileges_are() change priv order',
     null,
@@ -867,6 +913,17 @@ SELECT tap.check_test(
     null,
     0
 );
+
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.table_privileges_are('taptest', 'priv_table', '__rollup__@%', 'SELECT', ''),
+    true,
+    'table_privileges_are() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
 
 SELECT tap.check_test(
     tap.table_privileges_are('taptest', 'priv_table', '__table__', 'SELECT,UPDATE', ''),
@@ -971,6 +1028,17 @@ SELECT tap.check_test(
     0
 );
 
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.column_privileges_are('taptest', 'priv_table', 'a', '__rollup__@%', 'SELECT', ''),
+    true,
+    'column_privileges_are() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
+
 SELECT tap.check_test(
     tap.column_privileges_are('taptest', 'priv_table', 'a', '__column__', 'SELECT', ''),
     true,
@@ -1051,6 +1119,18 @@ SELECT tap.check_test(
     null,
     0
 );
+
+SET @rollup=1;
+SELECT tap.check_test(
+    tap.routine_privileges_are('taptest', 'PROCEDURE', 'priv_routine', '__rollup__@%', 'EXECUTE', ''),
+    true,
+    'routine_privileges_are() rollup test',
+    null,
+    null,
+    0
+);
+SET @rollup=0;
+
 
 SELECT tap.check_test(
     tap.routine_privileges_are('taptest', 'PROCEDURE', 'priv_routine', '__routine__', 'EXECUTE,GRANT', ''),
@@ -1283,13 +1363,14 @@ SELECT tap.check_test(
 
 call tap.finish();
 
-/*DROP USER __usage__;
+DROP USER __usage__;
 DROP USER __global__;
 DROP USER __schema__;
 DROP USER __table__;
 DROP USER __column__;
 DROP USER __routine__;
-DROP USER __double__;*/
+DROP USER __double__;
+DROP USER __rollup__;
 DROP PROCEDURE taptest.priv_routine;
 DROP TABLE taptest.priv_table;
 DROP DATABASE taptest;
