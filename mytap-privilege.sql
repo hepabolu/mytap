@@ -77,24 +77,24 @@ BEGIN
   FROM
   ( 
     SELECT 1 AS priv
-      FROM `information_schema`.`user_privileges`
-      WHERE `grantee` = gtee
-      AND `privilege_type` = ptype
-    UNION ALL
+    FROM `information_schema`.`user_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+  UNION ALL
     SELECT 1 AS priv
-      FROM `information_schema`.`schema_privileges`
-      WHERE `grantee` = gtee
-      AND `privilege_type` = ptype
-   UNION ALL
-   SELECT 1 AS priv
-     FROM `information_schema`.`table_privileges`
-     WHERE `grantee` = gtee
-     AND `privilege_type` = ptype
-   UNION ALL
-   SELECT 1 AS priv
-     FROM `information_schema`.`column_privileges`
-     WHERE `grantee` = gtee
-     AND `privilege_type` = ptype
+    FROM `information_schema`.`schema_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+  UNION ALL
+    SELECT 1 AS priv
+    FROM `information_schema`.`table_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+  UNION ALL
+    SELECT 1 AS priv
+    FROM `information_schema`.`column_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
   ) a;
 
   RETURN IF(rtn > 0, 1, 0);
@@ -221,20 +221,28 @@ DETERMINISTIC
 BEGIN
   DECLARE rtn INT;
 
-  SELECT SUM(priv) INTO rtn
-  FROM
-  (
-    SELECT 1 AS priv
+  IF @rollup = 1 THEN
+    SELECT SUM(priv) INTO rtn
+    FROM
+    (
+      SELECT 1 AS priv
       FROM `information_schema`.`user_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
     UNION ALL
-    SELECT 1 AS priv
+      SELECT 1 AS priv
       FROM `information_schema`.`schema_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
       AND `table_schema` = sname
-  ) a;
+    ) a;
+  ELSE
+    SELECT 1 INTO rtn
+    FROM `information_schema`.`schema_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+    AND `table_schema` = sname;
+  END IF;
 
   RETURN IF(rtn > 0, 1, 0);
 END //
@@ -311,28 +319,37 @@ DETERMINISTIC
 BEGIN
   DECLARE rtn INT;
 
-  SELECT SUM(priv) INTO rtn
-  FROM
-  (
-    SELECT 1 AS priv
+  IF @rollup = 1 THEN
+    SELECT SUM(priv) INTO rtn
+    FROM
+    (
+      SELECT 1 AS priv
       FROM `information_schema`.`user_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
     UNION ALL
-    SELECT 1 AS priv
+      SELECT 1 AS priv
       FROM `information_schema`.`schema_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
       AND `table_schema` = sname
-   UNION ALL
-   SELECT 1 AS priv
-     FROM `information_schema`.`table_privileges`
-     WHERE `grantee` = gtee
-     AND `privilege_type` = ptype
-     AND `table_schema` = sname
-     AND `table_name` = tname
-   ) a;
-
+    UNION ALL
+      SELECT 1 AS priv
+      FROM `information_schema`.`table_privileges`
+      WHERE `grantee` = gtee
+      AND `privilege_type` = ptype
+      AND `table_schema` = sname
+      AND `table_name` = tname
+     ) a;
+  ELSE
+    SELECT 1 INTO rtn
+    FROM `information_schema`.`table_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+    AND `table_schema` = sname
+    AND `table_name` = tname;
+  END IF;
+  
   RETURN IF(rtn > 0, 1, 0);
 END //
 
@@ -407,36 +424,46 @@ RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
   DECLARE rtn INT;
-  
-  SELECT SUM(priv) INTO rtn
-  FROM
-  (
-    SELECT 1 AS priv
+
+  IF @rollup = 1 THEN
+    SELECT SUM(priv) INTO rtn
+    FROM
+    (
+      SELECT 1 AS priv
       FROM `information_schema`.`user_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
     UNION ALL
-    SELECT 1 AS priv
+      SELECT 1 AS priv
       FROM `information_schema`.`schema_privileges`
       WHERE `grantee` = gtee
       AND `privilege_type` = ptype
       AND `table_schema` = sname
    UNION ALL
-   SELECT 1 AS priv
+     SELECT 1 AS priv
      FROM `information_schema`.`table_privileges`
      WHERE `grantee` = gtee
      AND `privilege_type` = ptype
      AND `table_schema` = sname
      AND `table_name` = tname
    UNION ALL
-   SELECT 1 AS priv
+     SELECT 1 AS priv
      FROM `information_schema`.`column_privileges`
      WHERE `grantee` = gtee
      AND `privilege_type` = ptype
      AND `table_schema` = sname
      AND `table_name` = tname
      AND `column_name` = cname
-     ) a;
+   ) a;
+  ELSE
+    SELECT 1 INTO rtn
+    FROM `information_schema`.`column_privileges`
+    WHERE `grantee` = gtee
+    AND `privilege_type` = ptype
+    AND `table_schema` = sname
+    AND `table_name` = tname
+    AND `column_name` = cname;
+  END IF;
 
   RETURN IF(rtn > 0, 1, 0);
 END //
@@ -573,8 +600,9 @@ DETERMINISTIC
 BEGIN
    DECLARE rtn TEXT;
    
-   SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
-   FROM
+   IF @rollup = 1 THEN
+     SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+     FROM
      ( SELECT `privilege_type`
        FROM `information_schema`.`user_privileges`
        WHERE `grantee` = gtee AND _schema_privs(`privilege_type`) > 0 
@@ -583,7 +611,12 @@ BEGIN
        FROM `information_schema`.`schema_privileges`
        WHERE `grantee` = gtee AND `table_schema` = sname
      ) u;
-
+   ELSE
+     SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+     FROM `information_schema`.`schema_privileges`
+     WHERE `grantee` = gtee AND `table_schema` = sname;
+   END IF;
+   
    RETURN rtn;
 END //
 
@@ -624,6 +657,7 @@ BEGIN
 
 END //
 
+
 /***********************************************************************************/
 -- table level privileges for an account
 
@@ -632,10 +666,11 @@ CREATE FUNCTION _table_privileges(sname VARCHAR(64), tname VARCHAR(64), gtee VAR
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-   DECLARE rtn TEXT;
+  DECLARE rtn TEXT;
    
-   SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
-   FROM
+  IF @rollup = 1 THEN    
+    SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+    FROM
      ( SELECT `privilege_type`
        FROM `information_schema`.`user_privileges`
        WHERE `grantee` = gtee AND _table_privs(`privilege_type`) > 0 
@@ -648,8 +683,13 @@ BEGIN
        FROM `information_schema`.`table_privileges`
        WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname
      ) u;
-
-   RETURN rtn;
+  ELSE
+    SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+    FROM `information_schema`.`table_privileges`
+    WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname;
+  END IF;
+  
+  RETURN rtn;
 END //
 
 
@@ -698,28 +738,34 @@ CREATE FUNCTION _column_privileges(sname VARCHAR(64), tname VARCHAR(64), cname V
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-   DECLARE rtn TEXT;
+  DECLARE rtn TEXT;
    
-   SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
-   FROM
-     ( SELECT `privilege_type`
-       FROM `information_schema`.`user_privileges`
-       WHERE `grantee` = gtee AND _column_privs(`privilege_type`) > 0 
-     UNION
-       SELECT `privilege_type`
-       FROM `information_schema`.`schema_privileges`
-       WHERE `grantee` = gtee AND `table_schema` = sname AND _column_privs (`privilege_type`) > 0
-     UNION
-       SELECT `privilege_type`
-       FROM `information_schema`.`table_privileges`
-       WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname AND _column_privs (`privilege_type`) > 0
-     UNION
-       SELECT `privilege_type`
-       FROM `information_schema`.`column_privileges`
-       WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname AND `column_name` = cname
-     ) u;
+  IF @rollup = 1 THEN
+    SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+    FROM
+      ( SELECT `privilege_type`
+        FROM `information_schema`.`user_privileges`
+        WHERE `grantee` = gtee AND _column_privs(`privilege_type`) > 0 
+      UNION
+        SELECT `privilege_type`
+        FROM `information_schema`.`schema_privileges`
+        WHERE `grantee` = gtee AND `table_schema` = sname AND _column_privs (`privilege_type`) > 0
+      UNION
+        SELECT `privilege_type`
+        FROM `information_schema`.`table_privileges`
+        WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname AND _column_privs (`privilege_type`) > 0
+      UNION
+        SELECT `privilege_type`
+        FROM `information_schema`.`column_privileges`
+        WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname AND `column_name` = cname
+      ) u;
+   ELSE
+     SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+     FROM `information_schema`.`column_privileges`
+     WHERE `grantee` = gtee AND `table_schema` = sname AND `table_name` = tname AND `column_name` = cname;
+  END IF;
 
-   RETURN rtn;
+  RETURN rtn;
 END //
 
 
@@ -762,45 +808,58 @@ END //
 
 /***********************************************************************************/
 -- As of v8, no informtion schema equivalent of procs_priv
--- so this is based on mysql.procs_priv
+-- so this is based on mysql.procs_priv which doesn't have the same structure
+-- as the info_schema tables
+
+-- use view to simulate privilege table
+DROP VIEW IF EXISTS tap.proc_privileges //
+CREATE VIEW `tap`.`proc_privileges` AS
+SELECT CONCAT('''',`user`,'''@''',`host`,'''') AS `GRANTEE`, `db` AS `ROUTINE_SCHEMA`, `ROUTINE_NAME`, `ROUTINE_TYPE`, `PRIVILEGE_TYPE`
+FROM
+  (
+    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`, 'EXECUTE' AS `PRIVILEGE_TYPE`
+    FROM `mysql`.`procs_priv`
+    WHERE FIND_IN_SET('EXECUTE', `Proc_priv`) > 0
+    UNION
+    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`,'ALTER ROUTINE' AS `PRIVILEGE_TYPE`
+    FROM `mysql`.`procs_priv`
+    WHERE FIND_IN_SET('ALTER ROUTINE', `Proc_priv`) > 0
+    UNION
+    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`, 'GRANT' AS `PRIVILEGE_TYPE`
+    FROM `mysql`.`procs_priv`
+    WHERE FIND_IN_SET('GRANT', `Proc_priv`) > 0
+  ) a;
+
 
 DROP FUNCTION IF EXISTS _routine_privileges //
 CREATE FUNCTION _routine_privileges(sname VARCHAR(64), rtype VARCHAR(9), rname VARCHAR(64), gtee VARCHAR(81))
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-   DECLARE rtn TEXT;
-   
-   SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
-   FROM
-     ( SELECT `privilege_type`
-       FROM `information_schema`.`user_privileges`
-       WHERE `grantee` = gtee AND _routine_privs(`privilege_type`) > 0   
-     UNION
-       SELECT `privilege_type`
-       FROM `information_schema`.`schema_privileges`
-       WHERE `table_schema` = sname AND `grantee` = gtee AND _routine_privs(`privilege_type`) > 0
-     UNION
-       SELECT 'EXECUTE' AS `privilege_type`
-       FROM `mysql`.`procs_priv`
-       WHERE CONCAT('''', `user`, '''@''', `host`, '''') = gtee
-       AND `routine_type` = rtype AND `routine_name` = rname
-       AND proc_priv REGEXP 'EXECUTE' = 1
-     UNION
-       SELECT 'ALTER ROUTINE' AS `privilege_type`
-       FROM `mysql`.`procs_priv`
-       WHERE CONCAT('''', `user`, '''@''', `host`, '''') = gtee
-       AND `routine_type` = rtype AND `routine_name` = rname
-       AND proc_priv REGEXP 'ALTER ROUTINE' = 1
-     UNION
-       SELECT 'GRANT' AS `privilege_type`
-       FROM `mysql`.`procs_priv`
-       WHERE CONCAT('''', `user`, '''@''', `host`, '''') = gtee
-       AND `routine_type` = rtype AND `routine_name` = rname
-       AND proc_priv REGEXP 'GRANT' = 1
-     ) u;
+  DECLARE rtn TEXT;
 
-   RETURN rtn;
+  IF @rollup = 1 THEN
+  SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+  FROM
+    ( SELECT `privilege_type`
+      FROM `information_schema`.`user_privileges`
+      WHERE `grantee` = gtee AND _routine_privs(`privilege_type`) > 0   
+    UNION
+      SELECT `privilege_type`
+      FROM `information_schema`.`schema_privileges`
+      WHERE `table_schema` = sname AND `grantee` = gtee AND _routine_privs(`privilege_type`) > 0
+    UNION
+      SELECT `privilege_type`
+      FROM `tap`.`proc_privileges`
+      WHERE `routine_schema` = sname AND `routine_name` = rname AND `routine_type` = rtype AND `grantee` = gtee
+    ) u;
+  ELSE
+    SELECT GROUP_CONCAT(`privilege_type`) INTO rtn
+    FROM `tap`.`proc_privileges`
+    WHERE `routine_schema` = sname AND `routine_name` = rname AND `routine_type` = rtype AND `grantee` = gtee;
+  END IF;  
+
+  RETURN rtn;
 END //
 
 
@@ -838,6 +897,148 @@ BEGIN
 
   RETURN _are('Routine Privileges', @extras, @missing, description);
 
+END //
+
+
+/***********************************************************************************/
+DROP FUNCTION IF EXISTS _single_table_priv //
+CREATE FUNCTION _single_table_priv(sname VARCHAR(64), tname VARCHAR(64), gtee VARCHAR(81))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+  DECLARE rtn INT;
+
+  SELECT SUM(priv) INTO rtn
+  FROM
+  (
+    SELECT COUNT(DISTINCT `table_name`) AS priv -- MUST have this (returns odd)
+    FROM `information_schema`.`table_privileges`
+    WHERE `grantee` = gtee
+    AND `table_schema` = sname
+    AND `table_name` = tname
+    AND NOT EXISTS (
+      SELECT *
+      FROM `information_schema`.`table_privileges`
+      WHERE `grantee` = gtee
+      AND `table_name` != tname
+    )
+  UNION ALL                                     -- but none of these (returns even)
+    SELECT 2 AS priv
+    FROM `information_schema`.`user_privileges`
+    WHERE `grantee` = gtee
+    AND _table_privs(`privilege_type`) > 0 
+  UNION ALL
+    SELECT 2 AS priv
+    FROM `information_schema`.`schema_privileges`
+    WHERE `grantee` = gtee
+    AND _table_privs(`privilege_type`) > 0
+  UNION ALL
+    SELECT 2 AS priv
+    FROM `information_schema`.`column_privileges`
+    WHERE `grantee` = gtee
+    AND `table_name` != tname
+  ) a;
+  
+  RETURN IF(rtn % 2, 1, 0); 
+END //
+
+
+DROP FUNCTION IF EXISTS single_table_privileges //
+CREATE FUNCTION single_table_privileges(sname VARCHAR(64), tname VARCHAR(64), gtee VARCHAR(81), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  -- normalize the input
+  SET @gtee = _format_user(gtee);
+
+  IF description = '' THEN
+    SET description = concat('Account ', gtee, ' should have privileges on a single table');
+  END IF;
+
+  IF NOT _has_table(sname,tname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Table `', sname, '`.`', tname, '` does not exist')));
+  END IF;
+
+  IF NOT _has_user_at_host(@gtee) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Account ', gtee, ' does not exist')));
+  END IF;
+
+  RETURN ok(_single_table_priv(sname, tname, @gtee), description);
+END //
+
+
+/***********************************************************************************/
+DROP FUNCTION IF EXISTS _single_schema_priv //
+CREATE FUNCTION _single_schema_priv(sname VARCHAR(64), gtee VARCHAR(81))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+  DECLARE rtn INT;
+
+  SELECT COUNT(DISTINCT `table_schema`) INTO rtn
+  FROM `information_schema`.`schema_privileges`
+  WHERE `grantee` = gtee
+  AND `table_schema` = sname
+  AND NOT EXISTS (
+    SELECT *
+    FROM information_schema.schema_privileges
+    WHERE `grantee` = gtee
+    AND `table_schema` != sname
+  )
+  AND NOT EXISTS (
+    SELECT *
+    FROM `information_schema`.`user_privileges`
+    WHERE `grantee` = gtee
+    AND _schema_privs(`privilege_type`) > 0
+  )
+  AND NOT EXISTS (
+    SELECT *
+    FROM `information_schema`.`table_privileges`
+    WHERE `grantee` = gtee
+    AND `table_schema` != sname
+  )
+  AND NOT EXISTS (
+  SELECT *
+  FROM `information_schema`.`column_privileges`
+  WHERE `grantee` = gtee
+  AND `table_schema` != sname
+  )
+  AND NOT EXISTS (
+  SELECT *
+  FROM `tap`.`proc_privileges`
+  WHERE `grantee` = gtee
+  AND `routine_schema` != sname
+  );
+  
+  RETURN rtn; 
+END //
+
+
+DROP FUNCTION IF EXISTS single_schema_privileges //
+CREATE FUNCTION single_schema_privileges(sname VARCHAR(64), gtee VARCHAR(81), description TEXT)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+  -- normalize the input
+  SET @gtee = _format_user(gtee);
+
+  IF description = '' THEN
+    SET description = concat('Account ', gtee, ' should have privileges on a single schema');
+  END IF;
+
+  IF NOT _has_schema(sname) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Schema `', sname, '` does not exist')));
+  END IF;
+
+  IF NOT _has_user_at_host(@gtee) THEN
+    RETURN CONCAT(ok(FALSE, description), '\n',
+      diag(CONCAT('Account ', gtee, ' does not exist')));
+  END IF;
+
+  RETURN ok(_single_schema_priv(sname, @gtee), description);
 END //
 
 

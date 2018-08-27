@@ -4,10 +4,22 @@ TAP Tests for database privileges
 
 BEGIN;
 
+SELECT tap.plan(179);
+
 CREATE DATABASE IF NOT EXISTS taptest;
+CREATE DATABASE IF NOT EXISTS secondary;
 CREATE TABLE IF NOT EXISTS taptest.priv_table(a INT, b INT);
 DROP PROCEDURE IF EXISTS taptest.priv_routine;
 CREATE PROCEDURE taptest.priv_routine() SELECT 1;
+
+/*
+DROP USER __usage__;
+DROP USER __global__;
+DROP USER __schema__;
+DROP USER __table__;
+DROP USER __column__;
+DROP USER __routine__;
+DROP USER __double__;
 
 CREATE USER '__usage__'@'%' IDENTIFIED BY 'dfgkdhgfjka'; -- no grant required
 CREATE USER '__global__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
@@ -15,6 +27,8 @@ CREATE USER '__schema__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__table__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__column__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
 CREATE USER '__routine__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
+CREATE USER '__double__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
+*/
 
 -- GRANT USAGE ON *.* TO '__usage_priv__'@'%';
 GRANT FILE, SELECT ON *.* TO '__global__'@'%';
@@ -24,6 +38,9 @@ GRANT SELECT, UPDATE ON taptest.priv_table TO '__table__'@'%';
 GRANT SELECT(a) ON taptest.priv_table TO '__column__'@'%';
 -- NB documentation bug in MySQL suggests this next is a table level privilege, it isn't
 GRANT EXECUTE ON PROCEDURE taptest.priv_routine TO '__routine__'@'%' WITH GRANT OPTION; 
+GRANT SELECT, INSERT, ALTER ON taptest.* TO '__double__'@'%';
+GRANT SELECT, INSERT, ALTER ON secondary.* TO '__double__'@'%';
+
 
 /****************************************************************************/
 -- has_privilege(gtee VARCHAR(81), ptype VARCHAR(64), description TEXT)
@@ -1125,19 +1142,156 @@ SELECT tap.check_test(
     0
 );
 
+
+/****************************************************************************/
+-- single_schema_privileges(sname VARCHAR(64), gtee VARCHAR(81), description TEXT)
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__schema__', ''),
+    true,
+    'single_schema_privileges() correct specification',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__double__', ''),
+    false,
+    'single_schema_privileges() two schema access',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__global__', ''),
+    false,
+    'single_schema_privileges() global schema privileges',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__schema__@%', ''),
+    true,
+    'single_schema_privileges() default description',
+    'Account __schema__@% should have privileges on a single schema',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__schema__', 'desc'),
+    true,
+    'single_schema_privileges() description supplied',
+    'desc',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('idonotexist', '__schema__', ''),
+    false,
+    'single_schema_privileges() schema not found diagnostic',
+    null,
+    'Schema `idonotexist` does not exist',
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_schema_privileges('taptest', '__idonotexist__@%', ''),
+    false,
+    'single_schema_privileges() user not found diagnostic',
+    null,
+    'Account __idonotexist__@% does not exist',
+    0
+);
+
+
+/****************************************************************************/
+-- single_table_privileges(sname VARCHAR(64), tname VARCHAR(64), gtee VARCHAR(81), description TEXT)
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__table__', ''),
+    true,
+    'single_table_privileges() correct specification',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__double__', ''),
+    false,
+    'single_table_privileges() two table access',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__global__', ''),
+    false,
+    'single_table_privileges() global table privileges',
+    null,
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__table__@%', ''),
+    true,
+    'single_table_privileges() default description',
+    'Account __table__@% should have privileges on a single table',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__table__', 'desc'),
+    true,
+    'single_table_privileges() description supplied',
+    'desc',
+    null,
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'idonotexist','__table__', ''),
+    false,
+    'single_table_privileges() table not found diagnostic',
+    null,
+    'Table `taptest`.`idonotexist` does not exist',
+    0
+);
+
+SELECT tap.check_test(
+    tap.single_table_privileges('taptest', 'priv_table', '__idonotexist__@%', ''),
+    false,
+    'single_table_privileges() user not found diagnostic',
+    null,
+    'Account __idonotexist__@% does not exist',
+    0
+);
+
+
 /****************************************************************************/
 
 -- Finish the tests and clean up.
 
 call tap.finish();
 
-DROP USER __usage__;
+/*DROP USER __usage__;
 DROP USER __global__;
 DROP USER __schema__;
 DROP USER __table__;
 DROP USER __column__;
 DROP USER __routine__;
+DROP USER __double__;*/
 DROP PROCEDURE taptest.priv_routine;
 DROP TABLE taptest.priv_table;
 DROP DATABASE taptest;
+DROP DATABASE secondary;
 ROLLBACK;

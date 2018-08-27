@@ -2,6 +2,7 @@
 
 # Installation script for MyTAP
 
+UENV='';
 SQLHOST='localhost';
 SQLPORT=3306;
 SQLSOCK=''
@@ -42,6 +43,9 @@ while [[ "$#" > 0 ]]; do
 	-i|--no-install)
 	    NOINSTALL=1
 	    ;;
+	-e|--env)
+	    UENV="$2"
+	    ;;
 	-?|--help)
 	    cat << EOF
 Usage:
@@ -55,6 +59,7 @@ Options:
  -S, --socket filename  MySQL host
  -t, --no-tests         Don't run the test suite when the install is completed
  -i, --no-install       Don't perform the installation, i.e. just run the test suite
+ -e, --env              SET a session environment variable to TRUE
  -f, --filter string    Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|privilege|role|routines|table|trigger|schemata|user|view>
 EOF
 	   exit 1 
@@ -83,6 +88,10 @@ fi
 
 if [[ $SQLPORT != '3306' ]]; then
   MYSQLOPTS="$MYSQLOPTS --port=$SQLPORT"
+fi
+
+if [[ $UENV != '' ]]; then
+  SETENV="SET @${UENV}=1; "
 fi
 
 MYVER1=`mysql $MYSQLOPTS --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $1 * 100000 }'`;
