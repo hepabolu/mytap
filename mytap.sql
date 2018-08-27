@@ -836,6 +836,100 @@ BEGIN
 END //
 
 
+
+/***********************************************************************************/
+-- Utility functions for *_are style test.
+-- Create and populate tmp tables
+-- Diff expected against current to find missing and extra
+
+DROP PROCEDURE IF EXISTS _populate_want //
+CREATE PROCEDURE _populate_want(IN want TEXT)
+DETERMINISTIC
+COMMENT 'Create a temp table and populate with comma-separated data'
+BEGIN
+  DECLARE sep       CHAR(1) DEFAULT ',';
+  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
+
+  SET want = _fixCSL(want);
+
+  DROP TEMPORARY TABLE IF EXISTS `want`;
+  CREATE TEMPORARY TABLE `tap`.`want` (ident VARCHAR(64) PRIMARY KEY)
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+
+  WHILE want != '' > 0 DO
+    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
+    SET @val = uqi(@val);
+    IF  @val <> '' THEN
+      INSERT IGNORE INTO `want` VALUE(@val);
+    END IF;
+    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
+  END WHILE;
+END //
+
+DROP PROCEDURE IF EXISTS _populate_have //
+CREATE PROCEDURE _populate_have(IN have TEXT)
+DETERMINISTIC
+COMMENT 'Create a temp table and populate with comma-separated data'
+BEGIN
+  DECLARE sep       CHAR(1) DEFAULT ',';
+  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
+
+  SET have = _fixCSL(have);
+
+  DROP TEMPORARY TABLE IF EXISTS `have`;
+  CREATE TEMPORARY TABLE `tap`.`have` (ident VARCHAR(64) PRIMARY KEY)
+    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
+
+  WHILE have != '' > 0 DO
+    SET @val = TRIM(SUBSTRING_INDEX(have, sep, 1));
+    SET @val = uqi(@val);
+    IF  @val <> '' THEN
+      INSERT IGNORE INTO `have` VALUE(@val);
+    END IF;
+    SET have = SUBSTRING(have, CHAR_LENGTH(@val) + seplength + 1);
+  END WHILE;
+END //
+
+
+DROP FUNCTION IF EXISTS _missing //
+CREATE FUNCTION _missing(have TEXT)
+RETURNS TEXT
+DETERMINISTIC
+COMMENT 'Internal function to identify items listed want list but not in have input'
+BEGIN
+  DECLARE ret TEXT;
+
+  SET @have = REPLACE(have,'`','');
+
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
+  FROM `want`
+-- test @have in a null safe manner
+  WHERE NOT COALESCE(FIND_IN_SET(`ident`, @have),0);
+
+  RETURN COALESCE(ret, '');
+END //
+
+DROP FUNCTION IF EXISTS _extra //
+CREATE FUNCTION _extra(want TEXT)
+RETURNS TEXT
+DETERMINISTIC
+COMMENT 'Internal function to identify existing objects not in the want list'
+BEGIN
+  DECLARE ret TEXT;
+
+  SET @want = REPLACE(want,'`','');
+
+  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
+  FROM `have`
+  WHERE NOT COALESCE(FIND_IN_SET(`ident`, @want),0);
+
+  RETURN COALESCE(ret, '');
+END //
+
+
+/***********************************************************************************/
+
+
 DELIMITER ;
 
 SET GLOBAL log_bin_trust_function_creators = 0;
