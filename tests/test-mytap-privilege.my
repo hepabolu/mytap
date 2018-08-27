@@ -12,14 +12,45 @@ CREATE TABLE IF NOT EXISTS taptest.priv_table(a INT, b INT);
 DROP PROCEDURE IF EXISTS taptest.priv_routine;
 CREATE PROCEDURE taptest.priv_routine() SELECT 1;
 
-DROP USER __usage__;
-DROP USER __global__;
-DROP USER __schema__;
-DROP USER __table__;
-DROP USER __column__;
-DROP USER __routine__;
-DROP USER __double__;
-DROP USER __rollup__;
+-- clean up user accounts
+DELIMITER //
+DROP PROCEDURE IF EXISTS taptest.dropusers //
+CREATE PROCEDURE taptest.dropusers()
+DETERMINISTIC
+BEGIN
+  -- This procedure is only here in the event that the tests
+  -- fail due to a syntax error in which case IF EXISTS (> 5.6) will not work to tidy up
+  -- extant user records
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__usage__' AND host = '%') > 0 THEN
+    DROP USER '__usage__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__global__' AND host = '%') > 0 THEN
+    DROP USER '__global__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__schema__' AND host = '%') > 0 THEN
+    DROP USER '__schema__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__table__' AND host = '%') > 0 THEN
+    DROP USER '__table__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__column__' AND host = '%') > 0 THEN
+    DROP USER '__column__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__routine__' AND host = '%') > 0 THEN
+    DROP USER '__routine__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__double__' AND host = '%') > 0 THEN
+    DROP USER '__double__'@'%';
+  END IF;
+  IF (SELECT COUNT(*) FROM mysql.user WHERE user = '__rollup__' AND host = '%') > 0 THEN
+    DROP USER '__rollup__'@'%';
+  END IF;
+END //
+
+DELIMITER ;
+
+CALL taptest.dropusers();
+DROP PROCEDURE IF EXISTS taptest.dropusers;
 
 CREATE USER '__usage__'@'%' IDENTIFIED BY 'dfgkdhgfjka'; -- no grant required
 CREATE USER '__global__'@'%' IDENTIFIED BY 'dfgkdhgfjka';
