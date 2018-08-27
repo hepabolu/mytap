@@ -812,23 +812,23 @@ END //
 -- as the info_schema tables
 
 -- use view to simulate privilege table
+-- NB 5.5 friendly views cannot have sub-selects in the from clause hence long-winded
+-- aliasing for all parts of the UNION
+
 DROP VIEW IF EXISTS tap.proc_privileges //
+
 CREATE VIEW `tap`.`proc_privileges` AS
-SELECT CONCAT('''',`user`,'''@''',`host`,'''') AS `GRANTEE`, `db` AS `ROUTINE_SCHEMA`, `ROUTINE_NAME`, `ROUTINE_TYPE`, `PRIVILEGE_TYPE`
-FROM
-  (
-    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`, 'EXECUTE' AS `PRIVILEGE_TYPE`
-    FROM `mysql`.`procs_priv`
-    WHERE FIND_IN_SET('EXECUTE', `Proc_priv`) > 0
-    UNION
-    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`,'ALTER ROUTINE' AS `PRIVILEGE_TYPE`
-    FROM `mysql`.`procs_priv`
-    WHERE FIND_IN_SET('ALTER ROUTINE', `Proc_priv`) > 0
-    UNION
-    SELECT `user`,`host`,`db`,`Routine_name`,`Routine_type`, 'GRANT' AS `PRIVILEGE_TYPE`
-    FROM `mysql`.`procs_priv`
-    WHERE FIND_IN_SET('GRANT', `Proc_priv`) > 0
-  ) a;
+SELECT CONCAT('''',`user`,'''@''',`host`,'''') AS `GRANTEE`, `db` AS `ROUTINE_SCHEMA`, `ROUTINE_NAME`, `ROUTINE_TYPE`, 'EXECUTE' AS `PRIVILEGE_TYPE`
+FROM `mysql`.`procs_priv`
+WHERE FIND_IN_SET('EXECUTE', `Proc_priv`) > 0
+UNION
+SELECT CONCAT('''',`user`,'''@''',`host`,'''') AS `GRANTEE`, `db` AS `ROUTINE_SCHEMA`, `ROUTINE_NAME`, `ROUTINE_TYPE`,'ALTER ROUTINE' AS `PRIVILEGE_TYPE`
+FROM `mysql`.`procs_priv`
+WHERE FIND_IN_SET('ALTER ROUTINE', `Proc_priv`) > 0
+UNION
+SELECT CONCAT('''',`user`,'''@''',`host`,'''') AS `GRANTEE`, `db` AS `ROUTINE_SCHEMA`, `ROUTINE_NAME`, `ROUTINE_TYPE`, 'GRANT' AS `PRIVILEGE_TYPE`
+FROM `mysql`.`procs_priv`
+WHERE FIND_IN_SET('GRANT', `Proc_priv`) > 0;
 
 
 DROP FUNCTION IF EXISTS _routine_privileges //
