@@ -367,9 +367,9 @@ SELECT tap.check_test(
     null,
     '# 
     Extra Indexes:
-       test2_idx
+       `test2_idx`
     Missing Indexes:
-       nonexistent',
+       `nonexistent`',
     0
 );
 

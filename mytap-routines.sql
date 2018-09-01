@@ -358,66 +358,16 @@ END //
 /*******************************************************************/
 -- Check that the proper routines are defined
 
-DROP FUNCTION IF EXISTS _missing_routines //
-CREATE FUNCTION _missing_routines(sname VARCHAR(64), rtype VARCHAR(9))
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify routines listed in input to routines_are(schema, want, description) which are not defined'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM
-   (
-      SELECT `ident`
-      FROM `idents1`
-      WHERE `ident` NOT IN
-       (
-          SELECT `routine_name`
-          FROM `information_schema`.`routines`
-          WHERE `routine_schema` = sname
-          AND `routine_type` = rtype
-       )
-    ) msng;
-
-  RETURN COALESCE(ret, '');
-END //
-
-DROP FUNCTION IF EXISTS _extra_routines //
-CREATE FUNCTION _extra_routines(sname VARCHAR(64), rtype VARCHAR(9))
-RETURNS TEXT
-DETERMINISTIC
-COMMENT 'Internal function to identify defined routines that are not listed in input to routines_are(schema, want, description)'
-BEGIN
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(qi(`ident`)) INTO ret
-  FROM
-   (
-      SELECT `routine_name` AS `ident`
-      FROM `information_schema`.`routines`
-      WHERE `routine_schema` = sname
-      AND `routine_type` = rtype
-      AND `routine_name` NOT IN
-       (
-          SELECT `ident`
-          FROM `idents2`
-       )
-   ) xtra;
-
-  RETURN COALESCE(ret, '');
-END //
-
-
 DROP FUNCTION IF EXISTS routines_are //
 CREATE FUNCTION routines_are(sname VARCHAR(64), rtype VARCHAR(9), want TEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
-COMMENT 'Test for the existence of named routines. Identifies both missing as well as extra routines.'
 BEGIN
-
-  DECLARE sep       CHAR(1) DEFAULT ',';
-  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
+  SET @want = want;
+  SET @have = (SELECT GROUP_CONCAT('`',routine_name,'`')
+               FROM `information_schema`.`routines`
+	       WHERE `routine_schema` = sname
+	       AND `routine_type` = rtype);
 
   IF description = '' THEN
     SET description = CONCAT('Schema ', quote_ident(sname),
@@ -429,36 +379,16 @@ BEGIN
       diag(CONCAT('Schema ', quote_ident(sname), ' does not exist')));
   END IF;
 
-  SET want = _fixCSL(want);
+  CALL _populate_want(@want);
+  CALL _populate_have(@have);
 
-  IF want IS NULL THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected routines\n',
-                  'Identifier must not contain NUL Byte or extended characters(> U+10000)')));
-  END IF;
-
-  DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1(ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-  DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2(ident VARCHAR(64) PRIMARY KEY)
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-
-  WHILE want != '' > 0 DO
-    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-    SET @val = uqi(@val);
-    IF  @val <> '' THEN
-      INSERT IGNORE INTO idents1 VALUE(@val);
-      INSERT IGNORE INTO idents2 VALUE(@val);
-    END IF;
-    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-  END WHILE;
-
-  SET @missing = _missing_routines(sname, rtype);
-  SET @extras  = _extra_routines(sname, rtype);
+  SET @missing = (SELECT _missing(@have)); 
+  SET @extras  = (SELECT _extra(@want));
 
   RETURN _are(CONCAT(rtype, 's'), @extras, @missing, description);
+
 END //
+
 
 /****************************************************************************/
 

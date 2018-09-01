@@ -55,7 +55,7 @@ Options:
  -S, --socket filename  MySQL host
  -t, --no-tests         Don't run the test suite when the install is completed
  -i, --no-install       Don't perform the installation, i.e. just run the test suite
- -f, --filter string    Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|role|routines|table|trigger|schemata|user|view>
+ -f, --filter string    Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|privilege|role|routines|table|trigger|schemata|user|view>
 EOF
 	   exit 1 
 	   ;;
@@ -117,6 +117,7 @@ if [[ $NOINSTALL -eq 0 ]]; then
     mysql $MYSQLOPTS --execute 'source ./mytap-constraint.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-index.sql';
     mysql $MYSQLOPTS --execute 'source ./mytap-partition.sql';
+    mysql $MYSQLOPTS --execute 'source ./mytap-privilege.sql';
 
     if [[ $MYVER -ge 506004 ]]; then
        echo "Importing Version 5.6.4 patches";
@@ -209,6 +210,11 @@ if [[ $NOTESTS -eq 0 ]]; then
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "partition" ]]; then
       echo "============= partitions ============"
       mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-partition.my'
+   fi
+
+   if [[ $FILTER == 0 ]] || [[ $FILTER =~ "privilege" ]]; then
+      echo "============= privileges ============"
+      mysql $MYSQLOPTS --database tap --execute 'source tests/test-mytap-privilege.my'
    fi
 
    if [[ $FILTER == 0 ]] || [[ $FILTER =~ "role" ]]; then

@@ -830,9 +830,9 @@ SELECT tap.check_test(
     null,
     '# 
     Extra Constraints:
-       uniq_key
+       `uniq_key`
     Missing Constraints:
-       nonexistent',
+       `nonexistent`',
     0
 );
 

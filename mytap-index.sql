@@ -215,80 +215,26 @@ END //
 -- Check that the proper indexes are defined
 -- Table constraints are handled elsewhere
 
-DROP FUNCTION IF EXISTS _missing_indexes //
-CREATE FUNCTION _missing_indexes(sname VARCHAR(64), tname VARCHAR(64))
-RETURNS TEXT
-DETERMINISTIC
-BEGIN 
-  DECLARE ret TEXT;
-
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret 
-  FROM 
-    (
-      SELECT `ident`
-      FROM `idents1`
-      WHERE `ident` NOT IN
-        (
-          SELECT s.`index_name`
-          FROM `information_schema`.`statistics` s
-          LEFT JOIN `information_schema`.`table_constraints` c
-            ON (s.`table_schema` = c.`table_schema`
-                AND s.`table_name` = c.`table_name` 
-                AND s.`index_name` = c.`constraint_name`)
-          WHERE s.`table_schema` = sname
-          AND s.`table_name` = tname
-          AND c.`constraint_name` IS NULL
-        )
-    ) msng;
-
-  RETURN COALESCE(ret, '');
-END //
-
-DROP FUNCTION IF EXISTS _extra_indexes //
-CREATE FUNCTION _extra_indexes(sname VARCHAR(64), tname VARCHAR(64))
-RETURNS TEXT
-DETERMINISTIC
-BEGIN
-  DECLARE ret TEXT;
-  -- we want only the indexes that are NOT in both tables
-  -- constraints are handled separately
-  SELECT GROUP_CONCAT(quote_ident(`ident`)) INTO ret
-  FROM 
-    (
-      SELECT DISTINCT s.`index_name` AS `ident`
-      FROM `information_schema`.`statistics` s 
-      LEFT JOIN `information_schema`.`table_constraints` c
-      ON (s.`table_schema` = c.`table_schema`
-          AND s.`table_name` = c.`table_name` 
-          AND s.`index_name` = c.`constraint_name`)
-      WHERE c.`constraint_name` IS NULL
-      AND s.`table_schema` = sname
-      AND s.`table_name` = tname
-      AND s.`index_name` NOT IN
-        (
-          SELECT `ident`
-          FROM `idents2`
-        )
-    ) xtra;
-
-  RETURN COALESCE(ret, '');
-END //
-
-
 DROP FUNCTION IF EXISTS indexes_are //
 CREATE FUNCTION indexes_are(sname VARCHAR(64), tname VARCHAR(64),  want TEXT, description TEXT)
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
-  DECLARE sep       CHAR(1) DEFAULT ','; 
-  DECLARE seplength INTEGER DEFAULT CHAR_LENGTH(sep);
-  DECLARE missing   TEXT; 
-  DECLARE extras    TEXT;
+  SET @want = want;
+  SET @have = (SELECT GROUP_CONCAT('`', s.`index_name`,'`')
+               FROM `information_schema`.`statistics` s
+               LEFT JOIN `information_schema`.`table_constraints` c
+               ON (s.`table_schema` = c.`table_schema`
+                   AND s.`table_name` = c.`table_name` 
+                   AND s.`index_name` = c.`constraint_name`)
+               WHERE s.`table_schema` = sname
+               AND s.`table_name` = tname
+               AND c.`constraint_name` IS NULL);
 
   IF description = '' THEN
-   SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
+    SET description = CONCAT('Table ', quote_ident(sname), '.', quote_ident(tname),
       ' should have the correct indexes');
-   END IF;
+  END IF;
     
   IF NOT _has_table(sname, tname) THEN
     RETURN CONCAT(ok(FALSE, description), '\n', 
@@ -296,35 +242,13 @@ BEGIN
         ' does not exist' )));
   END IF;
 
-  SET want = _fixCSL(want);
+  CALL _populate_want(@want);
+  CALL _populate_have(@have);
 
-  IF want IS NULL THEN
-    RETURN CONCAT(ok(FALSE,description),'\n',
-      diag(CONCAT('Invalid character in comma separated list of expected schemas\n',
-                  'Identifier must not contain NUL Byte or extended characters (> U+10000)')));
-  END IF;
+  SET @missing = (SELECT _missing(@have)); 
+  SET @extras  = (SELECT _extra(@want));
 
-  DROP TEMPORARY TABLE IF EXISTS idents1;
-  CREATE TEMPORARY TABLE tap.idents1 (ident VARCHAR(64) PRIMARY KEY) 
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-  DROP TEMPORARY TABLE IF EXISTS idents2;
-  CREATE TEMPORARY TABLE tap.idents2 (ident VARCHAR(64) PRIMARY KEY) 
-    ENGINE MEMORY CHARSET utf8 COLLATE utf8_general_ci;
-
-  WHILE want != '' > 0 DO
-    SET @val = TRIM(SUBSTRING_INDEX(want, sep, 1));
-    SET @val = uqi(@val);
-    IF  @val <> '' THEN
-        INSERT IGNORE INTO idents1 VALUE(@val);
-        INSERT IGNORE INTO idents2 VALUE(@val);
-    END IF;
-    SET want = SUBSTRING(want, CHAR_LENGTH(@val) + seplength + 1);
-  END WHILE;
-
-  SET missing = _missing_indexes(sname, tname);
-  SET extras  = _extra_indexes(sname, tname);
-
-  RETURN _are('indexes', extras, missing, description);
+  RETURN _are('indexes', @extras, @missing, description);
 END //
 
 

@@ -514,7 +514,7 @@ This functions tests for the existence of named partitions. Identifies both miss
 
 This function checks if 'user'@'host' exists.
 
-`hasnt_user(host, user, description )`
+### `hasnt_user(host, user, description )`
 
 This function checks if 'user'@'host' does not exist.
 
@@ -525,7 +525,7 @@ As has_user but takes a single argument for the user and host. The user and host
 use any of the legal quoting styles, i.e. single, double or backtick. In addition, if the user and host names are
 valid unquoted identifiers (do not contain special characters) they can be left unquoted.
 
-`hasnt_user_at_host("'user'@'host'", description )`
+### `hasnt_user_at_host("'user'@'host'", description )`
 
 This function checks if 'user'@'host' does not exist.
 
@@ -534,7 +534,7 @@ This function checks if 'user'@'host' does not exist.
 
 This function checks if 'user'@'host' is not disabled.
 
-`user_not_ok(host, user, description )`
+### `user_not_ok(host, user, description )`
 
 This function checks if 'user'@'host' is disabled.
 
@@ -546,3 +546,171 @@ This function checks if the password should expire.
 `user_hasnt_lifetime(host, user, description )`
 
 This function checks if the password should not expire.
+
+
+
+## Privileges
+
+A series of tests for privileges granted on user and role accounts.
+
+Please note that the tests are specific to the named user or role that is being tested (grantee) and do not include the
+effect of any proxied privileges that may be granted or, in the case of a user, any privileges that are
+granted to a role to which they have been assigned.
+
+Privileges can be granted within MySQL at a number of levels and have a cascading effect on to lower-levels where the
+same privilege applies. The SELECT privilege granted at the global level implies the same privilege at a schema, table and column levels.
+Similarly, the EXECUTE privilege granted on routines at a global level, implies the same at the schema and routine levels. On the
+other hand, the FILE privilege is only granted at a global level and is invalid at lower levels.
+
+MyTAP privilege tests allow for the possibilty that the user may wish to test that a privilege is active at a specific
+level having been granted at a higher level just as much as for privileges granted explicitly at the level being tested (the default).
+To include the effect of these cascaded privileges you should set a user-defined variable @rollup to TRUE in your test script.
+
+e.g.
+
+```
+SET @rollup=1;
+
+SELECT tap.table_privileges_are('db','tableA','myuser@localhost', SELECT,UPDATE,INSERT,DELETE','');
+````
+
+Will take account privileges granted with any of these the statements
+
+```
+GRANT SELECT,UPDATE,INSERT,DELETE ON *.* TO 'myuser'@'localhost';
+GRANT SELECT,UPDATE,INSERT,DELETE ON `db`.* TO 'myuser'@'localhost';
+GRANT SELECT,UPDATE,INSERT,DELETE ON `db`.`tableA` TO 'myuser'@'localhost';
+```
+
+whereas,
+
+```
+SET @rollup=0;
+
+SELECT tap.table_privileges_are('db','tableA','myuser@localhost', SELECT,UPDATE,INSERT,DELETE','');
+```
+
+Will test for privileges granted explicitly at the table level with
+
+```
+GRANT SELECT,UPDATE,INSERT,DELETE ON `db`.`tableA` TO 'myuser'@'localhost';
+```
+
+
+### Grantee
+
+The grantee parameter can be in any of the formats permitted by MySQL when the user or role is created. The
+following are, therefore, considered equivalent:
+
+1. myuser@localhost
+2. 'myuser'@'localhost'
+3. "myuser"@"localhost"
+4. \`myuser\`@\`localhost\`
+
+If the host part is ommitted then the wildcard '%' is assumed.
+
+
+### `has_privilege(grantee, privilege_type, description)`
+
+Test whether `privilege_type` has been granted to the user or role at any level.
+
+
+### `hasnt_privilege(grantee, privilege_type, description)`
+
+Check that `privilege_type` has not been granted to the user or role at any level.
+
+
+### `has_global_privilege(grantee, privilege_type, description)`
+
+Test whether the specified privilege has been granted to the user or role at the global level. Rollup is not applicable
+for global-level tests.
+
+
+### `hasnt_global_privilege(grantee, privilege_type, description)`
+
+Test whether the specified privilege has not been granted to the user or role at the global level. Rollup is not applicable
+for global-level tests.
+
+
+### `has_schema_privilege(schema, grantee, privilege_type, description)`
+
+Test whether the specified schema-level privilege has been granted to the user or role. With 'rollup'
+enabled this will test whether the privilege has been granted at either the global or the schema levels.
+
+
+### `hasnt_schema_privilege(schema, grantee, privilege_type, description)`
+
+Test whether the specified schema-level privilege has not been granted to the user or role. With 'rollup'
+enabled this will check that the privilege has not been granted at either the global or schema levels.
+
+
+### `has_table_privilege(schema, table, grantee, privilege_type, description)`
+
+Test whether the specified table-level privilege has been granted to the user or role. With 'rollup'
+enabled this will test whether the privilege has been granted at either at the global, schema or table levels.
+
+
+### `hasnt_table_privilege(schema, table, grantee, privilege_type, description)`
+
+Test whether the specified table-level privilege has not been granted to the user or role. With 'rollup'
+enabled this will check that the privilege has not been granted at the global, schema or table levels.
+
+
+### `has_column_privilege(schema, table, column, grantee, privilege_type, description)`
+
+Test whether the specified column-level privilege has been granted to the user or role. With 'rollup'
+enabled this will test whether the privilege has been granted at the global, schema, table or column levels.
+
+### `hasnt_column_privilege(schema, table, column, grantee, privilege_type, description)`
+
+Test whether the specified table-level privilege has not been granted to the user or role. With 'rollup'
+enabled this will check that the privilege has not been granted at the global, schema, table or column levels.
+
+
+### `global_privileges_are(grantee, privilege_list, description)`
+
+Test the privileges granted to the user or role at the global-level. The list of privilege must be comma-separated
+and you should ensure there are no extra spaces either before or after each privilege type.  Where either missing and
+extra privileges are defined these will be listed in a diagnostic message in the function return. Rollup is not
+applicable for global-level tests.
+
+### `schema_privileges_are(schema, grantee, privilege_types, description)`
+
+Test the privileges granted to the user or role at the schema-level. The list of privilege must be comma-separated
+and you should ensure there are no extra spaces either before or after each privilege type.  Where either missing and
+extra privileges are defined these will be listed in a diagnostic message in the function return. With rollup enabled
+the function will check for privileges granted at either the global and schema levels.
+
+
+### `table_privileges_are(schema, table, grantee, privilege_types, description)`
+
+Test the privileges granted to the user or role at the table-level. The list of privilege must be comma-separated
+and you should ensure there are no extra spaces either before or after each privilege type.  Where either missing and
+extra privileges are defined these will be listed in a diagnostic message in the function return. With rollup enabled
+the function will check for privileges granted at the global, schema or table levels.
+
+
+### `column_privileges_are(schema, table, column, grantee, privilege_types, description)`
+
+Test the privileges granted to the user or role at the column-level. The list of privilege must be comma-separated
+and you should ensure there are no extra spaces either before or after each privilege type.  Where either missing and
+extra privileges are defined these will be listed in a diagnostic message in the function return. With rollup enabled
+the function will check for privileges granted at the global, schema, table or column levels.
+
+
+### `routine_privileges_are(schema, routine_type, routine_name, grantee, privilege_types, description)`
+
+Test the privileges granted to the user or role at the routine-level. The list of privilege must be comma-separated
+and you should ensure there are no extra spaces either before or after each privilege type.  Where either missing and
+extra privileges are defined these will be listed in a diagnostic message in the function return. With rollup enabled
+the function will check for privileges granted at the global, schema or routine levels.
+
+
+### `single_schema_privileges(schema, grantee, description)`
+
+Test that all privileges granted to the user or role are confined to a single schema.
+
+
+### `single_table_privileges(schema, table, grantee, description)`
+
+Test that all privileges granted to the user or role are confined to a single table or view.
