@@ -55,6 +55,22 @@ Short-form versions of all of these switches exist, for full details
     # ./install.sh --help
 
 
+###Amazon Aurora
+MyTAP may be used on Amazon Aurora but the installation script will generate
+some errors because Aurora does not permit the use of the SUPER privilege
+which is necessary to set the MySQL Global variable log_bin_trust_function_creators.
+It is possibile to work around this issue by creating a new parameter group for
+your Aurora instance and setting this variable in Edit Parameters within the AWS
+console. Full instructions on a workaround can be found in this answer on Stack
+Overflow.
+
+https://stackoverflow.com/a/30874794/5870171
+
+This same issue will cause some errors in running the current version of the test
+scripts for VIEWS and PRIVILEGS which rely on SUPER privilege to define suitable
+test data. 
+
+
 MyTAP Test Scripts
 ==================
 

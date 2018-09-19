@@ -25,6 +25,14 @@ allow the installer to run in install-only or test-only mode. The -f switch allo
 that sould be run. This will install all of the assertion functions suitable for the MySQL server version, as well
 as a cache table, into a database named "tap".
 
+Installing MyTAP on Amazon Aurora will result in errors because Aurora does not permit the use of the SUPER privilege
+which is necessary to set the MySQL Global variable log_bin_trust_function_creators. It is possibile to work around
+this issue by creating a new parameter group for your Aurora instance and setting this variable in Edit Parameters
+of the AWS console. Full instructions can be found in this answer on Stack Overflow 
+
+https://stackoverflow.com/a/30874794/5870171
+
+
 # MyTAP Test Scripts
 
 Here's an example of how to write a MyTAP test script:
