@@ -108,5 +108,5 @@ If you’re developing third-party libraries for MySQL, perhaps [writing functio
 
 # Get Started
 
-So, what are you waiting for? Download the latest version of MyTAP, or grab fork the [git repository](https://github.com/hepabolu/mytap), read the [documentation]({{ site.baseurl}}/documentation.html), and get going with those tests!
+So, what are you waiting for? Download the latest version of MyTAP, or grab fork the [git repository](https://github.com/hepabolu/mytap), read the [documentation]({{ site.baseurl}}/documentation), and get going with those tests!
 
