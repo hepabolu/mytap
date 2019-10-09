@@ -2,6 +2,18 @@ sudo: required
 services:
   - docker
 
+
+language: perl
+perl:
+  - "5.14"
+  - "5.12"
+  - "5.10"
+env: PERL_CPANM_OPT="--notest --force --skip-satisfied"
+before_install:
+  # bootstrap modules needed to manipulate dist
+  - "cpanm Module::Build"
+
+
 command: --default-authentication-plugin=mysql_native_password
 
 matrix:
