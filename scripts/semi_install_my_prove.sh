@@ -6,14 +6,13 @@ git clone https://github.com/theory/tap-parser-sourcehandler-mytap.git
 mv tap-parser-sourcehandler-mytap myprove
 cd myprove
 env PERL_MM_USE_DEFAULT=1
-cpanm Module::Build
 perl Build.PL
 
 # If necessary install dependencies
+./Build manifest
 ./Build installdeps
-# ./Build manifest
 
-# ./Build
+./Build
 ./Build test
 sudo ./Build install
 
