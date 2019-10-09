@@ -14,7 +14,7 @@ perl Build.PL
 
 ./Build
 ./Build test
-sudo ./Build install
+./Build install
 
 # my_prove is located in myprove/bin
 
