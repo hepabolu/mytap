@@ -607,7 +607,7 @@ BEGIN
     SELECT CONCAT("SELECT tap.col_has_type('", sname, "','",tname,"','", cn,"',", qv(ct), ",'');");
     SELECT CONCAT("SELECT tap.col_data_type_is('", sname, "','",tname,"','", cn, "',", qv(dt), ",'');");
     SELECT CONCAT("SELECT tap.col_extra_is('", sname, "','",tname,"','", cn,"',", qv(ex), ",'');");
-    SELECT CONCAT("SELECT tap.col_default_is('", sname, "','",tname,"','", cn,"',", qv(cd), ",'');");
+    SELECT CONCAT("SELECT tap.col_default_is('", sname, "','",tname,"','", cn,"','", cd,"','');");
     SELECT CONCAT("SELECT tap.col_charset_is('", sname, "','",tname,"','", cn,"',", qv(cs), ",'');");
     SELECT CONCAT("SELECT tap.col_collation_is('", sname, "','",tname,"','", cn,"',", qv(co), ",'');");
   END LOOP;
