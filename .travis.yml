@@ -3,17 +3,6 @@ services:
   - docker
 
 
-language: perl
-perl:
-  - "5.14"
-  - "5.12"
-  - "5.10"
-env: PERL_CPANM_OPT="--notest --force --skip-satisfied"
-before_install:
-  # bootstrap modules needed to manipulate dist
-  - "cpanm Module::Build"
-
-
 command: --default-authentication-plugin=mysql_native_password
 
 matrix:
@@ -26,6 +15,10 @@ matrix:
         - DB=mysql:5.7
     - env:
         - DB=mysql:8.0
+
+before_install:
+  # bootstrap modules needed to manipulate dist
+  - "cpanm Module::Build"
 
 before_script:
   - bash ./.travis.install-mysql.sh
