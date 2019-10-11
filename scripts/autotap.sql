@@ -536,9 +536,9 @@ BEGIN
     GROUP_CONCAT(CONCAT('`', u.`referenced_column_name`, '`') ORDER BY u.`ordinal_position`)
     FROM `information_schema`.`table_constraints` c
     JOIN `information_schema`.`key_column_usage` u
-    USING (`constraint_schema`,`table_name`,`constraint_name`)
+    ON (c.`constraint_schema` = u.`constraint_schema` AND c.`table_name` = u.`table_name` COLLATE utf8_bin AND c.`constraint_name` = u.`constraint_name`)
     LEFT JOIN `information_schema`.`referential_constraints` r
-    USING (`constraint_schema`,`table_name`,`constraint_name`)
+    ON (u.`constraint_schema` = r.`constraint_schema` AND u.`table_name` = r.`table_name` COLLATE utf8_bin AND u.`constraint_name` = r.`constraint_name`)
     WHERE c.`table_schema` = sname
     AND c.`table_name` = tname
     GROUP BY c.`constraint_name`, c.`constraint_type`, r.`update_rule`, r.`delete_rule`,
@@ -607,7 +607,7 @@ BEGIN
     SELECT CONCAT("SELECT tap.col_has_type('", sname, "','",tname,"','", cn,"',", qv(ct), ",'');");
     SELECT CONCAT("SELECT tap.col_data_type_is('", sname, "','",tname,"','", cn, "',", qv(dt), ",'');");
     SELECT CONCAT("SELECT tap.col_extra_is('", sname, "','",tname,"','", cn,"',", qv(ex), ",'');");
-    SELECT CONCAT("SELECT tap.col_default_is('", sname, "','",tname,"','", cn,"',", qv(cd), ",'');");
+    SELECT CONCAT("SELECT tap.col_default_is('", sname, "','",tname,"','", cn,"',", qs(cd), ",'');");
     SELECT CONCAT("SELECT tap.col_charset_is('", sname, "','",tname,"','", cn,"',", qv(cs), ",'');");
     SELECT CONCAT("SELECT tap.col_collation_is('", sname, "','",tname,"','", cn,"',", qv(co), ",'');");
   END LOOP;
