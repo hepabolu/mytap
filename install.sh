@@ -91,6 +91,17 @@ MYVER=$(mysql ${MYSQLOPTS} --execute "
         + CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(VERSION(), '-', 1),'.', 3), '.', -1) AS UNSIGNED);
     ")
 
+# checking thread_stack settings. See #44 for reference.
+
+thread_stack=$(mysql ${MYSQLOPTS} --execute "SELECT @@thread_stack" --skip_column_names)
+if [[ ${thread_stack} -lt 262144 ]]; then
+  echo "Your thread_stack variable is set to ${thread_stack} bytes what can"
+  echo "be too low to use myTAP. Consider changing thread stack variable to"
+  echo "at least 262144 bytes (add thread_stack=256k to your mysql.conf file)."
+  exit 1
+fi
+
+
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
 # to be separately listed
