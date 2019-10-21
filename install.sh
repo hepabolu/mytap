@@ -11,39 +11,39 @@ FILTER=0
 
 while [[ "$#" > 0 ]]; do
     case $1 in
-	-u|--user)
-	    SQLUSER="$2";
-	    shift
-	    ;;
-	-p|--password)
-	    SQLPASS="$2"
-	    shift
-	    ;;
-	-h|--host)
-	    SQLHOST="$2"
-	    shift
-	    ;;
-	-P|--port)
-	    SQLPORT="$2"
-	    shift
-	    ;;
-	-S|--socket)
-	    SQLSOCK="$2"
-	    shift
-	    ;;
-	-f|--filter)
-	    NOFILTER=0
-	    FILTER="$2"
-	    shift
-	    ;;
-	-t|--no-tests)
-	    NOTESTS=1
-	    ;;
-	-i|--no-install)
-	    NOINSTALL=1
-	    ;;
-	-?|--help)
-	    cat << EOF
+        -u|--user)
+            SQLUSER="$2";
+            shift
+            ;;
+        -p|--password)
+            SQLPASS="$2"
+            shift
+            ;;
+        -h|--host)
+            SQLHOST="$2"
+            shift
+            ;;
+        -P|--port)
+            SQLPORT="$2"
+            shift
+            ;;
+        -S|--socket)
+            SQLSOCK="$2"
+            shift
+            ;;
+        -f|--filter)
+            NOFILTER=0
+            FILTER="$2"
+            shift
+            ;;
+        -t|--no-tests)
+            NOTESTS=1
+            ;;
+        -i|--no-install)
+            NOINSTALL=1
+            ;;
+        -?|--help)
+            cat << EOF
 Usage:
  install.sh [options]
 
@@ -57,11 +57,11 @@ Options:
  -i, --no-install       Don't perform the installation, i.e. just run the test suite
  -f, --filter string    Perform the action on one class of objects <matching|eq|moretap|todo|utils|charset|collation|column|constraint|engine|event|index|partition|privilege|role|routines|table|trigger|schemata|user|view>
 EOF
-	   exit 1 
-	   ;;
-	 *)     
-	   exit 1
-	   ;;
+            exit 1
+            ;;
+        *)
+            exit 1
+            ;;
     esac;
     shift;
 done
