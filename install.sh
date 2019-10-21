@@ -85,12 +85,11 @@ if [[ ${SQLPORT} != '3306' ]]; then
   MYSQLOPTS="${MYSQLOPTS} --port=${SQLPORT}"
 fi
 
-MYVER1=$(mysql ${MYSQLOPTS} --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $1 * 100000 }');
-MYVER2=$(mysql ${MYSQLOPTS} --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $2 * 1000 }');
-MYVER3=$(mysql ${MYSQLOPTS} --execute "SELECT @@global.version" | awk -F'-' '{print $1}' | awk -F'.' '{print $3}');
-
-
-MYVER=$((${MYVER1}+${MYVER2}+${MYVER3}));
+MYVER=$(mysql ${MYSQLOPTS} --execute "
+    SELECT (SUBSTRING_INDEX(VERSION(), '.', 1) * 100000)
+        + (SUBSTRING_INDEX(SUBSTRING_INDEX(VERSION(), '.', 2), '.', -1) * 1000)
+        + CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(VERSION(), '-', 1),'.', 3), '.', -1) AS UNSIGNED);
+    ")
 
 # import the full package before running the tests
 # you can't use a wildcard with the source command so all version specific files need
