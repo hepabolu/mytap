@@ -95,9 +95,9 @@ MYVER=$(mysql ${MYSQLOPTS} --execute "
 
 thread_stack=$(mysql ${MYSQLOPTS} --execute "SELECT @@thread_stack" --skip_column_names)
 if [[ ${thread_stack} -lt 262144 ]]; then
-  echo "Your thread_stack variable is set to ${thread_stack} bytes what can"
-  echo "be too low to use myTAP. Consider changing thread stack variable to"
-  echo "at least 262144 bytes (add thread_stack=256k to your mysql.conf file)."
+  echo "Your thread_stack variable is set to ${thread_stack} bytes and will"
+  echo "be too low to use myTAP. You should change the thread_stack variable to"
+  echo "at least 262144 bytes (add thread_stack=256k to your mysql conf file)."
   exit 1
 fi
 
