@@ -159,27 +159,27 @@ if [[ ${NOTESTS} -eq 0 ]]; then
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "matching" ]]; then
       echo "============= matching ============="
-      mysql ${MYSQLOPTS} --database tap --execute 'source tests/matching.my'
+      mysql ${MYSQLOPTS} --database tap --execute 'source tests/test-mytap-matching.my'
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "eq" ]]; then
       echo "============= eq ============="
-      mysql ${MYSQLOPTS} --database tap --execute 'source tests/eq.my'
+      mysql ${MYSQLOPTS} --database tap --execute 'source tests/test-mytap-eq.my'
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "moretap" ]]; then
       echo "============= moretap ============="
-      mysql ${MYSQLOPTS} --database tap --execute 'source tests/moretap.my'
+      mysql ${MYSQLOPTS} --database tap --execute 'source tests/test-mytap-moretap.my'
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "todotap" ]]; then
       echo "============= todotap ============="
-      mysql ${MYSQLOPTS} --database tap --execute 'source tests/todotap.my'
+      mysql ${MYSQLOPTS} --database tap --execute 'source tests/test-mytap-todotap.my'
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "utils" ]]; then
       echo "============= utils ============="
-      mysql ${MYSQLOPTS} --database tap --execute 'source tests/utils.my'
+      mysql ${MYSQLOPTS} --database tap --execute 'source tests/test-mytap-utils.my'
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "charset" ]]; then
