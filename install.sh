@@ -132,6 +132,7 @@ if [[ ${NOINSTALL} -eq 0 ]]; then
     mysql ${MYSQLOPTS} --execute 'source ./mytap-index.sql';
     mysql ${MYSQLOPTS} --execute 'source ./mytap-partition.sql';
     mysql ${MYSQLOPTS} --execute 'source ./mytap-privilege.sql';
+    mysql ${MYSQLOPTS} --execute 'source ./mytap-runtests.sql';
 
     if [[ ${MYVER} -ge 506004 ]]; then
        echo "Importing Version 5.6.4 patches";
