@@ -157,8 +157,6 @@ if [[ ${NOTESTS} -eq 0 ]]; then
       echo "Running Full test suite, this will take a couple of minutes to complete."
    fi
 
-   sleep 2;
-
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "matching" ]]; then
       echo "============= matching ============="
       mysql ${MYSQLOPTS} --database tap --execute 'source tests/matching.my'
