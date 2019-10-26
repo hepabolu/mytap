@@ -154,7 +154,7 @@ if [[ ${NOTESTS} -eq 0 ]]; then
    if [[ ${FILTER} != 0 ]]; then
       echo "Running test suite with filter: ${FILTER}";
    else
-      echo "Running Full test suite, this will take a couple of minutes to complete."
+      echo "Running full test suite."
    fi
 
    if [[ ${FILTER} == 0 ]] || [[ ${FILTER} =~ "matching" ]]; then
