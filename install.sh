@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Installation script for MyTAP
 
 SQLHOST='localhost';
