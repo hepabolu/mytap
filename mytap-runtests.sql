@@ -70,6 +70,7 @@ BEGIN
         CALL _run_proc_by_prefix(db_, 'setup');
         SET @call_sql = CONCAT('CALL ', db_, '.', test_to_call, '()');
         PREPARE call_sql FROM @call_sql;
+        SELECT CONCAT("# ... ", test_to_call);
         EXECUTE call_sql;
         DEALLOCATE PREPARE call_sql;
         CALL _run_proc_by_prefix(db_, 'teardown');
