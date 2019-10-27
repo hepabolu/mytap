@@ -11,7 +11,7 @@ NOTESTS=0
 NOINSTALL=0
 FILTER=0
 
-ALL_TESTS=$(echo $(ls tests/ | cut -d. -f1 | cut -d'-' -f3))
+ALL_TESTS=$(echo $(ls tests/*my | cut -d. -f1 | cut -d'-' -f3-))
 
 while [[ "${#}" > 0 ]]; do
     case ${1} in
