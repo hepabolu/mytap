@@ -88,9 +88,12 @@ DELIMITER ;
 
 /* Test part starts here */
 
-SELECT tap.plan(12);
+SELECT tap.plan(14);
+
+/* General tests on runtests() */
 
 CALL tap.runtests(DATABASE());
+
 CREATE TEMPORARY TABLE test_runtests2 LIKE test_runtests;
 INSERT INTO test_runtests2 SELECT * FROM test_runtests;
 
@@ -199,6 +202,61 @@ SELECT tap.eq(
     @tmp
     , 0
     , 'no test was missed');
+
+/* Test on running tests in random order */
+
+DROP TEMPORARY TABLE test_runtests;
+DROP TEMPORARY TABLE test_runtests2;
+
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+CREATE TEMPORARY TABLE test_runtests2 LIKE base__test_runtests;
+
+CALL tap.runtests_random(DATABASE());
+
+INSERT INTO test_runtests2 SELECT * FROM test_runtests;
+
+DROP TEMPORARY TABLE test_runtests;
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+
+CALL tap.runtests_random(DATABASE());
+
+SELECT tap.ok((
+    SELECT COALESCE(COUNT(*), 0) > 0
+    FROM
+        test_runtests AS t1
+        JOIN test_runtests2 AS t2 USING (proc_name)
+    WHERE
+        proc_name LIKE 'test%'
+        AND t1.id <> t2.id
+    ), 'Tests were called in random order');
+
+/* Test on running tests twice with same random seed */
+
+DROP TEMPORARY TABLE test_runtests;
+DROP TEMPORARY TABLE test_runtests2;
+
+SET @random_seed = FLOOR(RAND() * POW(2, 32));
+
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+CALL tap.runtests_random_with_seed(DATABASE(), @random_seed);
+
+CREATE TEMPORARY TABLE test_runtests2 LIKE base__test_runtests;
+INSERT INTO test_runtests2 SELECT * FROM test_runtests;
+DROP TEMPORARY TABLE test_runtests;
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+
+CALL tap.runtests_random_with_seed(DATABASE(), @random_seed);
+
+SELECT tap.ok((
+    SELECT COALESCE(COUNT(*), 1) = 0
+    FROM
+        test_runtests AS t1
+        LEFT JOIN test_runtests2 AS t2 USING (proc_name, id)
+    WHERE
+        proc_name LIKE 'test%'
+        AND t2.id IS NULL
+    ), 'Seed determines order in which tests are performed');
+
 
 CALL tap.finish();
 
