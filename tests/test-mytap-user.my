@@ -35,12 +35,14 @@ BEGIN
   -- This procedure allows create user syntax to accomodate changes in
   -- CREATE USER in 5.7.6
   DECLARE myver INT;
+  DECLARE myvariant TEXT;
 
   SET myver = (SELECT tap.mysql_version()); 
+  SET myvariant = (SELECT tap.mysql_variant());
   SET @sql1 = "CREATE USER '__tapuser__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'";
   SET @sql2 = "CREATE USER '__locked__'@'localhost' IDENTIFIED BY '__dgfjhasdkfa__'";
 
-  IF myver > 507006 THEN
+  IF myvariant = 'MySQL' AND myver > 507006 THEN
     SET @sql1 = CONCAT(@sql1, ' PASSWORD EXPIRE NEVER ACCOUNT UNLOCK');
     SET @sql2 = CONCAT(@sql2, ' PASSWORD EXPIRE INTERVAL 180 DAY ACCOUNT LOCK');
   END IF;
@@ -53,6 +55,18 @@ BEGIN
   EXECUTE stmt2;
   DEALLOCATE PREPARE stmt2;
 
+  IF myvariant = 'MariaDB' THEN
+    SET @sql1 = "ALTER USER '__tapuser__'@'localhost' ACCOUNT UNLOCK";
+    SET @sql2 = "ALTER USER '__locked__'@'localhost' ACCOUNT LOCK";
+
+    PREPARE stmt1 FROM @sql1;
+    EXECUTE stmt1;
+    DEALLOCATE PREPARE stmt1;
+
+    PREPARE stmt2 FROM @sql2;
+    EXECUTE stmt2;
+    DEALLOCATE PREPARE stmt2;
+  END IF;
 END //
 
 DELIMITER ;
@@ -388,7 +402,10 @@ END;
 /****************************************************************************/
 -- user_has_lifetime(hname CHAR(60), uname CHAR(32), description TEXT)
 
-SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
+/* This should work in MariaDB, but apparently does not.
+ See https://jira.mariadb.org/browse/MDEV-7597 */
+
+SELECT CASE WHEN tap.mysql_variant() = 'MySQL' AND tap.mysql_version() >= 507006 THEN
  tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', ''),
     true,
@@ -412,7 +429,9 @@ SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
   tap.skip(1,'user_has_lifetime() requires MySQL version >= 5.7.6')
 END;
 
-SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
+/* This should work in MariaDB, but apparently does not.
+ See https://jira.mariadb.org/browse/MDEV-7597 */
+SELECT CASE WHEN tap.mysql_variant() = 'MySQL' AND tap.mysql_version() >= 507006 THEN
  tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', ''),
     true,
@@ -424,7 +443,9 @@ SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
   tap.skip(2,'user_has_lifetime() requires MySQL version >= 5.7.6')
 END;
 
-SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
+/* This should work in MariaDB, but apparently does not.
+ See https://jira.mariadb.org/browse/MDEV-7597 */
+SELECT CASE WHEN tap.mysql_variant() = 'MySQL' AND tap.mysql_version() >= 507006 THEN
  tap.check_test(
     tap.user_has_lifetime('localhost', '__locked__', 'desc'),
     true,
@@ -465,7 +486,9 @@ SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
   tap.skip(1,'user_hasnt_lifetime() requires MySQL version >= 5.7.6')
 END;
 
-SELECT CASE WHEN tap.mysql_version() >= 507006 THEN
+/* This should work in MariaDB, but apparently does not.
+ See https://jira.mariadb.org/browse/MDEV-7597 */
+SELECT CASE WHEN tap.mysql_variant() = 'MySQL' AND tap.mysql_version() >= 507006 THEN
  tap.check_test(
     tap.user_hasnt_lifetime('localhost', '__locked__', ''),
     false,

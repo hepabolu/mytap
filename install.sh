@@ -91,6 +91,15 @@ MYVER=$(mysql ${MYSQLOPTS} --execute "
         + CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(VERSION(), '-', 1),'.', 3), '.', -1) AS UNSIGNED);
     ")
 
+MYVARIANT=$(mysql ${MYSQLOPTS} --execute "
+    SELECT
+        CASE
+            WHEN version() REGEXP 'MariaDB' = 1 THEN 'MariaDB'
+            WHEN version() REGEXP 'Percona' = 1 THEN 'Percona'
+            ELSE 'MySQL'
+        END;
+    ")
+
 # checking thread_stack settings. See #44 for reference.
 
 thread_stack=$(mysql ${MYSQLOPTS} --execute "SELECT @@thread_stack" --skip_column_names)
@@ -145,6 +154,13 @@ if [[ ${NOINSTALL} -eq 0 ]]; then
        echo "Importing Version 8.0.11 patches";
        mysql ${MYSQLOPTS} --execute 'source ./mytap-role-8011.sql';
        mysql ${MYSQLOPTS} --execute 'source ./mytap-table-8011.sql';
+    fi
+
+    echo "Importing cross-variant compatibility layer";
+    if [ "${MYVARIANT}" == "MariaDB" ]; then
+       mysql ${MYSQLOPTS} --execute 'source ./mytap-compat-mariadb.sql';
+    else
+       mysql ${MYSQLOPTS} --execute 'source ./mytap-compat-mysql.sql';
     fi
 fi
 
