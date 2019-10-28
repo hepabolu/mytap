@@ -1,0 +1,264 @@
+/* Setup for tests
+
+Top part creates test scenario with startup / setup /
+teardown and shutdown procedures. Bottom part are assertions to check
+if whole test scenario was executed as designed.
+*/
+
+DROP DATABASE IF EXISTS taptest;
+CREATE DATABASE taptest;
+USE taptest;
+
+CREATE TEMPORARY TABLE base__test_runtests (
+    id INT AUTO_INCREMENT PRIMARY KEY
+    , proc_name TEXT
+);
+
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS startup //
+CREATE PROCEDURE startup()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('startup');
+END //
+
+DROP PROCEDURE IF EXISTS setup //
+CREATE PROCEDURE setup()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('setup');
+END //
+
+DROP PROCEDURE IF EXISTS setup_2 //
+CREATE PROCEDURE setup_2()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('setup_2');
+END //
+
+DROP PROCEDURE IF EXISTS setup_3 //
+CREATE PROCEDURE setup_3()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('setup_3');
+END //
+
+DROP PROCEDURE IF EXISTS test_foo //
+CREATE PROCEDURE test_foo()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('test_foo');
+END //
+
+DROP PROCEDURE IF EXISTS test_bar //
+CREATE PROCEDURE test_bar()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('test_bar');
+END //
+
+DROP PROCEDURE IF EXISTS test_baz //
+CREATE PROCEDURE test_baz()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('test_baz');
+END //
+
+DROP PROCEDURE IF EXISTS test_bam //
+CREATE PROCEDURE test_bam()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('test_bam');
+END //
+
+DROP PROCEDURE IF EXISTS teardown //
+CREATE PROCEDURE teardown()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('teardown');
+END //
+
+DROP PROCEDURE IF EXISTS teardown_2 //
+CREATE PROCEDURE teardown_2()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('teardown_2');
+END //
+
+DROP PROCEDURE IF EXISTS shutdown //
+CREATE PROCEDURE shutdown()
+BEGIN
+    INSERT INTO test_runtests (proc_name) VALUES ('shutdown');
+END //
+
+DELIMITER ;
+
+/* Test part starts here */
+
+SELECT tap.plan(14);
+
+/* General tests on runtests() */
+
+CALL tap.runtests(DATABASE());
+
+CREATE TEMPORARY TABLE test_runtests2 LIKE test_runtests;
+INSERT INTO test_runtests2 SELECT * FROM test_runtests;
+
+SELECT tap.eq(
+    (SELECT COUNT(*) FROM test_runtests WHERE proc_name LIKE 'startup%')
+    , 1
+    , 'startup was called exactly once'
+);
+
+SET @tmp = (
+    SELECT COUNT(DISTINCT cnt)
+    FROM (
+        SELECT proc_name, COUNT(*) AS cnt
+        FROM test_runtests
+        WHERE proc_name LIKE 'setup%'
+        GROUP BY proc_name
+        ) t
+    );
+
+SELECT tap.eq(@tmp, 1, 'every setup was called equal number of times');
+
+SET @tmp = (
+    SELECT COUNT(DISTINCT cnt)
+    FROM (
+        SELECT proc_name, COUNT(*) AS cnt
+        FROM test_runtests
+        WHERE proc_name LIKE 'teardown%'
+        GROUP BY proc_name
+        ) t
+    );
+
+SELECT tap.eq(@tmp, 1, 'every teardown was called equal number of times');
+
+SELECT tap.eq(
+    (SELECT DISTINCT COUNT(DISTINCT proc_name) FROM test_runtests WHERE proc_name LIKE 'setup%' GROUP BY proc_name)
+    , (SELECT DISTINCT COUNT(*) FROM test_runtests2 WHERE proc_name LIKE 'test%' GROUP BY proc_name)
+    , 'every setup was called equal number of times as number of tests in suite'
+);
+
+SELECT tap.eq(
+    (SELECT DISTINCT COUNT(proc_name) FROM test_runtests WHERE proc_name LIKE 'test%' GROUP BY proc_name)
+    , 1
+    , 'every test was called equal number of times as number of tests in suite'
+);
+
+SELECT tap.eq(
+    (SELECT DISTINCT COUNT(DISTINCT proc_name) FROM test_runtests WHERE proc_name LIKE 'teardown%' GROUP BY proc_name)
+    , (SELECT DISTINCT COUNT(*) FROM test_runtests2 WHERE proc_name LIKE 'test%' GROUP BY proc_name)
+    , 'every teardown was called equal number of times as number of tests in suite'
+);
+
+SELECT tap.eq(
+    (SELECT COUNT(*) FROM test_runtests WHERE proc_name LIKE 'shutdown%')
+    , 1
+    , 'shutdown was called exactly once'
+);
+
+SELECT tap.eq(
+    (SELECT COUNT(*) FROM test_runtests WHERE proc_name LIKE 'shutdown%')
+    , 1
+    , 'shutdown was called exactly once'
+);
+
+SELECT tap.eq(
+    (SELECT DISTINCT t2.proc_name
+    FROM
+        test_runtests AS t1
+        JOIN test_runtests2 as t2 on t1.id = t2.id - 1
+    WHERE
+        t1.proc_name = 'setup')
+    , 'setup_2'
+    , 'setup was called before setup_2');
+
+SELECT tap.eq(
+    (SELECT DISTINCT t2.proc_name
+    FROM
+        test_runtests AS t1
+        JOIN test_runtests2 AS t2 ON t1.id = t2.id - 1
+    WHERE
+        t1.proc_name = 'setup_2')
+    , 'setup_3'
+    , 'setup_2 was called before setup_3');
+
+SELECT tap.eq(
+    (SELECT DISTINCT t2.proc_name
+    FROM
+        test_runtests AS t1
+        JOIN test_runtests2 AS t2 ON t1.id = t2.id - 1
+    WHERE
+        t1.proc_name = 'teardown')
+    , 'teardown_2'
+    , 'teardown was called before teardown_2');
+
+SET @tmp = (
+    SELECT count(*)
+    FROM
+        INFORMATION_SCHEMA.ROUTINES AS isr
+        LEFT JOIN test_runtests AS tr ON isr.ROUTINE_NAME = tr.proc_name
+    WHERE
+        ROUTINE_TYPE = 'PROCEDURE'
+        AND ROUTINE_SCHEMA = DATABASE()
+        AND ROUTINE_NAME LIKE 'test%'
+        AND tr.proc_name IS NULL);
+
+SELECT tap.eq(
+    @tmp
+    , 0
+    , 'no test was missed');
+
+/* Test on running tests in random order */
+
+DROP TEMPORARY TABLE test_runtests;
+DROP TEMPORARY TABLE test_runtests2;
+
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+CREATE TEMPORARY TABLE test_runtests2 LIKE base__test_runtests;
+
+CALL tap.runtests_random(DATABASE());
+
+INSERT INTO test_runtests2 SELECT * FROM test_runtests;
+
+DROP TEMPORARY TABLE test_runtests;
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+
+CALL tap.runtests_random(DATABASE());
+
+SELECT tap.ok((
+    SELECT COALESCE(COUNT(*), 0) > 0
+    FROM
+        test_runtests AS t1
+        JOIN test_runtests2 AS t2 USING (proc_name)
+    WHERE
+        proc_name LIKE 'test%'
+        AND t1.id <> t2.id
+    ), 'Tests were called in random order');
+
+/* Test on running tests twice with same random seed */
+
+DROP TEMPORARY TABLE test_runtests;
+DROP TEMPORARY TABLE test_runtests2;
+
+SET @random_seed = FLOOR(RAND() * POW(2, 32));
+
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+CALL tap.runtests_random_with_seed(DATABASE(), @random_seed);
+
+CREATE TEMPORARY TABLE test_runtests2 LIKE base__test_runtests;
+INSERT INTO test_runtests2 SELECT * FROM test_runtests;
+DROP TEMPORARY TABLE test_runtests;
+CREATE TEMPORARY TABLE test_runtests LIKE base__test_runtests;
+
+CALL tap.runtests_random_with_seed(DATABASE(), @random_seed);
+
+SELECT tap.ok((
+    SELECT COALESCE(COUNT(*), 1) = 0
+    FROM
+        test_runtests AS t1
+        LEFT JOIN test_runtests2 AS t2 USING (proc_name, id)
+    WHERE
+        proc_name LIKE 'test%'
+        AND t2.id IS NULL
+    ), 'Seed determines order in which tests are performed');
+
+
+CALL tap.finish();
+
+DROP DATABASE taptest;
+
