@@ -392,7 +392,7 @@ BEGIN
         ' does not exist')));
   END IF;
 
-  RETURN ok(NOT _col_has_non_unique_index(sname, tname, cname), descriptio);
+  RETURN ok(NOT _col_has_non_unique_index(sname, tname, cname), description);
 END //
 
 /****************************************************************************/
