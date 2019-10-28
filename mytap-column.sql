@@ -688,7 +688,10 @@ BEGIN
   WHERE `table_schema` = sname
   AND `table_name` = tname
   AND `column_name` = cname
-  AND `column_default` IS NOT NULL;
+  AND CASE tap.mysql_variant()
+    WHEN 'MariaDB' THEN `column_default` <> 'NULL'
+    ELSE `column_default` IS NOT NULL
+  END;
 
   RETURN coalesce(ret, 0);
 END //
