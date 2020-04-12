@@ -151,3 +151,4 @@ Copyright (c) 2010 David E. Wheeler, Helma van der Linden. Some rights reserved.
 
 The full license is available in a separate LICENSE file.
 
+minor change to test GitHub connection
