@@ -26,7 +26,7 @@ BEGIN
   DECLARE ret BOOLEAN;
 
   SELECT 1 INTO ret
-  FROM `mysql`.`user`
+  FROM tap.mysql__user
   WHERE `host` = hname
   AND `user` = uname
   AND `password_expired` <> 'Y'
@@ -89,7 +89,7 @@ BEGIN
   DECLARE ret BOOLEAN;
 
   SELECT 1 INTO ret
-  FROM `mysql`.`user`
+  FROM tap.mysql__user
   WHERE `Host` = hname
   AND `User` = uname
   AND `password_lifetime` IS NOT NULL AND `password_lifetime` != 0;

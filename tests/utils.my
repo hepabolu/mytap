@@ -36,7 +36,11 @@ SELECT tap.eq(
 -- Test mysql_version().
 SELECT tap.matches(
     tap.mysql_version(),
-    '^[58][[:digit:]]{5}$',
+    CASE tap.mysql_variant()
+        WHEN 'MariaDB' THEN '^10[[:digit:]]{5}$'
+        /* WHEN 'Percona' THEN ... */
+        ELSE '^[58][[:digit:]]{5}$' /* MySQL */
+     END,
     'mysql_version() should be correct'
 );
 
