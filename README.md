@@ -8,8 +8,8 @@
 MyTAP 1.0
 ==========
 
-MyTAP is a unit testing framework for MySQL 5.x written using fuctions and
-procedures. It includes a collection of TAP-emitting assertion functions, as
+MyTAP is a unit testing framework for MySQL 5.x written using functions and
+procedures. It includes a collection of [Test Anything Protocol (TAP)][TAP] emitting assertion functions, as
 well as the ability to integrate with other TAP-emitting test frameworks.
 
 Installation
@@ -64,7 +64,7 @@ your Aurora instance and setting this variable in Edit Parameters within the AWS
 console. Full instructions on a workaround can be found in this answer on Stack
 Overflow.
 
-https://stackoverflow.com/a/30874794/5870171
+[https://stackoverflow.com/a/30874794/5870171](https://stackoverflow.com/a/30874794/5870171)
 
 This same issue will cause some errors in running the current version of the test
 scripts for VIEWS and PRIVILEGS which rely on SUPER privilege to define suitable
@@ -89,7 +89,7 @@ Here's an example of how to write a MyTAP test script:
     CALL tap.finish();
     ROLLBACK;
 
-Note how the TAP test functions are reference from another database so as to
+Note how the TAP test functions are referenced from another database so as to
 keep them separate from your application database.
 
 Now you're ready to run your test script!
@@ -122,7 +122,7 @@ More information on the use of MyTAP can be found in the [documentation](https:/
 
 To Do
 -----
-* Port lot of other assertion functions from [pgTAP](http://pgtap.org/).
+* Port a lot of other assertion functions from [pgTAP](http://pgtap.org/).
 
 Public Repository
 -----------------
@@ -151,4 +151,4 @@ Copyright (c) 2010 David E. Wheeler, Helma van der Linden. Some rights reserved.
 
 The full license is available in a separate LICENSE file.
 
-minor change to test GitHub connection
+[TAP]: http://testanything.org
